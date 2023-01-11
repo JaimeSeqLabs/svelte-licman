@@ -1,4 +1,4 @@
-import "./app.postcss";
+import "./app.postcss"; // tailwind
 import App from "./App.svelte";
 
 const app = new App({
