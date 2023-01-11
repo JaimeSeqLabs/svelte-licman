@@ -1,6 +1,6 @@
 <script lang="ts">
+  import { Router } from "@roxi/routify";
+  import { routes } from "../.routify/routes";
 </script>
 
-<main>
-  <h1>License Manager</h1>
-</main>
+<Router {routes}/>
