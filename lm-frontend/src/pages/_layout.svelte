@@ -4,8 +4,9 @@
 
     let navRoutes = [
         { text: "licenses", href: "/licenses"},
-        { text: "products", href: "/products"},
         { text: "organizations", href: "/organizations"},
+        { text: "products", href: "/products"},
+        { text: "decoder", href: "/decoder"},
         { text: "quotas", href: "/quotas"}
     ]
 
