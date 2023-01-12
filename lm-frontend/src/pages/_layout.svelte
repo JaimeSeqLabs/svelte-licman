@@ -1,6 +1,16 @@
 <script lang="ts">
-    import { Header, HeaderNav, HeaderNavItem, Content } from "carbon-components-svelte";
+    import { UserAvatarFilledAlt } from "carbon-icons-svelte";
     import { isActive } from "@roxi/routify";
+    import { 
+        Header, 
+        Content, 
+        HeaderNav, 
+        HeaderNavItem, 
+        HeaderUtilities, 
+        HeaderAction, 
+        HeaderPanelLink, 
+        HeaderPanelLinks 
+    } from "carbon-components-svelte";
 
     let navRoutes = [
         { text: "licenses", href: "/licenses"},
@@ -22,6 +32,18 @@
             <HeaderNavItem {...item} isSelected={$isActive(item.href)}></HeaderNavItem>
         {/each}
     </HeaderNav>
+
+    <HeaderUtilities>
+        <HeaderAction
+            icon={UserAvatarFilledAlt}
+            closeIcon={UserAvatarFilledAlt}
+        >
+            <HeaderPanelLinks>
+                <HeaderPanelLink>Logout</HeaderPanelLink>
+            </HeaderPanelLinks>
+        </HeaderAction>
+    </HeaderUtilities>
+
 </Header>
 
 <Content>
