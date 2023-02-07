@@ -35,5 +35,5 @@
 
 <ButtonSet>
     <Button kind="secondary">Cancel</Button>
-    <Button kind="primary" on:click={onSubmit}>Submit</Button>
+    <Button kind="primary" on:click={onSubmit}>Save</Button>
 </ButtonSet>
