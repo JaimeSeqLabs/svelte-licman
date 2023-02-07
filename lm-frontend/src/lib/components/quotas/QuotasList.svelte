@@ -16,11 +16,14 @@
         { id: "maxWspPerOrg", default: 15, lastUpdate: now }
     ]
 
+    export let onCreateButton = () => {}
+
 </script>
 
 <InventoryList
     title="Quota Management"
     addButtonText="New Quota"
+    on:new={onCreateButton}
     {headers}
     {rows}
     let:cell
