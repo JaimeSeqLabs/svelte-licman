@@ -14,12 +14,14 @@
         { id: "XPACX-AZRE", product: "Azure xpack-plugin" }
     ]
 
+    export let onCreateButton = () => {}
 
 </script>
 
 <InventoryList
     title="Product Management"
     addButtonText="New Product"
+    on:new={onCreateButton}
     {headers}
     {rows}
     let:cell
