@@ -11,6 +11,7 @@
     } from "carbon-components-svelte";
     import { AddAlt } from "carbon-icons-svelte";
     import type { DataTableHeader, DataTableRow } from "carbon-components-svelte/types/DataTable/DataTable.svelte";
+    import { createEventDispatcher } from "svelte";
 
     export let title: string
     export let addButtonText: string = "New"
@@ -21,6 +22,11 @@
     export let page = 1
     export let pageSize = 10
     export let pageSizes: number[] = [5, 10, 15]
+
+    const dispatch = createEventDispatcher()
+
+    let dispatchCreateEvent = () => dispatch("new")
+
 
 </script>
 
@@ -36,7 +42,7 @@
         <ToolbarContent>
             <ToolbarSearch class="mr-3" persistent/>
             <Toggle class="mr-32" size="sm" labelA="Show archived" labelB="Show archived"/>
-            <Button icon={AddAlt}>{addButtonText}</Button>
+            <Button icon={AddAlt} on:click={dispatchCreateEvent}>{addButtonText}</Button>
         </ToolbarContent>
     </Toolbar>
 
