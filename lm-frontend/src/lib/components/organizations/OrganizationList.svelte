@@ -16,12 +16,14 @@
         { id: 2, org: "SeqeraLabs", country: "Spain", contact: "Boss", mail: "licenses@seqera.io", licenses: 2000 }
     ]
 
+    export let onCreateButton = () => {}
 
 </script>
 
 <InventoryList
     title="Organization Management"
     addButtonText="New Organization"
+    on:new={onCreateButton}
     {headers}
     {rows}
     let:cell
