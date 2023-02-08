@@ -19,11 +19,14 @@
         { id: "002", org: "Seqera Labs", activation: now, expiration: now, active: false }
     ]
 
+    export let onCreateButton = () => {}
+
 </script>
 
 <InventoryList
     title="License Manager"
     addButtonText="New License"
+    on:new={onCreateButton}
     {headers}
     {rows}
     let:cell
