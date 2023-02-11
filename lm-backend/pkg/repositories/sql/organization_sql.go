@@ -142,9 +142,9 @@ type OrganizationSQLDTO struct {
 
 func (dto *OrganizationSQLDTO) ToEntity() domain.Organization {
 	return domain.Organization{
-		Name:     dto.Name,
-		Location: dto.Location,
-		Contact:  fmt.Sprintf("%s, %s", dto.ContactName, dto.ContactMail),
+		Name:      dto.Name,
+		Location:  dto.Location,
+		ContactID: fmt.Sprintf("%s, %s", dto.ContactName, dto.ContactMail),
 	}
 }
 
@@ -152,7 +152,7 @@ func (dto *OrganizationSQLDTO) FromEntity(entity domain.Organization) {
 	dto.ID = -1
 	dto.Name = entity.Name
 	dto.Location = entity.Location
-	dto.ContactName, dto.ContactMail = parseContact(entity.Contact)
+	dto.ContactName, dto.ContactMail = parseContact(entity.ContactID)
 }
 
 func parseContact(s string) (name, mail string) {
