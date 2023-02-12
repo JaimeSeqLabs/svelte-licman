@@ -272,6 +272,22 @@ func (c *ClaimsClient) GetX(ctx context.Context, id int) *Claims {
 	return obj
 }
 
+// QueryClaimer queries the claimer edge of a Claims.
+func (c *ClaimsClient) QueryClaimer(cl *Claims) *CredentialsQuery {
+	query := (&CredentialsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := cl.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(claims.Table, claims.FieldID, id),
+			sqlgraph.To(credentials.Table, credentials.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, claims.ClaimerTable, claims.ClaimerColumn),
+		)
+		fromV = sqlgraph.Neighbors(cl.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ClaimsClient) Hooks() []Hook {
 	return c.hooks.Claims
@@ -516,7 +532,7 @@ func (c *CredentialsClient) QueryClaims(cr *Credentials) *ClaimsQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(credentials.Table, credentials.FieldID, id),
 			sqlgraph.To(claims.Table, claims.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, credentials.ClaimsTable, credentials.ClaimsColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, credentials.ClaimsTable, credentials.ClaimsColumn),
 		)
 		fromV = sqlgraph.Neighbors(cr.driver.Dialect(), step)
 		return fromV, nil

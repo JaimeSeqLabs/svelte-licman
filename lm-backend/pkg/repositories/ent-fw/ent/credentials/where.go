@@ -59,11 +59,6 @@ func Username(v string) predicate.Credentials {
 	return predicate.Credentials(sql.FieldEQ(FieldUsername, v))
 }
 
-// Mail applies equality check predicate on the "mail" field. It's identical to MailEQ.
-func Mail(v string) predicate.Credentials {
-	return predicate.Credentials(sql.FieldEQ(FieldMail, v))
-}
-
 // PasswordHash applies equality check predicate on the "password_hash" field. It's identical to PasswordHashEQ.
 func PasswordHash(v string) predicate.Credentials {
 	return predicate.Credentials(sql.FieldEQ(FieldPasswordHash, v))
@@ -132,71 +127,6 @@ func UsernameEqualFold(v string) predicate.Credentials {
 // UsernameContainsFold applies the ContainsFold predicate on the "username" field.
 func UsernameContainsFold(v string) predicate.Credentials {
 	return predicate.Credentials(sql.FieldContainsFold(FieldUsername, v))
-}
-
-// MailEQ applies the EQ predicate on the "mail" field.
-func MailEQ(v string) predicate.Credentials {
-	return predicate.Credentials(sql.FieldEQ(FieldMail, v))
-}
-
-// MailNEQ applies the NEQ predicate on the "mail" field.
-func MailNEQ(v string) predicate.Credentials {
-	return predicate.Credentials(sql.FieldNEQ(FieldMail, v))
-}
-
-// MailIn applies the In predicate on the "mail" field.
-func MailIn(vs ...string) predicate.Credentials {
-	return predicate.Credentials(sql.FieldIn(FieldMail, vs...))
-}
-
-// MailNotIn applies the NotIn predicate on the "mail" field.
-func MailNotIn(vs ...string) predicate.Credentials {
-	return predicate.Credentials(sql.FieldNotIn(FieldMail, vs...))
-}
-
-// MailGT applies the GT predicate on the "mail" field.
-func MailGT(v string) predicate.Credentials {
-	return predicate.Credentials(sql.FieldGT(FieldMail, v))
-}
-
-// MailGTE applies the GTE predicate on the "mail" field.
-func MailGTE(v string) predicate.Credentials {
-	return predicate.Credentials(sql.FieldGTE(FieldMail, v))
-}
-
-// MailLT applies the LT predicate on the "mail" field.
-func MailLT(v string) predicate.Credentials {
-	return predicate.Credentials(sql.FieldLT(FieldMail, v))
-}
-
-// MailLTE applies the LTE predicate on the "mail" field.
-func MailLTE(v string) predicate.Credentials {
-	return predicate.Credentials(sql.FieldLTE(FieldMail, v))
-}
-
-// MailContains applies the Contains predicate on the "mail" field.
-func MailContains(v string) predicate.Credentials {
-	return predicate.Credentials(sql.FieldContains(FieldMail, v))
-}
-
-// MailHasPrefix applies the HasPrefix predicate on the "mail" field.
-func MailHasPrefix(v string) predicate.Credentials {
-	return predicate.Credentials(sql.FieldHasPrefix(FieldMail, v))
-}
-
-// MailHasSuffix applies the HasSuffix predicate on the "mail" field.
-func MailHasSuffix(v string) predicate.Credentials {
-	return predicate.Credentials(sql.FieldHasSuffix(FieldMail, v))
-}
-
-// MailEqualFold applies the EqualFold predicate on the "mail" field.
-func MailEqualFold(v string) predicate.Credentials {
-	return predicate.Credentials(sql.FieldEqualFold(FieldMail, v))
-}
-
-// MailContainsFold applies the ContainsFold predicate on the "mail" field.
-func MailContainsFold(v string) predicate.Credentials {
-	return predicate.Credentials(sql.FieldContainsFold(FieldMail, v))
 }
 
 // PasswordHashEQ applies the EQ predicate on the "password_hash" field.
@@ -269,7 +199,7 @@ func HasClaims() predicate.Credentials {
 	return predicate.Credentials(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ClaimsTable, ClaimsColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, ClaimsTable, ClaimsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -281,7 +211,7 @@ func HasClaimsWith(preds ...predicate.Claims) predicate.Credentials {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ClaimsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ClaimsTable, ClaimsColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, ClaimsTable, ClaimsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

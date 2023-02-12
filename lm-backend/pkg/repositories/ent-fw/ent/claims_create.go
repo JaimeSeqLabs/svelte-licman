@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"license-manager/pkg/repositories/ent-fw/ent/claims"
+	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -19,10 +20,35 @@ type ClaimsCreate struct {
 	hooks    []Hook
 }
 
-// SetValues sets the "values" field.
-func (cc *ClaimsCreate) SetValues(s string) *ClaimsCreate {
-	cc.mutation.SetValues(s)
+// SetKey sets the "key" field.
+func (cc *ClaimsCreate) SetKey(s string) *ClaimsCreate {
+	cc.mutation.SetKey(s)
 	return cc
+}
+
+// SetValue sets the "value" field.
+func (cc *ClaimsCreate) SetValue(s string) *ClaimsCreate {
+	cc.mutation.SetValue(s)
+	return cc
+}
+
+// SetClaimerID sets the "claimer" edge to the Credentials entity by ID.
+func (cc *ClaimsCreate) SetClaimerID(id int) *ClaimsCreate {
+	cc.mutation.SetClaimerID(id)
+	return cc
+}
+
+// SetNillableClaimerID sets the "claimer" edge to the Credentials entity by ID if the given value is not nil.
+func (cc *ClaimsCreate) SetNillableClaimerID(id *int) *ClaimsCreate {
+	if id != nil {
+		cc = cc.SetClaimerID(*id)
+	}
+	return cc
+}
+
+// SetClaimer sets the "claimer" edge to the Credentials entity.
+func (cc *ClaimsCreate) SetClaimer(c *Credentials) *ClaimsCreate {
+	return cc.SetClaimerID(c.ID)
 }
 
 // Mutation returns the ClaimsMutation object of the builder.
@@ -59,12 +85,20 @@ func (cc *ClaimsCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (cc *ClaimsCreate) check() error {
-	if _, ok := cc.mutation.Values(); !ok {
-		return &ValidationError{Name: "values", err: errors.New(`ent: missing required field "Claims.values"`)}
+	if _, ok := cc.mutation.Key(); !ok {
+		return &ValidationError{Name: "key", err: errors.New(`ent: missing required field "Claims.key"`)}
 	}
-	if v, ok := cc.mutation.Values(); ok {
-		if err := claims.ValuesValidator(v); err != nil {
-			return &ValidationError{Name: "values", err: fmt.Errorf(`ent: validator failed for field "Claims.values": %w`, err)}
+	if v, ok := cc.mutation.Key(); ok {
+		if err := claims.KeyValidator(v); err != nil {
+			return &ValidationError{Name: "key", err: fmt.Errorf(`ent: validator failed for field "Claims.key": %w`, err)}
+		}
+	}
+	if _, ok := cc.mutation.Value(); !ok {
+		return &ValidationError{Name: "value", err: errors.New(`ent: missing required field "Claims.value"`)}
+	}
+	if v, ok := cc.mutation.Value(); ok {
+		if err := claims.ValueValidator(v); err != nil {
+			return &ValidationError{Name: "value", err: fmt.Errorf(`ent: validator failed for field "Claims.value": %w`, err)}
 		}
 	}
 	return nil
@@ -99,9 +133,33 @@ func (cc *ClaimsCreate) createSpec() (*Claims, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
-	if value, ok := cc.mutation.Values(); ok {
-		_spec.SetField(claims.FieldValues, field.TypeString, value)
-		_node.Values = value
+	if value, ok := cc.mutation.Key(); ok {
+		_spec.SetField(claims.FieldKey, field.TypeString, value)
+		_node.Key = value
+	}
+	if value, ok := cc.mutation.Value(); ok {
+		_spec.SetField(claims.FieldValue, field.TypeString, value)
+		_node.Value = value
+	}
+	if nodes := cc.mutation.ClaimerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   claims.ClaimerTable,
+			Columns: []string{claims.ClaimerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: credentials.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.credentials_claims = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

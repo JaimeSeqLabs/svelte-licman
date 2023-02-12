@@ -9,8 +9,6 @@ const (
 	FieldID = "id"
 	// FieldUsername holds the string denoting the username field in the database.
 	FieldUsername = "username"
-	// FieldMail holds the string denoting the mail field in the database.
-	FieldMail = "mail"
 	// FieldPasswordHash holds the string denoting the password_hash field in the database.
 	FieldPasswordHash = "password_hash"
 	// EdgeClaims holds the string denoting the claims edge name in mutations.
@@ -30,7 +28,6 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldUsername,
-	FieldMail,
 	FieldPasswordHash,
 }
 
@@ -47,8 +44,6 @@ func ValidColumn(column string) bool {
 var (
 	// UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	UsernameValidator func(string) error
-	// MailValidator is a validator for the "mail" field. It is called by the builders before save.
-	MailValidator func(string) error
 	// PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
 	PasswordHashValidator func(string) error
 )

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"license-manager/pkg/repositories/ent-fw/ent/claims"
+	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
@@ -27,15 +28,46 @@ func (cu *ClaimsUpdate) Where(ps ...predicate.Claims) *ClaimsUpdate {
 	return cu
 }
 
-// SetValues sets the "values" field.
-func (cu *ClaimsUpdate) SetValues(s string) *ClaimsUpdate {
-	cu.mutation.SetValues(s)
+// SetKey sets the "key" field.
+func (cu *ClaimsUpdate) SetKey(s string) *ClaimsUpdate {
+	cu.mutation.SetKey(s)
 	return cu
+}
+
+// SetValue sets the "value" field.
+func (cu *ClaimsUpdate) SetValue(s string) *ClaimsUpdate {
+	cu.mutation.SetValue(s)
+	return cu
+}
+
+// SetClaimerID sets the "claimer" edge to the Credentials entity by ID.
+func (cu *ClaimsUpdate) SetClaimerID(id int) *ClaimsUpdate {
+	cu.mutation.SetClaimerID(id)
+	return cu
+}
+
+// SetNillableClaimerID sets the "claimer" edge to the Credentials entity by ID if the given value is not nil.
+func (cu *ClaimsUpdate) SetNillableClaimerID(id *int) *ClaimsUpdate {
+	if id != nil {
+		cu = cu.SetClaimerID(*id)
+	}
+	return cu
+}
+
+// SetClaimer sets the "claimer" edge to the Credentials entity.
+func (cu *ClaimsUpdate) SetClaimer(c *Credentials) *ClaimsUpdate {
+	return cu.SetClaimerID(c.ID)
 }
 
 // Mutation returns the ClaimsMutation object of the builder.
 func (cu *ClaimsUpdate) Mutation() *ClaimsMutation {
 	return cu.mutation
+}
+
+// ClearClaimer clears the "claimer" edge to the Credentials entity.
+func (cu *ClaimsUpdate) ClearClaimer() *ClaimsUpdate {
+	cu.mutation.ClearClaimer()
+	return cu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -67,9 +99,14 @@ func (cu *ClaimsUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (cu *ClaimsUpdate) check() error {
-	if v, ok := cu.mutation.Values(); ok {
-		if err := claims.ValuesValidator(v); err != nil {
-			return &ValidationError{Name: "values", err: fmt.Errorf(`ent: validator failed for field "Claims.values": %w`, err)}
+	if v, ok := cu.mutation.Key(); ok {
+		if err := claims.KeyValidator(v); err != nil {
+			return &ValidationError{Name: "key", err: fmt.Errorf(`ent: validator failed for field "Claims.key": %w`, err)}
+		}
+	}
+	if v, ok := cu.mutation.Value(); ok {
+		if err := claims.ValueValidator(v); err != nil {
+			return &ValidationError{Name: "value", err: fmt.Errorf(`ent: validator failed for field "Claims.value": %w`, err)}
 		}
 	}
 	return nil
@@ -96,8 +133,46 @@ func (cu *ClaimsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := cu.mutation.Values(); ok {
-		_spec.SetField(claims.FieldValues, field.TypeString, value)
+	if value, ok := cu.mutation.Key(); ok {
+		_spec.SetField(claims.FieldKey, field.TypeString, value)
+	}
+	if value, ok := cu.mutation.Value(); ok {
+		_spec.SetField(claims.FieldValue, field.TypeString, value)
+	}
+	if cu.mutation.ClaimerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   claims.ClaimerTable,
+			Columns: []string{claims.ClaimerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: credentials.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.ClaimerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   claims.ClaimerTable,
+			Columns: []string{claims.ClaimerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: credentials.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -119,15 +194,46 @@ type ClaimsUpdateOne struct {
 	mutation *ClaimsMutation
 }
 
-// SetValues sets the "values" field.
-func (cuo *ClaimsUpdateOne) SetValues(s string) *ClaimsUpdateOne {
-	cuo.mutation.SetValues(s)
+// SetKey sets the "key" field.
+func (cuo *ClaimsUpdateOne) SetKey(s string) *ClaimsUpdateOne {
+	cuo.mutation.SetKey(s)
 	return cuo
+}
+
+// SetValue sets the "value" field.
+func (cuo *ClaimsUpdateOne) SetValue(s string) *ClaimsUpdateOne {
+	cuo.mutation.SetValue(s)
+	return cuo
+}
+
+// SetClaimerID sets the "claimer" edge to the Credentials entity by ID.
+func (cuo *ClaimsUpdateOne) SetClaimerID(id int) *ClaimsUpdateOne {
+	cuo.mutation.SetClaimerID(id)
+	return cuo
+}
+
+// SetNillableClaimerID sets the "claimer" edge to the Credentials entity by ID if the given value is not nil.
+func (cuo *ClaimsUpdateOne) SetNillableClaimerID(id *int) *ClaimsUpdateOne {
+	if id != nil {
+		cuo = cuo.SetClaimerID(*id)
+	}
+	return cuo
+}
+
+// SetClaimer sets the "claimer" edge to the Credentials entity.
+func (cuo *ClaimsUpdateOne) SetClaimer(c *Credentials) *ClaimsUpdateOne {
+	return cuo.SetClaimerID(c.ID)
 }
 
 // Mutation returns the ClaimsMutation object of the builder.
 func (cuo *ClaimsUpdateOne) Mutation() *ClaimsMutation {
 	return cuo.mutation
+}
+
+// ClearClaimer clears the "claimer" edge to the Credentials entity.
+func (cuo *ClaimsUpdateOne) ClearClaimer() *ClaimsUpdateOne {
+	cuo.mutation.ClearClaimer()
+	return cuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -166,9 +272,14 @@ func (cuo *ClaimsUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (cuo *ClaimsUpdateOne) check() error {
-	if v, ok := cuo.mutation.Values(); ok {
-		if err := claims.ValuesValidator(v); err != nil {
-			return &ValidationError{Name: "values", err: fmt.Errorf(`ent: validator failed for field "Claims.values": %w`, err)}
+	if v, ok := cuo.mutation.Key(); ok {
+		if err := claims.KeyValidator(v); err != nil {
+			return &ValidationError{Name: "key", err: fmt.Errorf(`ent: validator failed for field "Claims.key": %w`, err)}
+		}
+	}
+	if v, ok := cuo.mutation.Value(); ok {
+		if err := claims.ValueValidator(v); err != nil {
+			return &ValidationError{Name: "value", err: fmt.Errorf(`ent: validator failed for field "Claims.value": %w`, err)}
 		}
 	}
 	return nil
@@ -212,8 +323,46 @@ func (cuo *ClaimsUpdateOne) sqlSave(ctx context.Context) (_node *Claims, err err
 			}
 		}
 	}
-	if value, ok := cuo.mutation.Values(); ok {
-		_spec.SetField(claims.FieldValues, field.TypeString, value)
+	if value, ok := cuo.mutation.Key(); ok {
+		_spec.SetField(claims.FieldKey, field.TypeString, value)
+	}
+	if value, ok := cuo.mutation.Value(); ok {
+		_spec.SetField(claims.FieldValue, field.TypeString, value)
+	}
+	if cuo.mutation.ClaimerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   claims.ClaimerTable,
+			Columns: []string{claims.ClaimerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: credentials.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.ClaimerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   claims.ClaimerTable,
+			Columns: []string{claims.ClaimerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: credentials.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Claims{config: cuo.config}
 	_spec.Assign = _node.assignValues

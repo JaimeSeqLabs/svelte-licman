@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"license-manager/pkg/repositories/ent-fw/ent/claims"
+	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
@@ -15,10 +16,37 @@ type Claims struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// Values holds the value of the "values" field.
-	Values             string `json:"values,omitempty"`
+	// Key holds the value of the "key" field.
+	Key string `json:"key,omitempty"`
+	// Value holds the value of the "value" field.
+	Value string `json:"value,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ClaimsQuery when eager-loading is set.
+	Edges              ClaimsEdges `json:"edges"`
 	credentials_claims *int
 	jwt_token_claims   *int
+}
+
+// ClaimsEdges holds the relations/edges for other nodes in the graph.
+type ClaimsEdges struct {
+	// Claimer holds the value of the claimer edge.
+	Claimer *Credentials `json:"claimer,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// ClaimerOrErr returns the Claimer value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ClaimsEdges) ClaimerOrErr() (*Credentials, error) {
+	if e.loadedTypes[0] {
+		if e.Claimer == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: credentials.Label}
+		}
+		return e.Claimer, nil
+	}
+	return nil, &NotLoadedError{edge: "claimer"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -28,7 +56,7 @@ func (*Claims) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case claims.FieldID:
 			values[i] = new(sql.NullInt64)
-		case claims.FieldValues:
+		case claims.FieldKey, claims.FieldValue:
 			values[i] = new(sql.NullString)
 		case claims.ForeignKeys[0]: // credentials_claims
 			values[i] = new(sql.NullInt64)
@@ -55,11 +83,17 @@ func (c *Claims) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			c.ID = int(value.Int64)
-		case claims.FieldValues:
+		case claims.FieldKey:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field values", values[i])
+				return fmt.Errorf("unexpected type %T for field key", values[i])
 			} else if value.Valid {
-				c.Values = value.String
+				c.Key = value.String
+			}
+		case claims.FieldValue:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field value", values[i])
+			} else if value.Valid {
+				c.Value = value.String
 			}
 		case claims.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -78,6 +112,11 @@ func (c *Claims) assignValues(columns []string, values []any) error {
 		}
 	}
 	return nil
+}
+
+// QueryClaimer queries the "claimer" edge of the Claims entity.
+func (c *Claims) QueryClaimer() *CredentialsQuery {
+	return NewClaimsClient(c.config).QueryClaimer(c)
 }
 
 // Update returns a builder for updating this Claims.
@@ -103,8 +142,11 @@ func (c *Claims) String() string {
 	var builder strings.Builder
 	builder.WriteString("Claims(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", c.ID))
-	builder.WriteString("values=")
-	builder.WriteString(c.Values)
+	builder.WriteString("key=")
+	builder.WriteString(c.Key)
+	builder.WriteString(", ")
+	builder.WriteString("value=")
+	builder.WriteString(c.Value)
 	builder.WriteByte(')')
 	return builder.String()
 }

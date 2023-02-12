@@ -74,7 +74,7 @@ func (cq *CredentialsQuery) QueryClaims() *ClaimsQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(credentials.Table, credentials.FieldID, selector),
 			sqlgraph.To(claims.Table, claims.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, credentials.ClaimsTable, credentials.ClaimsColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, credentials.ClaimsTable, credentials.ClaimsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -391,9 +391,8 @@ func (cq *CredentialsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		return nodes, nil
 	}
 	if query := cq.withClaims; query != nil {
-		if err := cq.loadClaims(ctx, query, nodes,
-			func(n *Credentials) { n.Edges.Claims = []*Claims{} },
-			func(n *Credentials, e *Claims) { n.Edges.Claims = append(n.Edges.Claims, e) }); err != nil {
+		if err := cq.loadClaims(ctx, query, nodes, nil,
+			func(n *Credentials, e *Claims) { n.Edges.Claims = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -406,9 +405,6 @@ func (cq *CredentialsQuery) loadClaims(ctx context.Context, query *ClaimsQuery, 
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
 	}
 	query.withFKs = true
 	query.Where(predicate.Claims(func(s *sql.Selector) {

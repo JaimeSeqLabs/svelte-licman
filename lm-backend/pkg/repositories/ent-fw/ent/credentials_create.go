@@ -26,31 +26,29 @@ func (cc *CredentialsCreate) SetUsername(s string) *CredentialsCreate {
 	return cc
 }
 
-// SetMail sets the "mail" field.
-func (cc *CredentialsCreate) SetMail(s string) *CredentialsCreate {
-	cc.mutation.SetMail(s)
-	return cc
-}
-
 // SetPasswordHash sets the "password_hash" field.
 func (cc *CredentialsCreate) SetPasswordHash(s string) *CredentialsCreate {
 	cc.mutation.SetPasswordHash(s)
 	return cc
 }
 
-// AddClaimIDs adds the "claims" edge to the Claims entity by IDs.
-func (cc *CredentialsCreate) AddClaimIDs(ids ...int) *CredentialsCreate {
-	cc.mutation.AddClaimIDs(ids...)
+// SetClaimsID sets the "claims" edge to the Claims entity by ID.
+func (cc *CredentialsCreate) SetClaimsID(id int) *CredentialsCreate {
+	cc.mutation.SetClaimsID(id)
 	return cc
 }
 
-// AddClaims adds the "claims" edges to the Claims entity.
-func (cc *CredentialsCreate) AddClaims(c ...*Claims) *CredentialsCreate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
+// SetNillableClaimsID sets the "claims" edge to the Claims entity by ID if the given value is not nil.
+func (cc *CredentialsCreate) SetNillableClaimsID(id *int) *CredentialsCreate {
+	if id != nil {
+		cc = cc.SetClaimsID(*id)
 	}
-	return cc.AddClaimIDs(ids...)
+	return cc
+}
+
+// SetClaims sets the "claims" edge to the Claims entity.
+func (cc *CredentialsCreate) SetClaims(c *Claims) *CredentialsCreate {
+	return cc.SetClaimsID(c.ID)
 }
 
 // Mutation returns the CredentialsMutation object of the builder.
@@ -93,14 +91,6 @@ func (cc *CredentialsCreate) check() error {
 	if v, ok := cc.mutation.Username(); ok {
 		if err := credentials.UsernameValidator(v); err != nil {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "Credentials.username": %w`, err)}
-		}
-	}
-	if _, ok := cc.mutation.Mail(); !ok {
-		return &ValidationError{Name: "mail", err: errors.New(`ent: missing required field "Credentials.mail"`)}
-	}
-	if v, ok := cc.mutation.Mail(); ok {
-		if err := credentials.MailValidator(v); err != nil {
-			return &ValidationError{Name: "mail", err: fmt.Errorf(`ent: validator failed for field "Credentials.mail": %w`, err)}
 		}
 	}
 	if _, ok := cc.mutation.PasswordHash(); !ok {
@@ -147,17 +137,13 @@ func (cc *CredentialsCreate) createSpec() (*Credentials, *sqlgraph.CreateSpec) {
 		_spec.SetField(credentials.FieldUsername, field.TypeString, value)
 		_node.Username = value
 	}
-	if value, ok := cc.mutation.Mail(); ok {
-		_spec.SetField(credentials.FieldMail, field.TypeString, value)
-		_node.Mail = value
-	}
 	if value, ok := cc.mutation.PasswordHash(); ok {
 		_spec.SetField(credentials.FieldPasswordHash, field.TypeString, value)
 		_node.PasswordHash = value
 	}
 	if nodes := cc.mutation.ClaimsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   credentials.ClaimsTable,
 			Columns: []string{credentials.ClaimsColumn},

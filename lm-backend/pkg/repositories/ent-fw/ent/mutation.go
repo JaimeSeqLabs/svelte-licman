@@ -37,14 +37,17 @@ const (
 // ClaimsMutation represents an operation that mutates the Claims nodes in the graph.
 type ClaimsMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	values        *string
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Claims, error)
-	predicates    []predicate.Claims
+	op             Op
+	typ            string
+	id             *int
+	key            *string
+	value          *string
+	clearedFields  map[string]struct{}
+	claimer        *int
+	clearedclaimer bool
+	done           bool
+	oldValue       func(context.Context) (*Claims, error)
+	predicates     []predicate.Claims
 }
 
 var _ ent.Mutation = (*ClaimsMutation)(nil)
@@ -145,40 +148,115 @@ func (m *ClaimsMutation) IDs(ctx context.Context) ([]int, error) {
 	}
 }
 
-// SetValues sets the "values" field.
-func (m *ClaimsMutation) SetValues(s string) {
-	m.values = &s
+// SetKey sets the "key" field.
+func (m *ClaimsMutation) SetKey(s string) {
+	m.key = &s
 }
 
-// Values returns the value of the "values" field in the mutation.
-func (m *ClaimsMutation) Values() (r string, exists bool) {
-	v := m.values
+// Key returns the value of the "key" field in the mutation.
+func (m *ClaimsMutation) Key() (r string, exists bool) {
+	v := m.key
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldValues returns the old "values" field's value of the Claims entity.
+// OldKey returns the old "key" field's value of the Claims entity.
 // If the Claims object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClaimsMutation) OldValues(ctx context.Context) (v string, err error) {
+func (m *ClaimsMutation) OldKey(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldValues is only allowed on UpdateOne operations")
+		return v, errors.New("OldKey is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldValues requires an ID field in the mutation")
+		return v, errors.New("OldKey requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldValues: %w", err)
+		return v, fmt.Errorf("querying old value for OldKey: %w", err)
 	}
-	return oldValue.Values, nil
+	return oldValue.Key, nil
 }
 
-// ResetValues resets all changes to the "values" field.
-func (m *ClaimsMutation) ResetValues() {
-	m.values = nil
+// ResetKey resets all changes to the "key" field.
+func (m *ClaimsMutation) ResetKey() {
+	m.key = nil
+}
+
+// SetValue sets the "value" field.
+func (m *ClaimsMutation) SetValue(s string) {
+	m.value = &s
+}
+
+// Value returns the value of the "value" field in the mutation.
+func (m *ClaimsMutation) Value() (r string, exists bool) {
+	v := m.value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldValue returns the old "value" field's value of the Claims entity.
+// If the Claims object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ClaimsMutation) OldValue(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldValue: %w", err)
+	}
+	return oldValue.Value, nil
+}
+
+// ResetValue resets all changes to the "value" field.
+func (m *ClaimsMutation) ResetValue() {
+	m.value = nil
+}
+
+// SetClaimerID sets the "claimer" edge to the Credentials entity by id.
+func (m *ClaimsMutation) SetClaimerID(id int) {
+	m.claimer = &id
+}
+
+// ClearClaimer clears the "claimer" edge to the Credentials entity.
+func (m *ClaimsMutation) ClearClaimer() {
+	m.clearedclaimer = true
+}
+
+// ClaimerCleared reports if the "claimer" edge to the Credentials entity was cleared.
+func (m *ClaimsMutation) ClaimerCleared() bool {
+	return m.clearedclaimer
+}
+
+// ClaimerID returns the "claimer" edge ID in the mutation.
+func (m *ClaimsMutation) ClaimerID() (id int, exists bool) {
+	if m.claimer != nil {
+		return *m.claimer, true
+	}
+	return
+}
+
+// ClaimerIDs returns the "claimer" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ClaimerID instead. It exists only for internal usage by the builders.
+func (m *ClaimsMutation) ClaimerIDs() (ids []int) {
+	if id := m.claimer; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetClaimer resets all changes to the "claimer" edge.
+func (m *ClaimsMutation) ResetClaimer() {
+	m.claimer = nil
+	m.clearedclaimer = false
 }
 
 // Where appends a list predicates to the ClaimsMutation builder.
@@ -215,9 +293,12 @@ func (m *ClaimsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ClaimsMutation) Fields() []string {
-	fields := make([]string, 0, 1)
-	if m.values != nil {
-		fields = append(fields, claims.FieldValues)
+	fields := make([]string, 0, 2)
+	if m.key != nil {
+		fields = append(fields, claims.FieldKey)
+	}
+	if m.value != nil {
+		fields = append(fields, claims.FieldValue)
 	}
 	return fields
 }
@@ -227,8 +308,10 @@ func (m *ClaimsMutation) Fields() []string {
 // schema.
 func (m *ClaimsMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case claims.FieldValues:
-		return m.Values()
+	case claims.FieldKey:
+		return m.Key()
+	case claims.FieldValue:
+		return m.Value()
 	}
 	return nil, false
 }
@@ -238,8 +321,10 @@ func (m *ClaimsMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *ClaimsMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case claims.FieldValues:
-		return m.OldValues(ctx)
+	case claims.FieldKey:
+		return m.OldKey(ctx)
+	case claims.FieldValue:
+		return m.OldValue(ctx)
 	}
 	return nil, fmt.Errorf("unknown Claims field %s", name)
 }
@@ -249,12 +334,19 @@ func (m *ClaimsMutation) OldField(ctx context.Context, name string) (ent.Value, 
 // type.
 func (m *ClaimsMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case claims.FieldValues:
+	case claims.FieldKey:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetValues(v)
+		m.SetKey(v)
+		return nil
+	case claims.FieldValue:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValue(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Claims field %s", name)
@@ -305,8 +397,11 @@ func (m *ClaimsMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *ClaimsMutation) ResetField(name string) error {
 	switch name {
-	case claims.FieldValues:
-		m.ResetValues()
+	case claims.FieldKey:
+		m.ResetKey()
+		return nil
+	case claims.FieldValue:
+		m.ResetValue()
 		return nil
 	}
 	return fmt.Errorf("unknown Claims field %s", name)
@@ -314,19 +409,28 @@ func (m *ClaimsMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ClaimsMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.claimer != nil {
+		edges = append(edges, claims.EdgeClaimer)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *ClaimsMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case claims.EdgeClaimer:
+		if id := m.claimer; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ClaimsMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -338,25 +442,42 @@ func (m *ClaimsMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ClaimsMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedclaimer {
+		edges = append(edges, claims.EdgeClaimer)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *ClaimsMutation) EdgeCleared(name string) bool {
+	switch name {
+	case claims.EdgeClaimer:
+		return m.clearedclaimer
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *ClaimsMutation) ClearEdge(name string) error {
+	switch name {
+	case claims.EdgeClaimer:
+		m.ClearClaimer()
+		return nil
+	}
 	return fmt.Errorf("unknown Claims unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *ClaimsMutation) ResetEdge(name string) error {
+	switch name {
+	case claims.EdgeClaimer:
+		m.ResetClaimer()
+		return nil
+	}
 	return fmt.Errorf("unknown Claims edge %s", name)
 }
 
@@ -747,11 +868,9 @@ type CredentialsMutation struct {
 	typ           string
 	id            *int
 	username      *string
-	mail          *string
 	password_hash *string
 	clearedFields map[string]struct{}
-	claims        map[int]struct{}
-	removedclaims map[int]struct{}
+	claims        *int
 	clearedclaims bool
 	done          bool
 	oldValue      func(context.Context) (*Credentials, error)
@@ -892,42 +1011,6 @@ func (m *CredentialsMutation) ResetUsername() {
 	m.username = nil
 }
 
-// SetMail sets the "mail" field.
-func (m *CredentialsMutation) SetMail(s string) {
-	m.mail = &s
-}
-
-// Mail returns the value of the "mail" field in the mutation.
-func (m *CredentialsMutation) Mail() (r string, exists bool) {
-	v := m.mail
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldMail returns the old "mail" field's value of the Credentials entity.
-// If the Credentials object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CredentialsMutation) OldMail(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldMail is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldMail requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldMail: %w", err)
-	}
-	return oldValue.Mail, nil
-}
-
-// ResetMail resets all changes to the "mail" field.
-func (m *CredentialsMutation) ResetMail() {
-	m.mail = nil
-}
-
 // SetPasswordHash sets the "password_hash" field.
 func (m *CredentialsMutation) SetPasswordHash(s string) {
 	m.password_hash = &s
@@ -964,14 +1047,9 @@ func (m *CredentialsMutation) ResetPasswordHash() {
 	m.password_hash = nil
 }
 
-// AddClaimIDs adds the "claims" edge to the Claims entity by ids.
-func (m *CredentialsMutation) AddClaimIDs(ids ...int) {
-	if m.claims == nil {
-		m.claims = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.claims[ids[i]] = struct{}{}
-	}
+// SetClaimsID sets the "claims" edge to the Claims entity by id.
+func (m *CredentialsMutation) SetClaimsID(id int) {
+	m.claims = &id
 }
 
 // ClearClaims clears the "claims" edge to the Claims entity.
@@ -984,29 +1062,20 @@ func (m *CredentialsMutation) ClaimsCleared() bool {
 	return m.clearedclaims
 }
 
-// RemoveClaimIDs removes the "claims" edge to the Claims entity by IDs.
-func (m *CredentialsMutation) RemoveClaimIDs(ids ...int) {
-	if m.removedclaims == nil {
-		m.removedclaims = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.claims, ids[i])
-		m.removedclaims[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedClaims returns the removed IDs of the "claims" edge to the Claims entity.
-func (m *CredentialsMutation) RemovedClaimsIDs() (ids []int) {
-	for id := range m.removedclaims {
-		ids = append(ids, id)
+// ClaimsID returns the "claims" edge ID in the mutation.
+func (m *CredentialsMutation) ClaimsID() (id int, exists bool) {
+	if m.claims != nil {
+		return *m.claims, true
 	}
 	return
 }
 
 // ClaimsIDs returns the "claims" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ClaimsID instead. It exists only for internal usage by the builders.
 func (m *CredentialsMutation) ClaimsIDs() (ids []int) {
-	for id := range m.claims {
-		ids = append(ids, id)
+	if id := m.claims; id != nil {
+		ids = append(ids, *id)
 	}
 	return
 }
@@ -1015,7 +1084,6 @@ func (m *CredentialsMutation) ClaimsIDs() (ids []int) {
 func (m *CredentialsMutation) ResetClaims() {
 	m.claims = nil
 	m.clearedclaims = false
-	m.removedclaims = nil
 }
 
 // Where appends a list predicates to the CredentialsMutation builder.
@@ -1052,12 +1120,9 @@ func (m *CredentialsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CredentialsMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 2)
 	if m.username != nil {
 		fields = append(fields, credentials.FieldUsername)
-	}
-	if m.mail != nil {
-		fields = append(fields, credentials.FieldMail)
 	}
 	if m.password_hash != nil {
 		fields = append(fields, credentials.FieldPasswordHash)
@@ -1072,8 +1137,6 @@ func (m *CredentialsMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case credentials.FieldUsername:
 		return m.Username()
-	case credentials.FieldMail:
-		return m.Mail()
 	case credentials.FieldPasswordHash:
 		return m.PasswordHash()
 	}
@@ -1087,8 +1150,6 @@ func (m *CredentialsMutation) OldField(ctx context.Context, name string) (ent.Va
 	switch name {
 	case credentials.FieldUsername:
 		return m.OldUsername(ctx)
-	case credentials.FieldMail:
-		return m.OldMail(ctx)
 	case credentials.FieldPasswordHash:
 		return m.OldPasswordHash(ctx)
 	}
@@ -1106,13 +1167,6 @@ func (m *CredentialsMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUsername(v)
-		return nil
-	case credentials.FieldMail:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetMail(v)
 		return nil
 	case credentials.FieldPasswordHash:
 		v, ok := value.(string)
@@ -1173,9 +1227,6 @@ func (m *CredentialsMutation) ResetField(name string) error {
 	case credentials.FieldUsername:
 		m.ResetUsername()
 		return nil
-	case credentials.FieldMail:
-		m.ResetMail()
-		return nil
 	case credentials.FieldPasswordHash:
 		m.ResetPasswordHash()
 		return nil
@@ -1197,11 +1248,9 @@ func (m *CredentialsMutation) AddedEdges() []string {
 func (m *CredentialsMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case credentials.EdgeClaims:
-		ids := make([]ent.Value, 0, len(m.claims))
-		for id := range m.claims {
-			ids = append(ids, id)
+		if id := m.claims; id != nil {
+			return []ent.Value{*id}
 		}
-		return ids
 	}
 	return nil
 }
@@ -1209,23 +1258,12 @@ func (m *CredentialsMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CredentialsMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.removedclaims != nil {
-		edges = append(edges, credentials.EdgeClaims)
-	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *CredentialsMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case credentials.EdgeClaims:
-		ids := make([]ent.Value, 0, len(m.removedclaims))
-		for id := range m.removedclaims {
-			ids = append(ids, id)
-		}
-		return ids
-	}
 	return nil
 }
 
@@ -1252,6 +1290,9 @@ func (m *CredentialsMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *CredentialsMutation) ClearEdge(name string) error {
 	switch name {
+	case credentials.EdgeClaims:
+		m.ClearClaims()
+		return nil
 	}
 	return fmt.Errorf("unknown Credentials unique edge %s", name)
 }

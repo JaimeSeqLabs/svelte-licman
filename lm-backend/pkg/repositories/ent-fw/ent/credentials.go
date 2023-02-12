@@ -4,6 +4,7 @@ package ent
 
 import (
 	"fmt"
+	"license-manager/pkg/repositories/ent-fw/ent/claims"
 	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 	"strings"
 
@@ -17,8 +18,6 @@ type Credentials struct {
 	ID int `json:"id,omitempty"`
 	// Username holds the value of the "username" field.
 	Username string `json:"username,omitempty"`
-	// Mail holds the value of the "mail" field.
-	Mail string `json:"mail,omitempty"`
 	// PasswordHash holds the value of the "password_hash" field.
 	PasswordHash string `json:"password_hash,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -29,16 +28,20 @@ type Credentials struct {
 // CredentialsEdges holds the relations/edges for other nodes in the graph.
 type CredentialsEdges struct {
 	// Claims holds the value of the claims edge.
-	Claims []*Claims `json:"claims,omitempty"`
+	Claims *Claims `json:"claims,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
 // ClaimsOrErr returns the Claims value or an error if the edge
-// was not loaded in eager-loading.
-func (e CredentialsEdges) ClaimsOrErr() ([]*Claims, error) {
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CredentialsEdges) ClaimsOrErr() (*Claims, error) {
 	if e.loadedTypes[0] {
+		if e.Claims == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: claims.Label}
+		}
 		return e.Claims, nil
 	}
 	return nil, &NotLoadedError{edge: "claims"}
@@ -51,7 +54,7 @@ func (*Credentials) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case credentials.FieldID:
 			values[i] = new(sql.NullInt64)
-		case credentials.FieldUsername, credentials.FieldMail, credentials.FieldPasswordHash:
+		case credentials.FieldUsername, credentials.FieldPasswordHash:
 			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Credentials", columns[i])
@@ -79,12 +82,6 @@ func (c *Credentials) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field username", values[i])
 			} else if value.Valid {
 				c.Username = value.String
-			}
-		case credentials.FieldMail:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field mail", values[i])
-			} else if value.Valid {
-				c.Mail = value.String
 			}
 		case credentials.FieldPasswordHash:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -127,9 +124,6 @@ func (c *Credentials) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", c.ID))
 	builder.WriteString("username=")
 	builder.WriteString(c.Username)
-	builder.WriteString(", ")
-	builder.WriteString("mail=")
-	builder.WriteString(c.Mail)
 	builder.WriteString(", ")
 	builder.WriteString("password_hash=")
 	builder.WriteString(c.PasswordHash)

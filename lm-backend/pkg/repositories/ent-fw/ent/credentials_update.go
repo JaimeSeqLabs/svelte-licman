@@ -34,31 +34,29 @@ func (cu *CredentialsUpdate) SetUsername(s string) *CredentialsUpdate {
 	return cu
 }
 
-// SetMail sets the "mail" field.
-func (cu *CredentialsUpdate) SetMail(s string) *CredentialsUpdate {
-	cu.mutation.SetMail(s)
-	return cu
-}
-
 // SetPasswordHash sets the "password_hash" field.
 func (cu *CredentialsUpdate) SetPasswordHash(s string) *CredentialsUpdate {
 	cu.mutation.SetPasswordHash(s)
 	return cu
 }
 
-// AddClaimIDs adds the "claims" edge to the Claims entity by IDs.
-func (cu *CredentialsUpdate) AddClaimIDs(ids ...int) *CredentialsUpdate {
-	cu.mutation.AddClaimIDs(ids...)
+// SetClaimsID sets the "claims" edge to the Claims entity by ID.
+func (cu *CredentialsUpdate) SetClaimsID(id int) *CredentialsUpdate {
+	cu.mutation.SetClaimsID(id)
 	return cu
 }
 
-// AddClaims adds the "claims" edges to the Claims entity.
-func (cu *CredentialsUpdate) AddClaims(c ...*Claims) *CredentialsUpdate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
+// SetNillableClaimsID sets the "claims" edge to the Claims entity by ID if the given value is not nil.
+func (cu *CredentialsUpdate) SetNillableClaimsID(id *int) *CredentialsUpdate {
+	if id != nil {
+		cu = cu.SetClaimsID(*id)
 	}
-	return cu.AddClaimIDs(ids...)
+	return cu
+}
+
+// SetClaims sets the "claims" edge to the Claims entity.
+func (cu *CredentialsUpdate) SetClaims(c *Claims) *CredentialsUpdate {
+	return cu.SetClaimsID(c.ID)
 }
 
 // Mutation returns the CredentialsMutation object of the builder.
@@ -66,25 +64,10 @@ func (cu *CredentialsUpdate) Mutation() *CredentialsMutation {
 	return cu.mutation
 }
 
-// ClearClaims clears all "claims" edges to the Claims entity.
+// ClearClaims clears the "claims" edge to the Claims entity.
 func (cu *CredentialsUpdate) ClearClaims() *CredentialsUpdate {
 	cu.mutation.ClearClaims()
 	return cu
-}
-
-// RemoveClaimIDs removes the "claims" edge to Claims entities by IDs.
-func (cu *CredentialsUpdate) RemoveClaimIDs(ids ...int) *CredentialsUpdate {
-	cu.mutation.RemoveClaimIDs(ids...)
-	return cu
-}
-
-// RemoveClaims removes "claims" edges to Claims entities.
-func (cu *CredentialsUpdate) RemoveClaims(c ...*Claims) *CredentialsUpdate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return cu.RemoveClaimIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -121,11 +104,6 @@ func (cu *CredentialsUpdate) check() error {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "Credentials.username": %w`, err)}
 		}
 	}
-	if v, ok := cu.mutation.Mail(); ok {
-		if err := credentials.MailValidator(v); err != nil {
-			return &ValidationError{Name: "mail", err: fmt.Errorf(`ent: validator failed for field "Credentials.mail": %w`, err)}
-		}
-	}
 	if v, ok := cu.mutation.PasswordHash(); ok {
 		if err := credentials.PasswordHashValidator(v); err != nil {
 			return &ValidationError{Name: "password_hash", err: fmt.Errorf(`ent: validator failed for field "Credentials.password_hash": %w`, err)}
@@ -158,15 +136,12 @@ func (cu *CredentialsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.Username(); ok {
 		_spec.SetField(credentials.FieldUsername, field.TypeString, value)
 	}
-	if value, ok := cu.mutation.Mail(); ok {
-		_spec.SetField(credentials.FieldMail, field.TypeString, value)
-	}
 	if value, ok := cu.mutation.PasswordHash(); ok {
 		_spec.SetField(credentials.FieldPasswordHash, field.TypeString, value)
 	}
 	if cu.mutation.ClaimsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   credentials.ClaimsTable,
 			Columns: []string{credentials.ClaimsColumn},
@@ -177,31 +152,12 @@ func (cu *CredentialsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 					Column: claims.FieldID,
 				},
 			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := cu.mutation.RemovedClaimsIDs(); len(nodes) > 0 && !cu.mutation.ClaimsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   credentials.ClaimsTable,
-			Columns: []string{credentials.ClaimsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: claims.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := cu.mutation.ClaimsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   credentials.ClaimsTable,
 			Columns: []string{credentials.ClaimsColumn},
@@ -244,31 +200,29 @@ func (cuo *CredentialsUpdateOne) SetUsername(s string) *CredentialsUpdateOne {
 	return cuo
 }
 
-// SetMail sets the "mail" field.
-func (cuo *CredentialsUpdateOne) SetMail(s string) *CredentialsUpdateOne {
-	cuo.mutation.SetMail(s)
-	return cuo
-}
-
 // SetPasswordHash sets the "password_hash" field.
 func (cuo *CredentialsUpdateOne) SetPasswordHash(s string) *CredentialsUpdateOne {
 	cuo.mutation.SetPasswordHash(s)
 	return cuo
 }
 
-// AddClaimIDs adds the "claims" edge to the Claims entity by IDs.
-func (cuo *CredentialsUpdateOne) AddClaimIDs(ids ...int) *CredentialsUpdateOne {
-	cuo.mutation.AddClaimIDs(ids...)
+// SetClaimsID sets the "claims" edge to the Claims entity by ID.
+func (cuo *CredentialsUpdateOne) SetClaimsID(id int) *CredentialsUpdateOne {
+	cuo.mutation.SetClaimsID(id)
 	return cuo
 }
 
-// AddClaims adds the "claims" edges to the Claims entity.
-func (cuo *CredentialsUpdateOne) AddClaims(c ...*Claims) *CredentialsUpdateOne {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
+// SetNillableClaimsID sets the "claims" edge to the Claims entity by ID if the given value is not nil.
+func (cuo *CredentialsUpdateOne) SetNillableClaimsID(id *int) *CredentialsUpdateOne {
+	if id != nil {
+		cuo = cuo.SetClaimsID(*id)
 	}
-	return cuo.AddClaimIDs(ids...)
+	return cuo
+}
+
+// SetClaims sets the "claims" edge to the Claims entity.
+func (cuo *CredentialsUpdateOne) SetClaims(c *Claims) *CredentialsUpdateOne {
+	return cuo.SetClaimsID(c.ID)
 }
 
 // Mutation returns the CredentialsMutation object of the builder.
@@ -276,25 +230,10 @@ func (cuo *CredentialsUpdateOne) Mutation() *CredentialsMutation {
 	return cuo.mutation
 }
 
-// ClearClaims clears all "claims" edges to the Claims entity.
+// ClearClaims clears the "claims" edge to the Claims entity.
 func (cuo *CredentialsUpdateOne) ClearClaims() *CredentialsUpdateOne {
 	cuo.mutation.ClearClaims()
 	return cuo
-}
-
-// RemoveClaimIDs removes the "claims" edge to Claims entities by IDs.
-func (cuo *CredentialsUpdateOne) RemoveClaimIDs(ids ...int) *CredentialsUpdateOne {
-	cuo.mutation.RemoveClaimIDs(ids...)
-	return cuo
-}
-
-// RemoveClaims removes "claims" edges to Claims entities.
-func (cuo *CredentialsUpdateOne) RemoveClaims(c ...*Claims) *CredentialsUpdateOne {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return cuo.RemoveClaimIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -336,11 +275,6 @@ func (cuo *CredentialsUpdateOne) check() error {
 	if v, ok := cuo.mutation.Username(); ok {
 		if err := credentials.UsernameValidator(v); err != nil {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "Credentials.username": %w`, err)}
-		}
-	}
-	if v, ok := cuo.mutation.Mail(); ok {
-		if err := credentials.MailValidator(v); err != nil {
-			return &ValidationError{Name: "mail", err: fmt.Errorf(`ent: validator failed for field "Credentials.mail": %w`, err)}
 		}
 	}
 	if v, ok := cuo.mutation.PasswordHash(); ok {
@@ -392,15 +326,12 @@ func (cuo *CredentialsUpdateOne) sqlSave(ctx context.Context) (_node *Credential
 	if value, ok := cuo.mutation.Username(); ok {
 		_spec.SetField(credentials.FieldUsername, field.TypeString, value)
 	}
-	if value, ok := cuo.mutation.Mail(); ok {
-		_spec.SetField(credentials.FieldMail, field.TypeString, value)
-	}
 	if value, ok := cuo.mutation.PasswordHash(); ok {
 		_spec.SetField(credentials.FieldPasswordHash, field.TypeString, value)
 	}
 	if cuo.mutation.ClaimsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   credentials.ClaimsTable,
 			Columns: []string{credentials.ClaimsColumn},
@@ -411,31 +342,12 @@ func (cuo *CredentialsUpdateOne) sqlSave(ctx context.Context) (_node *Credential
 					Column: claims.FieldID,
 				},
 			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := cuo.mutation.RemovedClaimsIDs(); len(nodes) > 0 && !cuo.mutation.ClaimsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   credentials.ClaimsTable,
-			Columns: []string{credentials.ClaimsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: claims.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := cuo.mutation.ClaimsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   credentials.ClaimsTable,
 			Columns: []string{credentials.ClaimsColumn},

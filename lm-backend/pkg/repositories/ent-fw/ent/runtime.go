@@ -17,10 +17,14 @@ import (
 func init() {
 	claimsFields := schema.Claims{}.Fields()
 	_ = claimsFields
-	// claimsDescValues is the schema descriptor for values field.
-	claimsDescValues := claimsFields[0].Descriptor()
-	// claims.ValuesValidator is a validator for the "values" field. It is called by the builders before save.
-	claims.ValuesValidator = claimsDescValues.Validators[0].(func(string) error)
+	// claimsDescKey is the schema descriptor for key field.
+	claimsDescKey := claimsFields[0].Descriptor()
+	// claims.KeyValidator is a validator for the "key" field. It is called by the builders before save.
+	claims.KeyValidator = claimsDescKey.Validators[0].(func(string) error)
+	// claimsDescValue is the schema descriptor for value field.
+	claimsDescValue := claimsFields[1].Descriptor()
+	// claims.ValueValidator is a validator for the "value" field. It is called by the builders before save.
+	claims.ValueValidator = claimsDescValue.Validators[0].(func(string) error)
 	contactFields := schema.Contact{}.Fields()
 	_ = contactFields
 	// contactDescName is the schema descriptor for name field.
@@ -37,12 +41,8 @@ func init() {
 	credentialsDescUsername := credentialsFields[0].Descriptor()
 	// credentials.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	credentials.UsernameValidator = credentialsDescUsername.Validators[0].(func(string) error)
-	// credentialsDescMail is the schema descriptor for mail field.
-	credentialsDescMail := credentialsFields[1].Descriptor()
-	// credentials.MailValidator is a validator for the "mail" field. It is called by the builders before save.
-	credentials.MailValidator = credentialsDescMail.Validators[0].(func(string) error)
 	// credentialsDescPasswordHash is the schema descriptor for password_hash field.
-	credentialsDescPasswordHash := credentialsFields[2].Descriptor()
+	credentialsDescPasswordHash := credentialsFields[1].Descriptor()
 	// credentials.PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
 	credentials.PasswordHashValidator = credentialsDescPasswordHash.Validators[0].(func(string) error)
 	jwttokenFields := schema.JwtToken{}.Fields()

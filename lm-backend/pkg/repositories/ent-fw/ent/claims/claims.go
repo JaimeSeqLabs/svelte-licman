@@ -7,16 +7,28 @@ const (
 	Label = "claims"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldValues holds the string denoting the values field in the database.
-	FieldValues = "values"
+	// FieldKey holds the string denoting the key field in the database.
+	FieldKey = "key"
+	// FieldValue holds the string denoting the value field in the database.
+	FieldValue = "value"
+	// EdgeClaimer holds the string denoting the claimer edge name in mutations.
+	EdgeClaimer = "claimer"
 	// Table holds the table name of the claims in the database.
 	Table = "claims"
+	// ClaimerTable is the table that holds the claimer relation/edge.
+	ClaimerTable = "claims"
+	// ClaimerInverseTable is the table name for the Credentials entity.
+	// It exists in this package in order to avoid circular dependency with the "credentials" package.
+	ClaimerInverseTable = "credentials"
+	// ClaimerColumn is the table column denoting the claimer relation/edge.
+	ClaimerColumn = "credentials_claims"
 )
 
 // Columns holds all SQL columns for claims fields.
 var Columns = []string{
 	FieldID,
-	FieldValues,
+	FieldKey,
+	FieldValue,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "claims"
@@ -42,6 +54,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// ValuesValidator is a validator for the "values" field. It is called by the builders before save.
-	ValuesValidator func(string) error
+	// KeyValidator is a validator for the "key" field. It is called by the builders before save.
+	KeyValidator func(string) error
+	// ValueValidator is a validator for the "value" field. It is called by the builders before save.
+	ValueValidator func(string) error
 )

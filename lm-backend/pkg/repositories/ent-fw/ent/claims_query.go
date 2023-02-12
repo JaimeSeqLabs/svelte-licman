@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"license-manager/pkg/repositories/ent-fw/ent/claims"
+	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
 	"math"
 
@@ -17,11 +18,12 @@ import (
 // ClaimsQuery is the builder for querying Claims entities.
 type ClaimsQuery struct {
 	config
-	ctx        *QueryContext
-	order      []OrderFunc
-	inters     []Interceptor
-	predicates []predicate.Claims
-	withFKs    bool
+	ctx         *QueryContext
+	order       []OrderFunc
+	inters      []Interceptor
+	predicates  []predicate.Claims
+	withClaimer *CredentialsQuery
+	withFKs     bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +58,28 @@ func (cq *ClaimsQuery) Unique(unique bool) *ClaimsQuery {
 func (cq *ClaimsQuery) Order(o ...OrderFunc) *ClaimsQuery {
 	cq.order = append(cq.order, o...)
 	return cq
+}
+
+// QueryClaimer chains the current query on the "claimer" edge.
+func (cq *ClaimsQuery) QueryClaimer() *CredentialsQuery {
+	query := (&CredentialsClient{config: cq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(claims.Table, claims.FieldID, selector),
+			sqlgraph.To(credentials.Table, credentials.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, claims.ClaimerTable, claims.ClaimerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Claims entity from the query.
@@ -243,15 +267,27 @@ func (cq *ClaimsQuery) Clone() *ClaimsQuery {
 		return nil
 	}
 	return &ClaimsQuery{
-		config:     cq.config,
-		ctx:        cq.ctx.Clone(),
-		order:      append([]OrderFunc{}, cq.order...),
-		inters:     append([]Interceptor{}, cq.inters...),
-		predicates: append([]predicate.Claims{}, cq.predicates...),
+		config:      cq.config,
+		ctx:         cq.ctx.Clone(),
+		order:       append([]OrderFunc{}, cq.order...),
+		inters:      append([]Interceptor{}, cq.inters...),
+		predicates:  append([]predicate.Claims{}, cq.predicates...),
+		withClaimer: cq.withClaimer.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
 		path: cq.path,
 	}
+}
+
+// WithClaimer tells the query-builder to eager-load the nodes that are connected to
+// the "claimer" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *ClaimsQuery) WithClaimer(opts ...func(*CredentialsQuery)) *ClaimsQuery {
+	query := (&CredentialsClient{config: cq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withClaimer = query
+	return cq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -260,12 +296,12 @@ func (cq *ClaimsQuery) Clone() *ClaimsQuery {
 // Example:
 //
 //	var v []struct {
-//		Values string `json:"values,omitempty"`
+//		Key string `json:"key,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Claims.Query().
-//		GroupBy(claims.FieldValues).
+//		GroupBy(claims.FieldKey).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (cq *ClaimsQuery) GroupBy(field string, fields ...string) *ClaimsGroupBy {
@@ -283,11 +319,11 @@ func (cq *ClaimsQuery) GroupBy(field string, fields ...string) *ClaimsGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Values string `json:"values,omitempty"`
+//		Key string `json:"key,omitempty"`
 //	}
 //
 //	client.Claims.Query().
-//		Select(claims.FieldValues).
+//		Select(claims.FieldKey).
 //		Scan(ctx, &v)
 func (cq *ClaimsQuery) Select(fields ...string) *ClaimsSelect {
 	cq.ctx.Fields = append(cq.ctx.Fields, fields...)
@@ -330,10 +366,16 @@ func (cq *ClaimsQuery) prepareQuery(ctx context.Context) error {
 
 func (cq *ClaimsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Claims, error) {
 	var (
-		nodes   = []*Claims{}
-		withFKs = cq.withFKs
-		_spec   = cq.querySpec()
+		nodes       = []*Claims{}
+		withFKs     = cq.withFKs
+		_spec       = cq.querySpec()
+		loadedTypes = [1]bool{
+			cq.withClaimer != nil,
+		}
 	)
+	if cq.withClaimer != nil {
+		withFKs = true
+	}
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, claims.ForeignKeys...)
 	}
@@ -343,6 +385,7 @@ func (cq *ClaimsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Claim
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Claims{config: cq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -354,7 +397,46 @@ func (cq *ClaimsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Claim
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := cq.withClaimer; query != nil {
+		if err := cq.loadClaimer(ctx, query, nodes, nil,
+			func(n *Claims, e *Credentials) { n.Edges.Claimer = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (cq *ClaimsQuery) loadClaimer(ctx context.Context, query *CredentialsQuery, nodes []*Claims, init func(*Claims), assign func(*Claims, *Credentials)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Claims)
+	for i := range nodes {
+		if nodes[i].credentials_claims == nil {
+			continue
+		}
+		fk := *nodes[i].credentials_claims
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(credentials.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "credentials_claims" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (cq *ClaimsQuery) sqlCount(ctx context.Context) (int, error) {

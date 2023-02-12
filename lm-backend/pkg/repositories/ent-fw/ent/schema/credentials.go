@@ -15,7 +15,6 @@ type Credentials struct {
 func (Credentials) Fields() []ent.Field {
 	return []ent.Field {
 		field.String("username").NotEmpty(),
-		field.String("mail").NotEmpty(),
 		field.String("password_hash").NotEmpty(),
 	}
 }
@@ -23,6 +22,6 @@ func (Credentials) Fields() []ent.Field {
 // Edges of the Credentials.
 func (Credentials) Edges() []ent.Edge {
 	return []ent.Edge {
-		edge.To("claims", Claims.Type),
+		edge.To("claims", Claims.Type).Unique(),
 	}
 }

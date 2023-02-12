@@ -6,6 +6,7 @@ import (
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -53,74 +54,171 @@ func IDLTE(id int) predicate.Claims {
 	return predicate.Claims(sql.FieldLTE(FieldID, id))
 }
 
-// Values applies equality check predicate on the "values" field. It's identical to ValuesEQ.
-func Values(v string) predicate.Claims {
-	return predicate.Claims(sql.FieldEQ(FieldValues, v))
+// Key applies equality check predicate on the "key" field. It's identical to KeyEQ.
+func Key(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldEQ(FieldKey, v))
 }
 
-// ValuesEQ applies the EQ predicate on the "values" field.
-func ValuesEQ(v string) predicate.Claims {
-	return predicate.Claims(sql.FieldEQ(FieldValues, v))
+// Value applies equality check predicate on the "value" field. It's identical to ValueEQ.
+func Value(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldEQ(FieldValue, v))
 }
 
-// ValuesNEQ applies the NEQ predicate on the "values" field.
-func ValuesNEQ(v string) predicate.Claims {
-	return predicate.Claims(sql.FieldNEQ(FieldValues, v))
+// KeyEQ applies the EQ predicate on the "key" field.
+func KeyEQ(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldEQ(FieldKey, v))
 }
 
-// ValuesIn applies the In predicate on the "values" field.
-func ValuesIn(vs ...string) predicate.Claims {
-	return predicate.Claims(sql.FieldIn(FieldValues, vs...))
+// KeyNEQ applies the NEQ predicate on the "key" field.
+func KeyNEQ(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldNEQ(FieldKey, v))
 }
 
-// ValuesNotIn applies the NotIn predicate on the "values" field.
-func ValuesNotIn(vs ...string) predicate.Claims {
-	return predicate.Claims(sql.FieldNotIn(FieldValues, vs...))
+// KeyIn applies the In predicate on the "key" field.
+func KeyIn(vs ...string) predicate.Claims {
+	return predicate.Claims(sql.FieldIn(FieldKey, vs...))
 }
 
-// ValuesGT applies the GT predicate on the "values" field.
-func ValuesGT(v string) predicate.Claims {
-	return predicate.Claims(sql.FieldGT(FieldValues, v))
+// KeyNotIn applies the NotIn predicate on the "key" field.
+func KeyNotIn(vs ...string) predicate.Claims {
+	return predicate.Claims(sql.FieldNotIn(FieldKey, vs...))
 }
 
-// ValuesGTE applies the GTE predicate on the "values" field.
-func ValuesGTE(v string) predicate.Claims {
-	return predicate.Claims(sql.FieldGTE(FieldValues, v))
+// KeyGT applies the GT predicate on the "key" field.
+func KeyGT(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldGT(FieldKey, v))
 }
 
-// ValuesLT applies the LT predicate on the "values" field.
-func ValuesLT(v string) predicate.Claims {
-	return predicate.Claims(sql.FieldLT(FieldValues, v))
+// KeyGTE applies the GTE predicate on the "key" field.
+func KeyGTE(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldGTE(FieldKey, v))
 }
 
-// ValuesLTE applies the LTE predicate on the "values" field.
-func ValuesLTE(v string) predicate.Claims {
-	return predicate.Claims(sql.FieldLTE(FieldValues, v))
+// KeyLT applies the LT predicate on the "key" field.
+func KeyLT(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldLT(FieldKey, v))
 }
 
-// ValuesContains applies the Contains predicate on the "values" field.
-func ValuesContains(v string) predicate.Claims {
-	return predicate.Claims(sql.FieldContains(FieldValues, v))
+// KeyLTE applies the LTE predicate on the "key" field.
+func KeyLTE(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldLTE(FieldKey, v))
 }
 
-// ValuesHasPrefix applies the HasPrefix predicate on the "values" field.
-func ValuesHasPrefix(v string) predicate.Claims {
-	return predicate.Claims(sql.FieldHasPrefix(FieldValues, v))
+// KeyContains applies the Contains predicate on the "key" field.
+func KeyContains(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldContains(FieldKey, v))
 }
 
-// ValuesHasSuffix applies the HasSuffix predicate on the "values" field.
-func ValuesHasSuffix(v string) predicate.Claims {
-	return predicate.Claims(sql.FieldHasSuffix(FieldValues, v))
+// KeyHasPrefix applies the HasPrefix predicate on the "key" field.
+func KeyHasPrefix(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldHasPrefix(FieldKey, v))
 }
 
-// ValuesEqualFold applies the EqualFold predicate on the "values" field.
-func ValuesEqualFold(v string) predicate.Claims {
-	return predicate.Claims(sql.FieldEqualFold(FieldValues, v))
+// KeyHasSuffix applies the HasSuffix predicate on the "key" field.
+func KeyHasSuffix(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldHasSuffix(FieldKey, v))
 }
 
-// ValuesContainsFold applies the ContainsFold predicate on the "values" field.
-func ValuesContainsFold(v string) predicate.Claims {
-	return predicate.Claims(sql.FieldContainsFold(FieldValues, v))
+// KeyEqualFold applies the EqualFold predicate on the "key" field.
+func KeyEqualFold(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldEqualFold(FieldKey, v))
+}
+
+// KeyContainsFold applies the ContainsFold predicate on the "key" field.
+func KeyContainsFold(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldContainsFold(FieldKey, v))
+}
+
+// ValueEQ applies the EQ predicate on the "value" field.
+func ValueEQ(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldEQ(FieldValue, v))
+}
+
+// ValueNEQ applies the NEQ predicate on the "value" field.
+func ValueNEQ(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldNEQ(FieldValue, v))
+}
+
+// ValueIn applies the In predicate on the "value" field.
+func ValueIn(vs ...string) predicate.Claims {
+	return predicate.Claims(sql.FieldIn(FieldValue, vs...))
+}
+
+// ValueNotIn applies the NotIn predicate on the "value" field.
+func ValueNotIn(vs ...string) predicate.Claims {
+	return predicate.Claims(sql.FieldNotIn(FieldValue, vs...))
+}
+
+// ValueGT applies the GT predicate on the "value" field.
+func ValueGT(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldGT(FieldValue, v))
+}
+
+// ValueGTE applies the GTE predicate on the "value" field.
+func ValueGTE(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldGTE(FieldValue, v))
+}
+
+// ValueLT applies the LT predicate on the "value" field.
+func ValueLT(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldLT(FieldValue, v))
+}
+
+// ValueLTE applies the LTE predicate on the "value" field.
+func ValueLTE(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldLTE(FieldValue, v))
+}
+
+// ValueContains applies the Contains predicate on the "value" field.
+func ValueContains(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldContains(FieldValue, v))
+}
+
+// ValueHasPrefix applies the HasPrefix predicate on the "value" field.
+func ValueHasPrefix(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldHasPrefix(FieldValue, v))
+}
+
+// ValueHasSuffix applies the HasSuffix predicate on the "value" field.
+func ValueHasSuffix(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldHasSuffix(FieldValue, v))
+}
+
+// ValueEqualFold applies the EqualFold predicate on the "value" field.
+func ValueEqualFold(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldEqualFold(FieldValue, v))
+}
+
+// ValueContainsFold applies the ContainsFold predicate on the "value" field.
+func ValueContainsFold(v string) predicate.Claims {
+	return predicate.Claims(sql.FieldContainsFold(FieldValue, v))
+}
+
+// HasClaimer applies the HasEdge predicate on the "claimer" edge.
+func HasClaimer() predicate.Claims {
+	return predicate.Claims(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, ClaimerTable, ClaimerColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasClaimerWith applies the HasEdge predicate on the "claimer" edge with a given conditions (other predicates).
+func HasClaimerWith(preds ...predicate.Credentials) predicate.Claims {
+	return predicate.Claims(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ClaimerInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, ClaimerTable, ClaimerColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

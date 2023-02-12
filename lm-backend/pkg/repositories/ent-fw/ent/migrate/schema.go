@@ -11,8 +11,9 @@ var (
 	// ClaimsColumns holds the columns for the "claims" table.
 	ClaimsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "values", Type: field.TypeString, Size: 2147483647},
-		{Name: "credentials_claims", Type: field.TypeInt, Nullable: true},
+		{Name: "key", Type: field.TypeString, Size: 2147483647},
+		{Name: "value", Type: field.TypeString, Size: 2147483647},
+		{Name: "credentials_claims", Type: field.TypeInt, Unique: true, Nullable: true},
 		{Name: "jwt_token_claims", Type: field.TypeInt, Nullable: true},
 	}
 	// ClaimsTable holds the schema information for the "claims" table.
@@ -23,13 +24,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "claims_credentials_claims",
-				Columns:    []*schema.Column{ClaimsColumns[2]},
+				Columns:    []*schema.Column{ClaimsColumns[3]},
 				RefColumns: []*schema.Column{CredentialsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "claims_jwt_tokens_claims",
-				Columns:    []*schema.Column{ClaimsColumns[3]},
+				Columns:    []*schema.Column{ClaimsColumns[4]},
 				RefColumns: []*schema.Column{JwtTokensColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -51,7 +52,6 @@ var (
 	CredentialsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "username", Type: field.TypeString},
-		{Name: "mail", Type: field.TypeString},
 		{Name: "password_hash", Type: field.TypeString},
 	}
 	// CredentialsTable holds the schema information for the "credentials" table.
