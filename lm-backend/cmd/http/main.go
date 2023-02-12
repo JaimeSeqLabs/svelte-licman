@@ -26,7 +26,7 @@ curl -i http://localhost:8080/api/is_admin -H "Accept: application/json" -H "Aut
 
 func main() {
 
-	jwtService := auth.NewJWTServiceMOCK("<this_is_a_secret>") // TODO
+	jwtService := auth.NewJWTService("<this_is_a_secret>") // TODO
 
 	helloController := controller.NewHelloController()
 	loginController := controller.NewLoginController(jwtService)

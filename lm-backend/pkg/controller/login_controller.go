@@ -2,9 +2,11 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"license-manager/pkg/controller/exchange"
-	"license-manager/pkg/service/auth"
+	"license-manager/pkg/domain"
+	"license-manager/pkg/service"
 	"log"
 	"net/http"
 
@@ -12,12 +14,12 @@ import (
 )
 
 type loginController struct {
-	jwtService auth.JWTService
+	authService service.AuthService
 }
 
-func NewLoginController(jwtService auth.JWTService) *loginController {
+func NewLoginController(authService service.AuthService) *loginController {
 	return &loginController{
-		jwtService: jwtService,
+		authService: authService,
 	}
 }
 
@@ -31,30 +33,43 @@ func (lc *loginController) Routes() chi.Router {
 
 func (lc *loginController) handleLoginPOST(w http.ResponseWriter, r *http.Request) {
 	
-	// extract
-	creds, err := lc.getCredentialsFrom(r)
+	// extract from request
+	login, err := lc.extractLoginFrom(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// authenticate
-	kind := lc.getUserKind(creds)
+	creds, err := lc.findCredentials(login)
+	if err != nil {
+		if errors.Is(err, service.ErrCredsNotFound) {
+			http.Error(w, fmt.Sprintf("User %s is unauthorized", login.User), http.StatusUnauthorized)
+			return				
+		} else {
+			log.Println(err.Error())
+			http.Error(w, fmt.Sprintf("Failed to authenticate user %s", login.User), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// check minimum access claims
+	kind := creds.Claims.GetUserKind()
 	if kind == "" {
-		http.Error(w, fmt.Sprintf("User %s is unauthorized", creds.User), http.StatusUnauthorized)
+		http.Error(w, fmt.Sprintf("User %s does not claim any user kind", login.User), http.StatusUnauthorized)
 		return
 	}
 
 	// sign claims
-	token, err := lc.generateTokenClaiming(kind)
+	token, err := lc.authService.CreateTokenFor(creds)
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
+	}	
 
 	// response
-	err = json.NewEncoder(w).Encode(token)
+	err = json.NewEncoder(w).Encode(exchange.JWTResponse{ AccessToken: token.Value })
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -63,40 +78,13 @@ func (lc *loginController) handleLoginPOST(w http.ResponseWriter, r *http.Reques
 
 }
 
-func (lc *loginController) getCredentialsFrom(r *http.Request) (exchange.LoginCredentials, error) {
+func (lc *loginController) extractLoginFrom(r *http.Request) (exchange.LoginCredentials, error) {
 	var creds exchange.LoginCredentials
 	err := json.NewDecoder(r.Body).Decode(&creds)
 	return creds, err
 }
 
-func (lc *loginController) getUserKind(creds exchange.LoginCredentials) string {
-	// TODO: this is obviously dumb
-
-	if creds.User == "admin" && creds.Password == "secret" {
-		return "admin"
-	}
-
-	if creds.User == "user" && creds.Password == "1234" {
-		return "user"
-	}
-
-	return "" // no kind, unauthorized
+func (lc *loginController) findCredentials(login exchange.LoginCredentials) (domain.Credentials, error) {
+	creds, err := lc.authService.FindByUserNameAndPasswordHash(login.User, login.PasswordHash)
+	return creds, err
 }
-
-func (lc *loginController) generateTokenClaiming(userKind string) (exchange.JWTResponse, error) {
-	
-	tokenStr, err := lc.jwtService.GenTokenFor(
-		map[string]any {
-			"user_kind": userKind,
-		},
-	)
-	if err != nil {
-		return exchange.JWTResponse{}, err
-	}
-	
-	return exchange.JWTResponse{ AccessToken: tokenStr }, nil
-}
-
-
-
-

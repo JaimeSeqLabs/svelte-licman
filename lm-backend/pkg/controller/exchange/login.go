@@ -2,7 +2,7 @@ package exchange
 
 type LoginCredentials struct {
 	User string `json:"user"`
-	Password string `json:"password"`
+	PasswordHash string `json:"password_hash"`
 }
 
 type JWTResponse struct {

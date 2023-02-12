@@ -2,7 +2,7 @@ package controller
 
 import (
 	"fmt"
-	"license-manager/pkg/service/auth"
+	"license-manager/pkg/service"
 	"log"
 	"net/http"
 
@@ -10,10 +10,10 @@ import (
 )
 
 type adminController struct {
-	jwtService auth.JWTService
+	jwtService service.JWTService
 }
 
-func NewAdminController(jwtService auth.JWTService) *adminController {
+func NewAdminController(jwtService service.JWTService) *adminController {
 	return &adminController{
 		jwtService: jwtService,
 	}
@@ -36,7 +36,7 @@ func (ac *adminController) handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	kind := claims["user_kind"]
+	kind := claims.GetUserKind()
 
 	if kind == "admin" {
 		fmt.Fprintf(w, "user is admin")

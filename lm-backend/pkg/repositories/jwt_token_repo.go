@@ -1,0 +1,11 @@
+package repositories
+
+import "license-manager/pkg/domain"
+
+type JwtTokenRepository interface {
+	Save(token domain.Token) error
+	FindByToken(token string) (domain.Token, error)
+	FindClaimsByToken(token string) (domain.Claims, error)
+	IsRevoked(token string) (bool, error)
+	Delete(token string) error
+}
