@@ -11,17 +11,10 @@ const (
 	FieldUsername = "username"
 	// FieldPasswordHash holds the string denoting the password_hash field in the database.
 	FieldPasswordHash = "password_hash"
-	// EdgeClaims holds the string denoting the claims edge name in mutations.
-	EdgeClaims = "claims"
+	// FieldClaims holds the string denoting the claims field in the database.
+	FieldClaims = "claims"
 	// Table holds the table name of the credentials in the database.
 	Table = "credentials"
-	// ClaimsTable is the table that holds the claims relation/edge.
-	ClaimsTable = "claims"
-	// ClaimsInverseTable is the table name for the Claims entity.
-	// It exists in this package in order to avoid circular dependency with the "claims" package.
-	ClaimsInverseTable = "claims"
-	// ClaimsColumn is the table column denoting the claims relation/edge.
-	ClaimsColumn = "credentials_claims"
 )
 
 // Columns holds all SQL columns for credentials fields.
@@ -29,6 +22,7 @@ var Columns = []string{
 	FieldID,
 	FieldUsername,
 	FieldPasswordHash,
+	FieldClaims,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

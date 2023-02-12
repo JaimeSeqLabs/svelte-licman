@@ -8,34 +8,6 @@ import (
 )
 
 var (
-	// ClaimsColumns holds the columns for the "claims" table.
-	ClaimsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "key", Type: field.TypeString, Size: 2147483647},
-		{Name: "value", Type: field.TypeString, Size: 2147483647},
-		{Name: "credentials_claims", Type: field.TypeInt, Unique: true, Nullable: true},
-		{Name: "jwt_token_claims", Type: field.TypeInt, Nullable: true},
-	}
-	// ClaimsTable holds the schema information for the "claims" table.
-	ClaimsTable = &schema.Table{
-		Name:       "claims",
-		Columns:    ClaimsColumns,
-		PrimaryKey: []*schema.Column{ClaimsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "claims_credentials_claims",
-				Columns:    []*schema.Column{ClaimsColumns[3]},
-				RefColumns: []*schema.Column{CredentialsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "claims_jwt_tokens_claims",
-				Columns:    []*schema.Column{ClaimsColumns[4]},
-				RefColumns: []*schema.Column{JwtTokensColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-	}
 	// ContactsColumns holds the columns for the "contacts" table.
 	ContactsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -53,6 +25,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "username", Type: field.TypeString},
 		{Name: "password_hash", Type: field.TypeString},
+		{Name: "claims", Type: field.TypeJSON},
 	}
 	// CredentialsTable holds the schema information for the "credentials" table.
 	CredentialsTable = &schema.Table{
@@ -65,6 +38,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "token", Type: field.TypeString, Unique: true},
 		{Name: "revoked", Type: field.TypeBool, Default: false},
+		{Name: "claims", Type: field.TypeJSON},
 	}
 	// JwtTokensTable holds the schema information for the "jwt_tokens" table.
 	JwtTokensTable = &schema.Table{
@@ -95,7 +69,6 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		ClaimsTable,
 		ContactsTable,
 		CredentialsTable,
 		JwtTokensTable,
@@ -104,7 +77,5 @@ var (
 )
 
 func init() {
-	ClaimsTable.ForeignKeys[0].RefTable = CredentialsTable
-	ClaimsTable.ForeignKeys[1].RefTable = JwtTokensTable
 	OrganizationsTable.ForeignKeys[0].RefTable = ContactsTable
 }

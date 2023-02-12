@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"license-manager/pkg/repositories/ent-fw/ent/claims"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -40,19 +39,10 @@ func (jtc *JwtTokenCreate) SetNillableRevoked(b *bool) *JwtTokenCreate {
 	return jtc
 }
 
-// AddClaimIDs adds the "claims" edge to the Claims entity by IDs.
-func (jtc *JwtTokenCreate) AddClaimIDs(ids ...int) *JwtTokenCreate {
-	jtc.mutation.AddClaimIDs(ids...)
+// SetClaims sets the "claims" field.
+func (jtc *JwtTokenCreate) SetClaims(m map[string]interface{}) *JwtTokenCreate {
+	jtc.mutation.SetClaims(m)
 	return jtc
-}
-
-// AddClaims adds the "claims" edges to the Claims entity.
-func (jtc *JwtTokenCreate) AddClaims(c ...*Claims) *JwtTokenCreate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return jtc.AddClaimIDs(ids...)
 }
 
 // Mutation returns the JwtTokenMutation object of the builder.
@@ -109,8 +99,8 @@ func (jtc *JwtTokenCreate) check() error {
 	if _, ok := jtc.mutation.Revoked(); !ok {
 		return &ValidationError{Name: "revoked", err: errors.New(`ent: missing required field "JwtToken.revoked"`)}
 	}
-	if len(jtc.mutation.ClaimsIDs()) == 0 {
-		return &ValidationError{Name: "claims", err: errors.New(`ent: missing required edge "JwtToken.claims"`)}
+	if _, ok := jtc.mutation.Claims(); !ok {
+		return &ValidationError{Name: "claims", err: errors.New(`ent: missing required field "JwtToken.claims"`)}
 	}
 	return nil
 }
@@ -152,24 +142,9 @@ func (jtc *JwtTokenCreate) createSpec() (*JwtToken, *sqlgraph.CreateSpec) {
 		_spec.SetField(jwttoken.FieldRevoked, field.TypeBool, value)
 		_node.Revoked = value
 	}
-	if nodes := jtc.mutation.ClaimsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   jwttoken.ClaimsTable,
-			Columns: []string{jwttoken.ClaimsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: claims.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
+	if value, ok := jtc.mutation.Claims(); ok {
+		_spec.SetField(jwttoken.FieldClaims, field.TypeJSON, value)
+		_node.Claims = value
 	}
 	return _node, _spec
 }

@@ -12,8 +12,6 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
-	// Claims is the client for interacting with the Claims builders.
-	Claims *ClaimsClient
 	// Contact is the client for interacting with the Contact builders.
 	Contact *ContactClient
 	// Credentials is the client for interacting with the Credentials builders.
@@ -153,7 +151,6 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
-	tx.Claims = NewClaimsClient(tx.config)
 	tx.Contact = NewContactClient(tx.config)
 	tx.Credentials = NewCredentialsClient(tx.config)
 	tx.JwtToken = NewJwtTokenClient(tx.config)
@@ -167,7 +164,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Claims.QueryXXX(), the query will be executed
+// applies a query, for example: Contact.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

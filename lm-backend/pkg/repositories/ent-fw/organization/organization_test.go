@@ -1,8 +1,8 @@
-package entfw_test
+package organization_repo_test
 
 import (
 	"license-manager/pkg/domain"
-	"license-manager/pkg/repositories/ent-fw"
+	"license-manager/pkg/repositories/ent-fw/organization_repo"
 	"license-manager/pkg/repositories/ent-fw/ent/enttest"
 	"reflect"
 	"testing"
@@ -15,9 +15,9 @@ func TestOrganizationBasic(t *testing.T) {
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
 	defer client.Close()
 
-	repo := entfw.NewOrganizaitionEntRepo(
-		entfw.WithEntClient(client),
-		entfw.WithAutoMigration(true),
+	repo := organization_repo.NewOrganizationEntRepo(
+		organization_repo.WithEntClient(client),
+		organization_repo.WithAutoMigration(true),
 	)
 
 	target := domain.Organization{

@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"license-manager/pkg/repositories/ent-fw/ent/claims"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
 
@@ -48,45 +47,15 @@ func (jtu *JwtTokenUpdate) SetNillableRevoked(b *bool) *JwtTokenUpdate {
 	return jtu
 }
 
-// AddClaimIDs adds the "claims" edge to the Claims entity by IDs.
-func (jtu *JwtTokenUpdate) AddClaimIDs(ids ...int) *JwtTokenUpdate {
-	jtu.mutation.AddClaimIDs(ids...)
+// SetClaims sets the "claims" field.
+func (jtu *JwtTokenUpdate) SetClaims(m map[string]interface{}) *JwtTokenUpdate {
+	jtu.mutation.SetClaims(m)
 	return jtu
-}
-
-// AddClaims adds the "claims" edges to the Claims entity.
-func (jtu *JwtTokenUpdate) AddClaims(c ...*Claims) *JwtTokenUpdate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return jtu.AddClaimIDs(ids...)
 }
 
 // Mutation returns the JwtTokenMutation object of the builder.
 func (jtu *JwtTokenUpdate) Mutation() *JwtTokenMutation {
 	return jtu.mutation
-}
-
-// ClearClaims clears all "claims" edges to the Claims entity.
-func (jtu *JwtTokenUpdate) ClearClaims() *JwtTokenUpdate {
-	jtu.mutation.ClearClaims()
-	return jtu
-}
-
-// RemoveClaimIDs removes the "claims" edge to Claims entities by IDs.
-func (jtu *JwtTokenUpdate) RemoveClaimIDs(ids ...int) *JwtTokenUpdate {
-	jtu.mutation.RemoveClaimIDs(ids...)
-	return jtu
-}
-
-// RemoveClaims removes "claims" edges to Claims entities.
-func (jtu *JwtTokenUpdate) RemoveClaims(c ...*Claims) *JwtTokenUpdate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return jtu.RemoveClaimIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -153,59 +122,8 @@ func (jtu *JwtTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := jtu.mutation.Revoked(); ok {
 		_spec.SetField(jwttoken.FieldRevoked, field.TypeBool, value)
 	}
-	if jtu.mutation.ClaimsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   jwttoken.ClaimsTable,
-			Columns: []string{jwttoken.ClaimsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: claims.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := jtu.mutation.RemovedClaimsIDs(); len(nodes) > 0 && !jtu.mutation.ClaimsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   jwttoken.ClaimsTable,
-			Columns: []string{jwttoken.ClaimsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: claims.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := jtu.mutation.ClaimsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   jwttoken.ClaimsTable,
-			Columns: []string{jwttoken.ClaimsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: claims.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	if value, ok := jtu.mutation.Claims(); ok {
+		_spec.SetField(jwttoken.FieldClaims, field.TypeJSON, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, jtu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -247,45 +165,15 @@ func (jtuo *JwtTokenUpdateOne) SetNillableRevoked(b *bool) *JwtTokenUpdateOne {
 	return jtuo
 }
 
-// AddClaimIDs adds the "claims" edge to the Claims entity by IDs.
-func (jtuo *JwtTokenUpdateOne) AddClaimIDs(ids ...int) *JwtTokenUpdateOne {
-	jtuo.mutation.AddClaimIDs(ids...)
+// SetClaims sets the "claims" field.
+func (jtuo *JwtTokenUpdateOne) SetClaims(m map[string]interface{}) *JwtTokenUpdateOne {
+	jtuo.mutation.SetClaims(m)
 	return jtuo
-}
-
-// AddClaims adds the "claims" edges to the Claims entity.
-func (jtuo *JwtTokenUpdateOne) AddClaims(c ...*Claims) *JwtTokenUpdateOne {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return jtuo.AddClaimIDs(ids...)
 }
 
 // Mutation returns the JwtTokenMutation object of the builder.
 func (jtuo *JwtTokenUpdateOne) Mutation() *JwtTokenMutation {
 	return jtuo.mutation
-}
-
-// ClearClaims clears all "claims" edges to the Claims entity.
-func (jtuo *JwtTokenUpdateOne) ClearClaims() *JwtTokenUpdateOne {
-	jtuo.mutation.ClearClaims()
-	return jtuo
-}
-
-// RemoveClaimIDs removes the "claims" edge to Claims entities by IDs.
-func (jtuo *JwtTokenUpdateOne) RemoveClaimIDs(ids ...int) *JwtTokenUpdateOne {
-	jtuo.mutation.RemoveClaimIDs(ids...)
-	return jtuo
-}
-
-// RemoveClaims removes "claims" edges to Claims entities.
-func (jtuo *JwtTokenUpdateOne) RemoveClaims(c ...*Claims) *JwtTokenUpdateOne {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
-	}
-	return jtuo.RemoveClaimIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -376,59 +264,8 @@ func (jtuo *JwtTokenUpdateOne) sqlSave(ctx context.Context) (_node *JwtToken, er
 	if value, ok := jtuo.mutation.Revoked(); ok {
 		_spec.SetField(jwttoken.FieldRevoked, field.TypeBool, value)
 	}
-	if jtuo.mutation.ClaimsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   jwttoken.ClaimsTable,
-			Columns: []string{jwttoken.ClaimsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: claims.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := jtuo.mutation.RemovedClaimsIDs(); len(nodes) > 0 && !jtuo.mutation.ClaimsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   jwttoken.ClaimsTable,
-			Columns: []string{jwttoken.ClaimsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: claims.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := jtuo.mutation.ClaimsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   jwttoken.ClaimsTable,
-			Columns: []string{jwttoken.ClaimsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: claims.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	if value, ok := jtuo.mutation.Claims(); ok {
+		_spec.SetField(jwttoken.FieldClaims, field.TypeJSON, value)
 	}
 	_node = &JwtToken{config: jtuo.config}
 	_spec.Assign = _node.assignValues

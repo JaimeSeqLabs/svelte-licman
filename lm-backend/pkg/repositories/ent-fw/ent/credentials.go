@@ -3,8 +3,8 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
-	"license-manager/pkg/repositories/ent-fw/ent/claims"
 	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 	"strings"
 
@@ -20,31 +20,8 @@ type Credentials struct {
 	Username string `json:"username,omitempty"`
 	// PasswordHash holds the value of the "password_hash" field.
 	PasswordHash string `json:"password_hash,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the CredentialsQuery when eager-loading is set.
-	Edges CredentialsEdges `json:"edges"`
-}
-
-// CredentialsEdges holds the relations/edges for other nodes in the graph.
-type CredentialsEdges struct {
-	// Claims holds the value of the claims edge.
-	Claims *Claims `json:"claims,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
-}
-
-// ClaimsOrErr returns the Claims value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e CredentialsEdges) ClaimsOrErr() (*Claims, error) {
-	if e.loadedTypes[0] {
-		if e.Claims == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: claims.Label}
-		}
-		return e.Claims, nil
-	}
-	return nil, &NotLoadedError{edge: "claims"}
+	// Claims holds the value of the "claims" field.
+	Claims map[string]interface{} `json:"claims,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -52,6 +29,8 @@ func (*Credentials) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case credentials.FieldClaims:
+			values[i] = new([]byte)
 		case credentials.FieldID:
 			values[i] = new(sql.NullInt64)
 		case credentials.FieldUsername, credentials.FieldPasswordHash:
@@ -89,14 +68,17 @@ func (c *Credentials) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.PasswordHash = value.String
 			}
+		case credentials.FieldClaims:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field claims", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &c.Claims); err != nil {
+					return fmt.Errorf("unmarshal field claims: %w", err)
+				}
+			}
 		}
 	}
 	return nil
-}
-
-// QueryClaims queries the "claims" edge of the Credentials entity.
-func (c *Credentials) QueryClaims() *ClaimsQuery {
-	return NewCredentialsClient(c.config).QueryClaims(c)
 }
 
 // Update returns a builder for updating this Credentials.
@@ -127,6 +109,9 @@ func (c *Credentials) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("password_hash=")
 	builder.WriteString(c.PasswordHash)
+	builder.WriteString(", ")
+	builder.WriteString("claims=")
+	builder.WriteString(fmt.Sprintf("%v", c.Claims))
 	builder.WriteByte(')')
 	return builder.String()
 }

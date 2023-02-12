@@ -6,7 +6,6 @@ import (
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -192,33 +191,6 @@ func PasswordHashEqualFold(v string) predicate.Credentials {
 // PasswordHashContainsFold applies the ContainsFold predicate on the "password_hash" field.
 func PasswordHashContainsFold(v string) predicate.Credentials {
 	return predicate.Credentials(sql.FieldContainsFold(FieldPasswordHash, v))
-}
-
-// HasClaims applies the HasEdge predicate on the "claims" edge.
-func HasClaims() predicate.Credentials {
-	return predicate.Credentials(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, ClaimsTable, ClaimsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasClaimsWith applies the HasEdge predicate on the "claims" edge with a given conditions (other predicates).
-func HasClaimsWith(preds ...predicate.Claims) predicate.Credentials {
-	return predicate.Credentials(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ClaimsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, ClaimsTable, ClaimsColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
 }
 
 // And groups predicates with the AND operator between them.

@@ -4,9 +4,7 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
-	"license-manager/pkg/repositories/ent-fw/ent/claims"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
 	"math"
@@ -23,7 +21,6 @@ type JwtTokenQuery struct {
 	order      []OrderFunc
 	inters     []Interceptor
 	predicates []predicate.JwtToken
-	withClaims *ClaimsQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -58,28 +55,6 @@ func (jtq *JwtTokenQuery) Unique(unique bool) *JwtTokenQuery {
 func (jtq *JwtTokenQuery) Order(o ...OrderFunc) *JwtTokenQuery {
 	jtq.order = append(jtq.order, o...)
 	return jtq
-}
-
-// QueryClaims chains the current query on the "claims" edge.
-func (jtq *JwtTokenQuery) QueryClaims() *ClaimsQuery {
-	query := (&ClaimsClient{config: jtq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := jtq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := jtq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(jwttoken.Table, jwttoken.FieldID, selector),
-			sqlgraph.To(claims.Table, claims.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, jwttoken.ClaimsTable, jwttoken.ClaimsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(jtq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // First returns the first JwtToken entity from the query.
@@ -272,22 +247,10 @@ func (jtq *JwtTokenQuery) Clone() *JwtTokenQuery {
 		order:      append([]OrderFunc{}, jtq.order...),
 		inters:     append([]Interceptor{}, jtq.inters...),
 		predicates: append([]predicate.JwtToken{}, jtq.predicates...),
-		withClaims: jtq.withClaims.Clone(),
 		// clone intermediate query.
 		sql:  jtq.sql.Clone(),
 		path: jtq.path,
 	}
-}
-
-// WithClaims tells the query-builder to eager-load the nodes that are connected to
-// the "claims" edge. The optional arguments are used to configure the query builder of the edge.
-func (jtq *JwtTokenQuery) WithClaims(opts ...func(*ClaimsQuery)) *JwtTokenQuery {
-	query := (&ClaimsClient{config: jtq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	jtq.withClaims = query
-	return jtq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -366,11 +329,8 @@ func (jtq *JwtTokenQuery) prepareQuery(ctx context.Context) error {
 
 func (jtq *JwtTokenQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*JwtToken, error) {
 	var (
-		nodes       = []*JwtToken{}
-		_spec       = jtq.querySpec()
-		loadedTypes = [1]bool{
-			jtq.withClaims != nil,
-		}
+		nodes = []*JwtToken{}
+		_spec = jtq.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*JwtToken).scanValues(nil, columns)
@@ -378,7 +338,6 @@ func (jtq *JwtTokenQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Jw
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &JwtToken{config: jtq.config}
 		nodes = append(nodes, node)
-		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -390,46 +349,7 @@ func (jtq *JwtTokenQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Jw
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := jtq.withClaims; query != nil {
-		if err := jtq.loadClaims(ctx, query, nodes,
-			func(n *JwtToken) { n.Edges.Claims = []*Claims{} },
-			func(n *JwtToken, e *Claims) { n.Edges.Claims = append(n.Edges.Claims, e) }); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
-}
-
-func (jtq *JwtTokenQuery) loadClaims(ctx context.Context, query *ClaimsQuery, nodes []*JwtToken, init func(*JwtToken), assign func(*JwtToken, *Claims)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*JwtToken)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	query.withFKs = true
-	query.Where(predicate.Claims(func(s *sql.Selector) {
-		s.Where(sql.InValues(jwttoken.ClaimsColumn, fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.jwt_token_claims
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "jwt_token_claims" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "jwt_token_claims" returned %v for node %v`, *fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
 }
 
 func (jtq *JwtTokenQuery) sqlCount(ctx context.Context) (int, error) {

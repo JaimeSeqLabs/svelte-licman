@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"license-manager/pkg/repositories/ent-fw/ent/claims"
 	"license-manager/pkg/repositories/ent-fw/ent/contact"
 	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
@@ -43,7 +42,6 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		claims.Table:       claims.ValidColumn,
 		contact.Table:      contact.ValidColumn,
 		credentials.Table:  credentials.ValidColumn,
 		jwttoken.Table:     jwttoken.ValidColumn,

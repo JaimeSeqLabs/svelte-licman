@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"license-manager/pkg/repositories/ent-fw/ent/claims"
 	"license-manager/pkg/repositories/ent-fw/ent/contact"
 	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
@@ -15,16 +14,6 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	claimsFields := schema.Claims{}.Fields()
-	_ = claimsFields
-	// claimsDescKey is the schema descriptor for key field.
-	claimsDescKey := claimsFields[0].Descriptor()
-	// claims.KeyValidator is a validator for the "key" field. It is called by the builders before save.
-	claims.KeyValidator = claimsDescKey.Validators[0].(func(string) error)
-	// claimsDescValue is the schema descriptor for value field.
-	claimsDescValue := claimsFields[1].Descriptor()
-	// claims.ValueValidator is a validator for the "value" field. It is called by the builders before save.
-	claims.ValueValidator = claimsDescValue.Validators[0].(func(string) error)
 	contactFields := schema.Contact{}.Fields()
 	_ = contactFields
 	// contactDescName is the schema descriptor for name field.

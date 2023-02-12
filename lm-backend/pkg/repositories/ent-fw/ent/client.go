@@ -10,7 +10,6 @@ import (
 
 	"license-manager/pkg/repositories/ent-fw/ent/migrate"
 
-	"license-manager/pkg/repositories/ent-fw/ent/claims"
 	"license-manager/pkg/repositories/ent-fw/ent/contact"
 	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
@@ -26,8 +25,6 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// Claims is the client for interacting with the Claims builders.
-	Claims *ClaimsClient
 	// Contact is the client for interacting with the Contact builders.
 	Contact *ContactClient
 	// Credentials is the client for interacting with the Credentials builders.
@@ -49,7 +46,6 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.Claims = NewClaimsClient(c.config)
 	c.Contact = NewContactClient(c.config)
 	c.Credentials = NewCredentialsClient(c.config)
 	c.JwtToken = NewJwtTokenClient(c.config)
@@ -87,7 +83,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:          ctx,
 		config:       cfg,
-		Claims:       NewClaimsClient(cfg),
 		Contact:      NewContactClient(cfg),
 		Credentials:  NewCredentialsClient(cfg),
 		JwtToken:     NewJwtTokenClient(cfg),
@@ -111,7 +106,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:          ctx,
 		config:       cfg,
-		Claims:       NewClaimsClient(cfg),
 		Contact:      NewContactClient(cfg),
 		Credentials:  NewCredentialsClient(cfg),
 		JwtToken:     NewJwtTokenClient(cfg),
@@ -122,7 +116,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Claims.
+//		Contact.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -144,7 +138,6 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Claims.Use(hooks...)
 	c.Contact.Use(hooks...)
 	c.Credentials.Use(hooks...)
 	c.JwtToken.Use(hooks...)
@@ -154,7 +147,6 @@ func (c *Client) Use(hooks ...Hook) {
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Claims.Intercept(interceptors...)
 	c.Contact.Intercept(interceptors...)
 	c.Credentials.Intercept(interceptors...)
 	c.JwtToken.Intercept(interceptors...)
@@ -164,8 +156,6 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
-	case *ClaimsMutation:
-		return c.Claims.mutate(ctx, m)
 	case *ContactMutation:
 		return c.Contact.mutate(ctx, m)
 	case *CredentialsMutation:
@@ -176,140 +166,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Organization.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
-	}
-}
-
-// ClaimsClient is a client for the Claims schema.
-type ClaimsClient struct {
-	config
-}
-
-// NewClaimsClient returns a client for the Claims from the given config.
-func NewClaimsClient(c config) *ClaimsClient {
-	return &ClaimsClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `claims.Hooks(f(g(h())))`.
-func (c *ClaimsClient) Use(hooks ...Hook) {
-	c.hooks.Claims = append(c.hooks.Claims, hooks...)
-}
-
-// Use adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `claims.Intercept(f(g(h())))`.
-func (c *ClaimsClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Claims = append(c.inters.Claims, interceptors...)
-}
-
-// Create returns a builder for creating a Claims entity.
-func (c *ClaimsClient) Create() *ClaimsCreate {
-	mutation := newClaimsMutation(c.config, OpCreate)
-	return &ClaimsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Claims entities.
-func (c *ClaimsClient) CreateBulk(builders ...*ClaimsCreate) *ClaimsCreateBulk {
-	return &ClaimsCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Claims.
-func (c *ClaimsClient) Update() *ClaimsUpdate {
-	mutation := newClaimsMutation(c.config, OpUpdate)
-	return &ClaimsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *ClaimsClient) UpdateOne(cl *Claims) *ClaimsUpdateOne {
-	mutation := newClaimsMutation(c.config, OpUpdateOne, withClaims(cl))
-	return &ClaimsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *ClaimsClient) UpdateOneID(id int) *ClaimsUpdateOne {
-	mutation := newClaimsMutation(c.config, OpUpdateOne, withClaimsID(id))
-	return &ClaimsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Claims.
-func (c *ClaimsClient) Delete() *ClaimsDelete {
-	mutation := newClaimsMutation(c.config, OpDelete)
-	return &ClaimsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *ClaimsClient) DeleteOne(cl *Claims) *ClaimsDeleteOne {
-	return c.DeleteOneID(cl.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ClaimsClient) DeleteOneID(id int) *ClaimsDeleteOne {
-	builder := c.Delete().Where(claims.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ClaimsDeleteOne{builder}
-}
-
-// Query returns a query builder for Claims.
-func (c *ClaimsClient) Query() *ClaimsQuery {
-	return &ClaimsQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeClaims},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Claims entity by its id.
-func (c *ClaimsClient) Get(ctx context.Context, id int) (*Claims, error) {
-	return c.Query().Where(claims.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *ClaimsClient) GetX(ctx context.Context, id int) *Claims {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryClaimer queries the claimer edge of a Claims.
-func (c *ClaimsClient) QueryClaimer(cl *Claims) *CredentialsQuery {
-	query := (&CredentialsClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := cl.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(claims.Table, claims.FieldID, id),
-			sqlgraph.To(credentials.Table, credentials.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, claims.ClaimerTable, claims.ClaimerColumn),
-		)
-		fromV = sqlgraph.Neighbors(cl.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *ClaimsClient) Hooks() []Hook {
-	return c.hooks.Claims
-}
-
-// Interceptors returns the client interceptors.
-func (c *ClaimsClient) Interceptors() []Interceptor {
-	return c.inters.Claims
-}
-
-func (c *ClaimsClient) mutate(ctx context.Context, m *ClaimsMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&ClaimsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&ClaimsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&ClaimsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&ClaimsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown Claims mutation op: %q", m.Op())
 	}
 }
 
@@ -524,22 +380,6 @@ func (c *CredentialsClient) GetX(ctx context.Context, id int) *Credentials {
 	return obj
 }
 
-// QueryClaims queries the claims edge of a Credentials.
-func (c *CredentialsClient) QueryClaims(cr *Credentials) *ClaimsQuery {
-	query := (&ClaimsClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := cr.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(credentials.Table, credentials.FieldID, id),
-			sqlgraph.To(claims.Table, claims.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, credentials.ClaimsTable, credentials.ClaimsColumn),
-		)
-		fromV = sqlgraph.Neighbors(cr.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // Hooks returns the client hooks.
 func (c *CredentialsClient) Hooks() []Hook {
 	return c.hooks.Credentials
@@ -656,22 +496,6 @@ func (c *JwtTokenClient) GetX(ctx context.Context, id int) *JwtToken {
 		panic(err)
 	}
 	return obj
-}
-
-// QueryClaims queries the claims edge of a JwtToken.
-func (c *JwtTokenClient) QueryClaims(jt *JwtToken) *ClaimsQuery {
-	query := (&ClaimsClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := jt.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(jwttoken.Table, jwttoken.FieldID, id),
-			sqlgraph.To(claims.Table, claims.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, jwttoken.ClaimsTable, jwttoken.ClaimsColumn),
-		)
-		fromV = sqlgraph.Neighbors(jt.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
 }
 
 // Hooks returns the client hooks.

@@ -11,17 +11,10 @@ const (
 	FieldToken = "token"
 	// FieldRevoked holds the string denoting the revoked field in the database.
 	FieldRevoked = "revoked"
-	// EdgeClaims holds the string denoting the claims edge name in mutations.
-	EdgeClaims = "claims"
+	// FieldClaims holds the string denoting the claims field in the database.
+	FieldClaims = "claims"
 	// Table holds the table name of the jwttoken in the database.
 	Table = "jwt_tokens"
-	// ClaimsTable is the table that holds the claims relation/edge.
-	ClaimsTable = "claims"
-	// ClaimsInverseTable is the table name for the Claims entity.
-	// It exists in this package in order to avoid circular dependency with the "claims" package.
-	ClaimsInverseTable = "claims"
-	// ClaimsColumn is the table column denoting the claims relation/edge.
-	ClaimsColumn = "jwt_token_claims"
 )
 
 // Columns holds all SQL columns for jwttoken fields.
@@ -29,6 +22,7 @@ var Columns = []string{
 	FieldID,
 	FieldToken,
 	FieldRevoked,
+	FieldClaims,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

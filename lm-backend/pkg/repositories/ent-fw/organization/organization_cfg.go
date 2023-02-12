@@ -1,4 +1,4 @@
-package entfw
+package organization_repo
 
 import "license-manager/pkg/repositories/ent-fw/ent"
 

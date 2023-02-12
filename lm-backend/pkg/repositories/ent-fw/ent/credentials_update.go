@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"license-manager/pkg/repositories/ent-fw/ent/claims"
 	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
 
@@ -40,34 +39,15 @@ func (cu *CredentialsUpdate) SetPasswordHash(s string) *CredentialsUpdate {
 	return cu
 }
 
-// SetClaimsID sets the "claims" edge to the Claims entity by ID.
-func (cu *CredentialsUpdate) SetClaimsID(id int) *CredentialsUpdate {
-	cu.mutation.SetClaimsID(id)
+// SetClaims sets the "claims" field.
+func (cu *CredentialsUpdate) SetClaims(m map[string]interface{}) *CredentialsUpdate {
+	cu.mutation.SetClaims(m)
 	return cu
-}
-
-// SetNillableClaimsID sets the "claims" edge to the Claims entity by ID if the given value is not nil.
-func (cu *CredentialsUpdate) SetNillableClaimsID(id *int) *CredentialsUpdate {
-	if id != nil {
-		cu = cu.SetClaimsID(*id)
-	}
-	return cu
-}
-
-// SetClaims sets the "claims" edge to the Claims entity.
-func (cu *CredentialsUpdate) SetClaims(c *Claims) *CredentialsUpdate {
-	return cu.SetClaimsID(c.ID)
 }
 
 // Mutation returns the CredentialsMutation object of the builder.
 func (cu *CredentialsUpdate) Mutation() *CredentialsMutation {
 	return cu.mutation
-}
-
-// ClearClaims clears the "claims" edge to the Claims entity.
-func (cu *CredentialsUpdate) ClearClaims() *CredentialsUpdate {
-	cu.mutation.ClearClaims()
-	return cu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -139,40 +119,8 @@ func (cu *CredentialsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.PasswordHash(); ok {
 		_spec.SetField(credentials.FieldPasswordHash, field.TypeString, value)
 	}
-	if cu.mutation.ClaimsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   credentials.ClaimsTable,
-			Columns: []string{credentials.ClaimsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: claims.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := cu.mutation.ClaimsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   credentials.ClaimsTable,
-			Columns: []string{credentials.ClaimsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: claims.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	if value, ok := cu.mutation.Claims(); ok {
+		_spec.SetField(credentials.FieldClaims, field.TypeJSON, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -206,34 +154,15 @@ func (cuo *CredentialsUpdateOne) SetPasswordHash(s string) *CredentialsUpdateOne
 	return cuo
 }
 
-// SetClaimsID sets the "claims" edge to the Claims entity by ID.
-func (cuo *CredentialsUpdateOne) SetClaimsID(id int) *CredentialsUpdateOne {
-	cuo.mutation.SetClaimsID(id)
+// SetClaims sets the "claims" field.
+func (cuo *CredentialsUpdateOne) SetClaims(m map[string]interface{}) *CredentialsUpdateOne {
+	cuo.mutation.SetClaims(m)
 	return cuo
-}
-
-// SetNillableClaimsID sets the "claims" edge to the Claims entity by ID if the given value is not nil.
-func (cuo *CredentialsUpdateOne) SetNillableClaimsID(id *int) *CredentialsUpdateOne {
-	if id != nil {
-		cuo = cuo.SetClaimsID(*id)
-	}
-	return cuo
-}
-
-// SetClaims sets the "claims" edge to the Claims entity.
-func (cuo *CredentialsUpdateOne) SetClaims(c *Claims) *CredentialsUpdateOne {
-	return cuo.SetClaimsID(c.ID)
 }
 
 // Mutation returns the CredentialsMutation object of the builder.
 func (cuo *CredentialsUpdateOne) Mutation() *CredentialsMutation {
 	return cuo.mutation
-}
-
-// ClearClaims clears the "claims" edge to the Claims entity.
-func (cuo *CredentialsUpdateOne) ClearClaims() *CredentialsUpdateOne {
-	cuo.mutation.ClearClaims()
-	return cuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -329,40 +258,8 @@ func (cuo *CredentialsUpdateOne) sqlSave(ctx context.Context) (_node *Credential
 	if value, ok := cuo.mutation.PasswordHash(); ok {
 		_spec.SetField(credentials.FieldPasswordHash, field.TypeString, value)
 	}
-	if cuo.mutation.ClaimsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   credentials.ClaimsTable,
-			Columns: []string{credentials.ClaimsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: claims.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := cuo.mutation.ClaimsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   credentials.ClaimsTable,
-			Columns: []string{credentials.ClaimsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: claims.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	if value, ok := cuo.mutation.Claims(); ok {
+		_spec.SetField(credentials.FieldClaims, field.TypeJSON, value)
 	}
 	_node = &Credentials{config: cuo.config}
 	_spec.Assign = _node.assignValues

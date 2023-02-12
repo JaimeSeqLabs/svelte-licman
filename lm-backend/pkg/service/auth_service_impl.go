@@ -1,14 +1,10 @@
 package service
 
 import (
-	"errors"
 	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories"
 )
 
-var (
-	ErrCredsNotFound = errors.New("credentials not found")
-)
 
 type authService struct {
 	credsRepo repositories.CredentialsRepository

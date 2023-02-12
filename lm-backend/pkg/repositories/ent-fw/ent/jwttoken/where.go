@@ -6,7 +6,6 @@ import (
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -137,33 +136,6 @@ func RevokedEQ(v bool) predicate.JwtToken {
 // RevokedNEQ applies the NEQ predicate on the "revoked" field.
 func RevokedNEQ(v bool) predicate.JwtToken {
 	return predicate.JwtToken(sql.FieldNEQ(FieldRevoked, v))
-}
-
-// HasClaims applies the HasEdge predicate on the "claims" edge.
-func HasClaims() predicate.JwtToken {
-	return predicate.JwtToken(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ClaimsTable, ClaimsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasClaimsWith applies the HasEdge predicate on the "claims" edge with a given conditions (other predicates).
-func HasClaimsWith(preds ...predicate.Claims) predicate.JwtToken {
-	return predicate.JwtToken(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ClaimsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ClaimsTable, ClaimsColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
 }
 
 // And groups predicates with the AND operator between them.

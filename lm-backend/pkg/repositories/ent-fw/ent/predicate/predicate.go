@@ -6,9 +6,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// Claims is the predicate function for claims builders.
-type Claims func(*sql.Selector)
-
 // Contact is the predicate function for contact builders.
 type Contact func(*sql.Selector)
 

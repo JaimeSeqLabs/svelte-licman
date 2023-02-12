@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
 	"strings"
@@ -19,27 +20,8 @@ type JwtToken struct {
 	Token string `json:"token,omitempty"`
 	// Revoked holds the value of the "revoked" field.
 	Revoked bool `json:"revoked,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the JwtTokenQuery when eager-loading is set.
-	Edges JwtTokenEdges `json:"edges"`
-}
-
-// JwtTokenEdges holds the relations/edges for other nodes in the graph.
-type JwtTokenEdges struct {
-	// Claims holds the value of the claims edge.
-	Claims []*Claims `json:"claims,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
-}
-
-// ClaimsOrErr returns the Claims value or an error if the edge
-// was not loaded in eager-loading.
-func (e JwtTokenEdges) ClaimsOrErr() ([]*Claims, error) {
-	if e.loadedTypes[0] {
-		return e.Claims, nil
-	}
-	return nil, &NotLoadedError{edge: "claims"}
+	// Claims holds the value of the "claims" field.
+	Claims map[string]interface{} `json:"claims,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -47,6 +29,8 @@ func (*JwtToken) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case jwttoken.FieldClaims:
+			values[i] = new([]byte)
 		case jwttoken.FieldRevoked:
 			values[i] = new(sql.NullBool)
 		case jwttoken.FieldID:
@@ -86,14 +70,17 @@ func (jt *JwtToken) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				jt.Revoked = value.Bool
 			}
+		case jwttoken.FieldClaims:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field claims", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &jt.Claims); err != nil {
+					return fmt.Errorf("unmarshal field claims: %w", err)
+				}
+			}
 		}
 	}
 	return nil
-}
-
-// QueryClaims queries the "claims" edge of the JwtToken entity.
-func (jt *JwtToken) QueryClaims() *ClaimsQuery {
-	return NewJwtTokenClient(jt.config).QueryClaims(jt)
 }
 
 // Update returns a builder for updating this JwtToken.
@@ -124,6 +111,9 @@ func (jt *JwtToken) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("revoked=")
 	builder.WriteString(fmt.Sprintf("%v", jt.Revoked))
+	builder.WriteString(", ")
+	builder.WriteString("claims=")
+	builder.WriteString(fmt.Sprintf("%v", jt.Claims))
 	builder.WriteByte(')')
 	return builder.String()
 }

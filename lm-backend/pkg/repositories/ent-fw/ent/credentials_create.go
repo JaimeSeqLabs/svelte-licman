@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"license-manager/pkg/repositories/ent-fw/ent/claims"
 	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -32,23 +31,10 @@ func (cc *CredentialsCreate) SetPasswordHash(s string) *CredentialsCreate {
 	return cc
 }
 
-// SetClaimsID sets the "claims" edge to the Claims entity by ID.
-func (cc *CredentialsCreate) SetClaimsID(id int) *CredentialsCreate {
-	cc.mutation.SetClaimsID(id)
+// SetClaims sets the "claims" field.
+func (cc *CredentialsCreate) SetClaims(m map[string]interface{}) *CredentialsCreate {
+	cc.mutation.SetClaims(m)
 	return cc
-}
-
-// SetNillableClaimsID sets the "claims" edge to the Claims entity by ID if the given value is not nil.
-func (cc *CredentialsCreate) SetNillableClaimsID(id *int) *CredentialsCreate {
-	if id != nil {
-		cc = cc.SetClaimsID(*id)
-	}
-	return cc
-}
-
-// SetClaims sets the "claims" edge to the Claims entity.
-func (cc *CredentialsCreate) SetClaims(c *Claims) *CredentialsCreate {
-	return cc.SetClaimsID(c.ID)
 }
 
 // Mutation returns the CredentialsMutation object of the builder.
@@ -101,6 +87,9 @@ func (cc *CredentialsCreate) check() error {
 			return &ValidationError{Name: "password_hash", err: fmt.Errorf(`ent: validator failed for field "Credentials.password_hash": %w`, err)}
 		}
 	}
+	if _, ok := cc.mutation.Claims(); !ok {
+		return &ValidationError{Name: "claims", err: errors.New(`ent: missing required field "Credentials.claims"`)}
+	}
 	return nil
 }
 
@@ -141,24 +130,9 @@ func (cc *CredentialsCreate) createSpec() (*Credentials, *sqlgraph.CreateSpec) {
 		_spec.SetField(credentials.FieldPasswordHash, field.TypeString, value)
 		_node.PasswordHash = value
 	}
-	if nodes := cc.mutation.ClaimsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   credentials.ClaimsTable,
-			Columns: []string{credentials.ClaimsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: claims.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
+	if value, ok := cc.mutation.Claims(); ok {
+		_spec.SetField(credentials.FieldClaims, field.TypeJSON, value)
+		_node.Claims = value
 	}
 	return _node, _spec
 }
