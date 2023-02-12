@@ -6,8 +6,17 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Claims is the predicate function for claims builders.
+type Claims func(*sql.Selector)
+
 // Contact is the predicate function for contact builders.
 type Contact func(*sql.Selector)
+
+// Credentials is the predicate function for credentials builders.
+type Credentials func(*sql.Selector)
+
+// JwtToken is the predicate function for jwttoken builders.
+type JwtToken func(*sql.Selector)
 
 // Organization is the predicate function for organization builders.
 type Organization func(*sql.Selector)

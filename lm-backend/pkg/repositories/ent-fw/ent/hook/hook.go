@@ -8,6 +8,18 @@ import (
 	"license-manager/pkg/repositories/ent-fw/ent"
 )
 
+// The ClaimsFunc type is an adapter to allow the use of ordinary
+// function as Claims mutator.
+type ClaimsFunc func(context.Context, *ent.ClaimsMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ClaimsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ClaimsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ClaimsMutation", m)
+}
+
 // The ContactFunc type is an adapter to allow the use of ordinary
 // function as Contact mutator.
 type ContactFunc func(context.Context, *ent.ContactMutation) (ent.Value, error)
@@ -18,6 +30,30 @@ func (f ContactFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ContactMutation", m)
+}
+
+// The CredentialsFunc type is an adapter to allow the use of ordinary
+// function as Credentials mutator.
+type CredentialsFunc func(context.Context, *ent.CredentialsMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CredentialsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CredentialsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CredentialsMutation", m)
+}
+
+// The JwtTokenFunc type is an adapter to allow the use of ordinary
+// function as JwtToken mutator.
+type JwtTokenFunc func(context.Context, *ent.JwtTokenMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f JwtTokenFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.JwtTokenMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.JwtTokenMutation", m)
 }
 
 // The OrganizationFunc type is an adapter to allow the use of ordinary

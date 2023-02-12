@@ -3,7 +3,10 @@
 package ent
 
 import (
+	"license-manager/pkg/repositories/ent-fw/ent/claims"
 	"license-manager/pkg/repositories/ent-fw/ent/contact"
+	"license-manager/pkg/repositories/ent-fw/ent/credentials"
+	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
 	"license-manager/pkg/repositories/ent-fw/ent/organization"
 	"license-manager/pkg/repositories/ent-fw/ent/schema"
 )
@@ -12,6 +15,12 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	claimsFields := schema.Claims{}.Fields()
+	_ = claimsFields
+	// claimsDescValues is the schema descriptor for values field.
+	claimsDescValues := claimsFields[0].Descriptor()
+	// claims.ValuesValidator is a validator for the "values" field. It is called by the builders before save.
+	claims.ValuesValidator = claimsDescValues.Validators[0].(func(string) error)
 	contactFields := schema.Contact{}.Fields()
 	_ = contactFields
 	// contactDescName is the schema descriptor for name field.
@@ -22,6 +31,30 @@ func init() {
 	contactDescMail := contactFields[1].Descriptor()
 	// contact.MailValidator is a validator for the "mail" field. It is called by the builders before save.
 	contact.MailValidator = contactDescMail.Validators[0].(func(string) error)
+	credentialsFields := schema.Credentials{}.Fields()
+	_ = credentialsFields
+	// credentialsDescUsername is the schema descriptor for username field.
+	credentialsDescUsername := credentialsFields[0].Descriptor()
+	// credentials.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	credentials.UsernameValidator = credentialsDescUsername.Validators[0].(func(string) error)
+	// credentialsDescMail is the schema descriptor for mail field.
+	credentialsDescMail := credentialsFields[1].Descriptor()
+	// credentials.MailValidator is a validator for the "mail" field. It is called by the builders before save.
+	credentials.MailValidator = credentialsDescMail.Validators[0].(func(string) error)
+	// credentialsDescPasswordHash is the schema descriptor for password_hash field.
+	credentialsDescPasswordHash := credentialsFields[2].Descriptor()
+	// credentials.PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
+	credentials.PasswordHashValidator = credentialsDescPasswordHash.Validators[0].(func(string) error)
+	jwttokenFields := schema.JwtToken{}.Fields()
+	_ = jwttokenFields
+	// jwttokenDescToken is the schema descriptor for token field.
+	jwttokenDescToken := jwttokenFields[0].Descriptor()
+	// jwttoken.TokenValidator is a validator for the "token" field. It is called by the builders before save.
+	jwttoken.TokenValidator = jwttokenDescToken.Validators[0].(func(string) error)
+	// jwttokenDescRevoked is the schema descriptor for revoked field.
+	jwttokenDescRevoked := jwttokenFields[1].Descriptor()
+	// jwttoken.DefaultRevoked holds the default value on creation for the revoked field.
+	jwttoken.DefaultRevoked = jwttokenDescRevoked.Default.(bool)
 	organizationFields := schema.Organization{}.Fields()
 	_ = organizationFields
 	// organizationDescName is the schema descriptor for name field.

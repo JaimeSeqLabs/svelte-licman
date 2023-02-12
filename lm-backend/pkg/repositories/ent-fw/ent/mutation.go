@@ -6,7 +6,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"license-manager/pkg/repositories/ent-fw/ent/claims"
 	"license-manager/pkg/repositories/ent-fw/ent/contact"
+	"license-manager/pkg/repositories/ent-fw/ent/credentials"
+	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
 	"license-manager/pkg/repositories/ent-fw/ent/organization"
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
 	"sync"
@@ -24,9 +27,338 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
+	TypeClaims       = "Claims"
 	TypeContact      = "Contact"
+	TypeCredentials  = "Credentials"
+	TypeJwtToken     = "JwtToken"
 	TypeOrganization = "Organization"
 )
+
+// ClaimsMutation represents an operation that mutates the Claims nodes in the graph.
+type ClaimsMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	values        *string
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*Claims, error)
+	predicates    []predicate.Claims
+}
+
+var _ ent.Mutation = (*ClaimsMutation)(nil)
+
+// claimsOption allows management of the mutation configuration using functional options.
+type claimsOption func(*ClaimsMutation)
+
+// newClaimsMutation creates new mutation for the Claims entity.
+func newClaimsMutation(c config, op Op, opts ...claimsOption) *ClaimsMutation {
+	m := &ClaimsMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeClaims,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withClaimsID sets the ID field of the mutation.
+func withClaimsID(id int) claimsOption {
+	return func(m *ClaimsMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Claims
+		)
+		m.oldValue = func(ctx context.Context) (*Claims, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Claims.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withClaims sets the old Claims of the mutation.
+func withClaims(node *Claims) claimsOption {
+	return func(m *ClaimsMutation) {
+		m.oldValue = func(context.Context) (*Claims, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ClaimsMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ClaimsMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ClaimsMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ClaimsMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Claims.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetValues sets the "values" field.
+func (m *ClaimsMutation) SetValues(s string) {
+	m.values = &s
+}
+
+// Values returns the value of the "values" field in the mutation.
+func (m *ClaimsMutation) Values() (r string, exists bool) {
+	v := m.values
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldValues returns the old "values" field's value of the Claims entity.
+// If the Claims object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ClaimsMutation) OldValues(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldValues is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldValues requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldValues: %w", err)
+	}
+	return oldValue.Values, nil
+}
+
+// ResetValues resets all changes to the "values" field.
+func (m *ClaimsMutation) ResetValues() {
+	m.values = nil
+}
+
+// Where appends a list predicates to the ClaimsMutation builder.
+func (m *ClaimsMutation) Where(ps ...predicate.Claims) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ClaimsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ClaimsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Claims, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ClaimsMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ClaimsMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Claims).
+func (m *ClaimsMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ClaimsMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.values != nil {
+		fields = append(fields, claims.FieldValues)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ClaimsMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case claims.FieldValues:
+		return m.Values()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ClaimsMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case claims.FieldValues:
+		return m.OldValues(ctx)
+	}
+	return nil, fmt.Errorf("unknown Claims field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ClaimsMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case claims.FieldValues:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValues(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Claims field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ClaimsMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ClaimsMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ClaimsMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Claims numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ClaimsMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ClaimsMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ClaimsMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Claims nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ClaimsMutation) ResetField(name string) error {
+	switch name {
+	case claims.FieldValues:
+		m.ResetValues()
+		return nil
+	}
+	return fmt.Errorf("unknown Claims field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ClaimsMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ClaimsMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ClaimsMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ClaimsMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ClaimsMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ClaimsMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ClaimsMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Claims unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ClaimsMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Claims edge %s", name)
+}
 
 // ContactMutation represents an operation that mutates the Contact nodes in the graph.
 type ContactMutation struct {
@@ -406,6 +738,1006 @@ func (m *ContactMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *ContactMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Contact edge %s", name)
+}
+
+// CredentialsMutation represents an operation that mutates the Credentials nodes in the graph.
+type CredentialsMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	username      *string
+	mail          *string
+	password_hash *string
+	clearedFields map[string]struct{}
+	claims        map[int]struct{}
+	removedclaims map[int]struct{}
+	clearedclaims bool
+	done          bool
+	oldValue      func(context.Context) (*Credentials, error)
+	predicates    []predicate.Credentials
+}
+
+var _ ent.Mutation = (*CredentialsMutation)(nil)
+
+// credentialsOption allows management of the mutation configuration using functional options.
+type credentialsOption func(*CredentialsMutation)
+
+// newCredentialsMutation creates new mutation for the Credentials entity.
+func newCredentialsMutation(c config, op Op, opts ...credentialsOption) *CredentialsMutation {
+	m := &CredentialsMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCredentials,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCredentialsID sets the ID field of the mutation.
+func withCredentialsID(id int) credentialsOption {
+	return func(m *CredentialsMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Credentials
+		)
+		m.oldValue = func(ctx context.Context) (*Credentials, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Credentials.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCredentials sets the old Credentials of the mutation.
+func withCredentials(node *Credentials) credentialsOption {
+	return func(m *CredentialsMutation) {
+		m.oldValue = func(context.Context) (*Credentials, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CredentialsMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CredentialsMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CredentialsMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CredentialsMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Credentials.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUsername sets the "username" field.
+func (m *CredentialsMutation) SetUsername(s string) {
+	m.username = &s
+}
+
+// Username returns the value of the "username" field in the mutation.
+func (m *CredentialsMutation) Username() (r string, exists bool) {
+	v := m.username
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUsername returns the old "username" field's value of the Credentials entity.
+// If the Credentials object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CredentialsMutation) OldUsername(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUsername is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUsername requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUsername: %w", err)
+	}
+	return oldValue.Username, nil
+}
+
+// ResetUsername resets all changes to the "username" field.
+func (m *CredentialsMutation) ResetUsername() {
+	m.username = nil
+}
+
+// SetMail sets the "mail" field.
+func (m *CredentialsMutation) SetMail(s string) {
+	m.mail = &s
+}
+
+// Mail returns the value of the "mail" field in the mutation.
+func (m *CredentialsMutation) Mail() (r string, exists bool) {
+	v := m.mail
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMail returns the old "mail" field's value of the Credentials entity.
+// If the Credentials object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CredentialsMutation) OldMail(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMail is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMail requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMail: %w", err)
+	}
+	return oldValue.Mail, nil
+}
+
+// ResetMail resets all changes to the "mail" field.
+func (m *CredentialsMutation) ResetMail() {
+	m.mail = nil
+}
+
+// SetPasswordHash sets the "password_hash" field.
+func (m *CredentialsMutation) SetPasswordHash(s string) {
+	m.password_hash = &s
+}
+
+// PasswordHash returns the value of the "password_hash" field in the mutation.
+func (m *CredentialsMutation) PasswordHash() (r string, exists bool) {
+	v := m.password_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPasswordHash returns the old "password_hash" field's value of the Credentials entity.
+// If the Credentials object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CredentialsMutation) OldPasswordHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPasswordHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPasswordHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPasswordHash: %w", err)
+	}
+	return oldValue.PasswordHash, nil
+}
+
+// ResetPasswordHash resets all changes to the "password_hash" field.
+func (m *CredentialsMutation) ResetPasswordHash() {
+	m.password_hash = nil
+}
+
+// AddClaimIDs adds the "claims" edge to the Claims entity by ids.
+func (m *CredentialsMutation) AddClaimIDs(ids ...int) {
+	if m.claims == nil {
+		m.claims = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.claims[ids[i]] = struct{}{}
+	}
+}
+
+// ClearClaims clears the "claims" edge to the Claims entity.
+func (m *CredentialsMutation) ClearClaims() {
+	m.clearedclaims = true
+}
+
+// ClaimsCleared reports if the "claims" edge to the Claims entity was cleared.
+func (m *CredentialsMutation) ClaimsCleared() bool {
+	return m.clearedclaims
+}
+
+// RemoveClaimIDs removes the "claims" edge to the Claims entity by IDs.
+func (m *CredentialsMutation) RemoveClaimIDs(ids ...int) {
+	if m.removedclaims == nil {
+		m.removedclaims = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.claims, ids[i])
+		m.removedclaims[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedClaims returns the removed IDs of the "claims" edge to the Claims entity.
+func (m *CredentialsMutation) RemovedClaimsIDs() (ids []int) {
+	for id := range m.removedclaims {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ClaimsIDs returns the "claims" edge IDs in the mutation.
+func (m *CredentialsMutation) ClaimsIDs() (ids []int) {
+	for id := range m.claims {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetClaims resets all changes to the "claims" edge.
+func (m *CredentialsMutation) ResetClaims() {
+	m.claims = nil
+	m.clearedclaims = false
+	m.removedclaims = nil
+}
+
+// Where appends a list predicates to the CredentialsMutation builder.
+func (m *CredentialsMutation) Where(ps ...predicate.Credentials) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CredentialsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CredentialsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Credentials, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CredentialsMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CredentialsMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Credentials).
+func (m *CredentialsMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CredentialsMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.username != nil {
+		fields = append(fields, credentials.FieldUsername)
+	}
+	if m.mail != nil {
+		fields = append(fields, credentials.FieldMail)
+	}
+	if m.password_hash != nil {
+		fields = append(fields, credentials.FieldPasswordHash)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CredentialsMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case credentials.FieldUsername:
+		return m.Username()
+	case credentials.FieldMail:
+		return m.Mail()
+	case credentials.FieldPasswordHash:
+		return m.PasswordHash()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CredentialsMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case credentials.FieldUsername:
+		return m.OldUsername(ctx)
+	case credentials.FieldMail:
+		return m.OldMail(ctx)
+	case credentials.FieldPasswordHash:
+		return m.OldPasswordHash(ctx)
+	}
+	return nil, fmt.Errorf("unknown Credentials field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CredentialsMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case credentials.FieldUsername:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUsername(v)
+		return nil
+	case credentials.FieldMail:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMail(v)
+		return nil
+	case credentials.FieldPasswordHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPasswordHash(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Credentials field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CredentialsMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CredentialsMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CredentialsMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Credentials numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CredentialsMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CredentialsMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CredentialsMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Credentials nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CredentialsMutation) ResetField(name string) error {
+	switch name {
+	case credentials.FieldUsername:
+		m.ResetUsername()
+		return nil
+	case credentials.FieldMail:
+		m.ResetMail()
+		return nil
+	case credentials.FieldPasswordHash:
+		m.ResetPasswordHash()
+		return nil
+	}
+	return fmt.Errorf("unknown Credentials field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CredentialsMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.claims != nil {
+		edges = append(edges, credentials.EdgeClaims)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CredentialsMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case credentials.EdgeClaims:
+		ids := make([]ent.Value, 0, len(m.claims))
+		for id := range m.claims {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CredentialsMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedclaims != nil {
+		edges = append(edges, credentials.EdgeClaims)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CredentialsMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case credentials.EdgeClaims:
+		ids := make([]ent.Value, 0, len(m.removedclaims))
+		for id := range m.removedclaims {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CredentialsMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedclaims {
+		edges = append(edges, credentials.EdgeClaims)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CredentialsMutation) EdgeCleared(name string) bool {
+	switch name {
+	case credentials.EdgeClaims:
+		return m.clearedclaims
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CredentialsMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Credentials unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CredentialsMutation) ResetEdge(name string) error {
+	switch name {
+	case credentials.EdgeClaims:
+		m.ResetClaims()
+		return nil
+	}
+	return fmt.Errorf("unknown Credentials edge %s", name)
+}
+
+// JwtTokenMutation represents an operation that mutates the JwtToken nodes in the graph.
+type JwtTokenMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	token         *string
+	revoked       *bool
+	clearedFields map[string]struct{}
+	claims        map[int]struct{}
+	removedclaims map[int]struct{}
+	clearedclaims bool
+	done          bool
+	oldValue      func(context.Context) (*JwtToken, error)
+	predicates    []predicate.JwtToken
+}
+
+var _ ent.Mutation = (*JwtTokenMutation)(nil)
+
+// jwttokenOption allows management of the mutation configuration using functional options.
+type jwttokenOption func(*JwtTokenMutation)
+
+// newJwtTokenMutation creates new mutation for the JwtToken entity.
+func newJwtTokenMutation(c config, op Op, opts ...jwttokenOption) *JwtTokenMutation {
+	m := &JwtTokenMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeJwtToken,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withJwtTokenID sets the ID field of the mutation.
+func withJwtTokenID(id int) jwttokenOption {
+	return func(m *JwtTokenMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *JwtToken
+		)
+		m.oldValue = func(ctx context.Context) (*JwtToken, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().JwtToken.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withJwtToken sets the old JwtToken of the mutation.
+func withJwtToken(node *JwtToken) jwttokenOption {
+	return func(m *JwtTokenMutation) {
+		m.oldValue = func(context.Context) (*JwtToken, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m JwtTokenMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m JwtTokenMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *JwtTokenMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *JwtTokenMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().JwtToken.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetToken sets the "token" field.
+func (m *JwtTokenMutation) SetToken(s string) {
+	m.token = &s
+}
+
+// Token returns the value of the "token" field in the mutation.
+func (m *JwtTokenMutation) Token() (r string, exists bool) {
+	v := m.token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldToken returns the old "token" field's value of the JwtToken entity.
+// If the JwtToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JwtTokenMutation) OldToken(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldToken: %w", err)
+	}
+	return oldValue.Token, nil
+}
+
+// ResetToken resets all changes to the "token" field.
+func (m *JwtTokenMutation) ResetToken() {
+	m.token = nil
+}
+
+// SetRevoked sets the "revoked" field.
+func (m *JwtTokenMutation) SetRevoked(b bool) {
+	m.revoked = &b
+}
+
+// Revoked returns the value of the "revoked" field in the mutation.
+func (m *JwtTokenMutation) Revoked() (r bool, exists bool) {
+	v := m.revoked
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevoked returns the old "revoked" field's value of the JwtToken entity.
+// If the JwtToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JwtTokenMutation) OldRevoked(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevoked is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevoked requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevoked: %w", err)
+	}
+	return oldValue.Revoked, nil
+}
+
+// ResetRevoked resets all changes to the "revoked" field.
+func (m *JwtTokenMutation) ResetRevoked() {
+	m.revoked = nil
+}
+
+// AddClaimIDs adds the "claims" edge to the Claims entity by ids.
+func (m *JwtTokenMutation) AddClaimIDs(ids ...int) {
+	if m.claims == nil {
+		m.claims = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.claims[ids[i]] = struct{}{}
+	}
+}
+
+// ClearClaims clears the "claims" edge to the Claims entity.
+func (m *JwtTokenMutation) ClearClaims() {
+	m.clearedclaims = true
+}
+
+// ClaimsCleared reports if the "claims" edge to the Claims entity was cleared.
+func (m *JwtTokenMutation) ClaimsCleared() bool {
+	return m.clearedclaims
+}
+
+// RemoveClaimIDs removes the "claims" edge to the Claims entity by IDs.
+func (m *JwtTokenMutation) RemoveClaimIDs(ids ...int) {
+	if m.removedclaims == nil {
+		m.removedclaims = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.claims, ids[i])
+		m.removedclaims[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedClaims returns the removed IDs of the "claims" edge to the Claims entity.
+func (m *JwtTokenMutation) RemovedClaimsIDs() (ids []int) {
+	for id := range m.removedclaims {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ClaimsIDs returns the "claims" edge IDs in the mutation.
+func (m *JwtTokenMutation) ClaimsIDs() (ids []int) {
+	for id := range m.claims {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetClaims resets all changes to the "claims" edge.
+func (m *JwtTokenMutation) ResetClaims() {
+	m.claims = nil
+	m.clearedclaims = false
+	m.removedclaims = nil
+}
+
+// Where appends a list predicates to the JwtTokenMutation builder.
+func (m *JwtTokenMutation) Where(ps ...predicate.JwtToken) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the JwtTokenMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *JwtTokenMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.JwtToken, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *JwtTokenMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *JwtTokenMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (JwtToken).
+func (m *JwtTokenMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *JwtTokenMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.token != nil {
+		fields = append(fields, jwttoken.FieldToken)
+	}
+	if m.revoked != nil {
+		fields = append(fields, jwttoken.FieldRevoked)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *JwtTokenMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case jwttoken.FieldToken:
+		return m.Token()
+	case jwttoken.FieldRevoked:
+		return m.Revoked()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *JwtTokenMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case jwttoken.FieldToken:
+		return m.OldToken(ctx)
+	case jwttoken.FieldRevoked:
+		return m.OldRevoked(ctx)
+	}
+	return nil, fmt.Errorf("unknown JwtToken field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *JwtTokenMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case jwttoken.FieldToken:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetToken(v)
+		return nil
+	case jwttoken.FieldRevoked:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevoked(v)
+		return nil
+	}
+	return fmt.Errorf("unknown JwtToken field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *JwtTokenMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *JwtTokenMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *JwtTokenMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown JwtToken numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *JwtTokenMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *JwtTokenMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *JwtTokenMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown JwtToken nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *JwtTokenMutation) ResetField(name string) error {
+	switch name {
+	case jwttoken.FieldToken:
+		m.ResetToken()
+		return nil
+	case jwttoken.FieldRevoked:
+		m.ResetRevoked()
+		return nil
+	}
+	return fmt.Errorf("unknown JwtToken field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *JwtTokenMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.claims != nil {
+		edges = append(edges, jwttoken.EdgeClaims)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *JwtTokenMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case jwttoken.EdgeClaims:
+		ids := make([]ent.Value, 0, len(m.claims))
+		for id := range m.claims {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *JwtTokenMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedclaims != nil {
+		edges = append(edges, jwttoken.EdgeClaims)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *JwtTokenMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case jwttoken.EdgeClaims:
+		ids := make([]ent.Value, 0, len(m.removedclaims))
+		for id := range m.removedclaims {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *JwtTokenMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedclaims {
+		edges = append(edges, jwttoken.EdgeClaims)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *JwtTokenMutation) EdgeCleared(name string) bool {
+	switch name {
+	case jwttoken.EdgeClaims:
+		return m.clearedclaims
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *JwtTokenMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown JwtToken unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *JwtTokenMutation) ResetEdge(name string) error {
+	switch name {
+	case jwttoken.EdgeClaims:
+		m.ResetClaims()
+		return nil
+	}
+	return fmt.Errorf("unknown JwtToken edge %s", name)
 }
 
 // OrganizationMutation represents an operation that mutates the Organization nodes in the graph.
