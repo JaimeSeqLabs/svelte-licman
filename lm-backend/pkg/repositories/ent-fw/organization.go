@@ -18,7 +18,7 @@ type orgEntRepo struct {
 // *orgSqlRepo implements repo interface
 var _ repositories.OrganizationRepository = (*orgEntRepo)(nil)
 
-func NewOrganizaitionEntRepo(opts ...func(*orgEntRepo)) *orgEntRepo {
+func NewOrganizationEntRepo(opts ...func(*orgEntRepo)) *orgEntRepo {
 	
 	repo := &orgEntRepo{
 		_runMig: false,
