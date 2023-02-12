@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"license-manager/pkg/controller/exchange"
 	"license-manager/pkg/domain"
+	"license-manager/pkg/pkgerrors"
 	"license-manager/pkg/service"
 	"log"
 	"net/http"
@@ -32,7 +33,7 @@ func (lc *loginController) Routes() chi.Router {
 }
 
 func (lc *loginController) handleLoginPOST(w http.ResponseWriter, r *http.Request) {
-	
+
 	// extract from request
 	login, err := lc.extractLoginFrom(r)
 	if err != nil {
@@ -43,9 +44,9 @@ func (lc *loginController) handleLoginPOST(w http.ResponseWriter, r *http.Reques
 	// authenticate
 	creds, err := lc.findCredentials(login)
 	if err != nil {
-		if errors.Is(err, service.ErrCredsNotFound) {
+		if errors.Is(err, pkgerrors.ErrCredsNotFound) {
 			http.Error(w, fmt.Sprintf("User %s is unauthorized", login.User), http.StatusUnauthorized)
-			return				
+			return
 		} else {
 			log.Println(err.Error())
 			http.Error(w, fmt.Sprintf("Failed to authenticate user %s", login.User), http.StatusInternalServerError)
@@ -66,10 +67,10 @@ func (lc *loginController) handleLoginPOST(w http.ResponseWriter, r *http.Reques
 		log.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}	
+	}
 
 	// response
-	err = json.NewEncoder(w).Encode(exchange.JWTResponse{ AccessToken: token.Value })
+	err = json.NewEncoder(w).Encode(exchange.JWTResponse{AccessToken: token.Value})
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
