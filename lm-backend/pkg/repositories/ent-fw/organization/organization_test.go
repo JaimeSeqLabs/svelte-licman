@@ -2,7 +2,7 @@ package organization_repo_test
 
 import (
 	"license-manager/pkg/domain"
-	"license-manager/pkg/repositories/ent-fw/organization_repo"
+	"license-manager/pkg/repositories/ent-fw/organization"
 	"license-manager/pkg/repositories/ent-fw/ent/enttest"
 	"reflect"
 	"testing"

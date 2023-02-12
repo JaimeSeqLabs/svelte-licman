@@ -1,14 +1,21 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"license-manager/pkg/controller"
-	"license-manager/pkg/service/auth"
+	"license-manager/pkg/repositories"
+	"license-manager/pkg/repositories/ent-fw/credentials"
+	"license-manager/pkg/repositories/ent-fw/ent"
+	"license-manager/pkg/service"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 /*
@@ -26,11 +33,25 @@ curl -i http://localhost:8080/api/is_admin -H "Accept: application/json" -H "Aut
 
 func main() {
 
-	jwtService := auth.NewJWTService("<this_is_a_secret>") // TODO
+
+	client, err := ent.Open("sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
+    if err != nil {
+        log.Fatalf("failed opening connection to sqlite: %v", err)
+    }
+	defer client.Close()
+	// Run migrations
+	if err := client.Schema.Create(context.Background()); err != nil {
+        log.Fatalf("failed creating schema resources: %v", err)
+    }
+
+	jwtRepo := repositories.JwtTokenRepository(nil) // TODO
+	credsRepo := credentials_repo.NewCredentialsEntRepo(client)
+
+	jwtService := service.NewJWTService("<this_is_a_secret>", jwtRepo)
+	authService := service.NewAuthService(credsRepo, jwtService)
 
 	helloController := controller.NewHelloController()
-	loginController := controller.NewLoginController(jwtService)
-
+	loginController := controller.NewLoginController(authService)
 	adminController := controller.NewAdminController(jwtService)
 
 	router := chi.NewRouter()
