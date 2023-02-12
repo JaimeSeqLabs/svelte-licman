@@ -36,3 +36,8 @@ Describe all the entity schemas:
 ```console
 go run -mod=mod entgo.io/ent/cmd/ent describe ./pkg/repositories/ent-fw/ent/schema
 ```
+
+Generate schema diagram:
+```console
+go run -mod=mod github.com/hedwigz/entviz/cmd/entviz ./pkg/repositories/ent-fw/ent/schema
+```
