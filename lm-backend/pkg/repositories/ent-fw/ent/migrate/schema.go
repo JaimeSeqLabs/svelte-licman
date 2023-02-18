@@ -39,7 +39,7 @@ var (
 		{Name: "token", Type: field.TypeString, Unique: true},
 		{Name: "revoked", Type: field.TypeBool, Default: false},
 		{Name: "claims", Type: field.TypeJSON},
-		{Name: "user_issued", Type: field.TypeString},
+		{Name: "issuer_id", Type: field.TypeString},
 	}
 	// JwtTokensTable holds the schema information for the "jwt_tokens" table.
 	JwtTokensTable = &schema.Table{

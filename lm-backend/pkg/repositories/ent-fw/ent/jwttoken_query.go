@@ -23,7 +23,6 @@ type JwtTokenQuery struct {
 	inters     []Interceptor
 	predicates []predicate.JwtToken
 	withIssuer *UserQuery
-	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -367,18 +366,11 @@ func (jtq *JwtTokenQuery) prepareQuery(ctx context.Context) error {
 func (jtq *JwtTokenQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*JwtToken, error) {
 	var (
 		nodes       = []*JwtToken{}
-		withFKs     = jtq.withFKs
 		_spec       = jtq.querySpec()
 		loadedTypes = [1]bool{
 			jtq.withIssuer != nil,
 		}
 	)
-	if jtq.withIssuer != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, jwttoken.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*JwtToken).scanValues(nil, columns)
 	}
@@ -410,10 +402,7 @@ func (jtq *JwtTokenQuery) loadIssuer(ctx context.Context, query *UserQuery, node
 	ids := make([]string, 0, len(nodes))
 	nodeids := make(map[string][]*JwtToken)
 	for i := range nodes {
-		if nodes[i].user_issued == nil {
-			continue
-		}
-		fk := *nodes[i].user_issued
+		fk := nodes[i].IssuerID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -430,7 +419,7 @@ func (jtq *JwtTokenQuery) loadIssuer(ctx context.Context, query *UserQuery, node
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_issued" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "issuer_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

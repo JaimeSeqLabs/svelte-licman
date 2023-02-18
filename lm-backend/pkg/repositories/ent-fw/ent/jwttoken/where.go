@@ -64,6 +64,11 @@ func Revoked(v bool) predicate.JwtToken {
 	return predicate.JwtToken(sql.FieldEQ(FieldRevoked, v))
 }
 
+// IssuerID applies equality check predicate on the "issuer_id" field. It's identical to IssuerIDEQ.
+func IssuerID(v string) predicate.JwtToken {
+	return predicate.JwtToken(sql.FieldEQ(FieldIssuerID, v))
+}
+
 // TokenEQ applies the EQ predicate on the "token" field.
 func TokenEQ(v string) predicate.JwtToken {
 	return predicate.JwtToken(sql.FieldEQ(FieldToken, v))
@@ -137,6 +142,71 @@ func RevokedEQ(v bool) predicate.JwtToken {
 // RevokedNEQ applies the NEQ predicate on the "revoked" field.
 func RevokedNEQ(v bool) predicate.JwtToken {
 	return predicate.JwtToken(sql.FieldNEQ(FieldRevoked, v))
+}
+
+// IssuerIDEQ applies the EQ predicate on the "issuer_id" field.
+func IssuerIDEQ(v string) predicate.JwtToken {
+	return predicate.JwtToken(sql.FieldEQ(FieldIssuerID, v))
+}
+
+// IssuerIDNEQ applies the NEQ predicate on the "issuer_id" field.
+func IssuerIDNEQ(v string) predicate.JwtToken {
+	return predicate.JwtToken(sql.FieldNEQ(FieldIssuerID, v))
+}
+
+// IssuerIDIn applies the In predicate on the "issuer_id" field.
+func IssuerIDIn(vs ...string) predicate.JwtToken {
+	return predicate.JwtToken(sql.FieldIn(FieldIssuerID, vs...))
+}
+
+// IssuerIDNotIn applies the NotIn predicate on the "issuer_id" field.
+func IssuerIDNotIn(vs ...string) predicate.JwtToken {
+	return predicate.JwtToken(sql.FieldNotIn(FieldIssuerID, vs...))
+}
+
+// IssuerIDGT applies the GT predicate on the "issuer_id" field.
+func IssuerIDGT(v string) predicate.JwtToken {
+	return predicate.JwtToken(sql.FieldGT(FieldIssuerID, v))
+}
+
+// IssuerIDGTE applies the GTE predicate on the "issuer_id" field.
+func IssuerIDGTE(v string) predicate.JwtToken {
+	return predicate.JwtToken(sql.FieldGTE(FieldIssuerID, v))
+}
+
+// IssuerIDLT applies the LT predicate on the "issuer_id" field.
+func IssuerIDLT(v string) predicate.JwtToken {
+	return predicate.JwtToken(sql.FieldLT(FieldIssuerID, v))
+}
+
+// IssuerIDLTE applies the LTE predicate on the "issuer_id" field.
+func IssuerIDLTE(v string) predicate.JwtToken {
+	return predicate.JwtToken(sql.FieldLTE(FieldIssuerID, v))
+}
+
+// IssuerIDContains applies the Contains predicate on the "issuer_id" field.
+func IssuerIDContains(v string) predicate.JwtToken {
+	return predicate.JwtToken(sql.FieldContains(FieldIssuerID, v))
+}
+
+// IssuerIDHasPrefix applies the HasPrefix predicate on the "issuer_id" field.
+func IssuerIDHasPrefix(v string) predicate.JwtToken {
+	return predicate.JwtToken(sql.FieldHasPrefix(FieldIssuerID, v))
+}
+
+// IssuerIDHasSuffix applies the HasSuffix predicate on the "issuer_id" field.
+func IssuerIDHasSuffix(v string) predicate.JwtToken {
+	return predicate.JwtToken(sql.FieldHasSuffix(FieldIssuerID, v))
+}
+
+// IssuerIDEqualFold applies the EqualFold predicate on the "issuer_id" field.
+func IssuerIDEqualFold(v string) predicate.JwtToken {
+	return predicate.JwtToken(sql.FieldEqualFold(FieldIssuerID, v))
+}
+
+// IssuerIDContainsFold applies the ContainsFold predicate on the "issuer_id" field.
+func IssuerIDContainsFold(v string) predicate.JwtToken {
+	return predicate.JwtToken(sql.FieldContainsFold(FieldIssuerID, v))
 }
 
 // HasIssuer applies the HasEdge predicate on the "issuer" edge.

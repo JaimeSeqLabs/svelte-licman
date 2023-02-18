@@ -1089,9 +1089,40 @@ func (m *JwtTokenMutation) ResetClaims() {
 	m.claims = nil
 }
 
-// SetIssuerID sets the "issuer" edge to the User entity by id.
-func (m *JwtTokenMutation) SetIssuerID(id string) {
-	m.issuer = &id
+// SetIssuerID sets the "issuer_id" field.
+func (m *JwtTokenMutation) SetIssuerID(s string) {
+	m.issuer = &s
+}
+
+// IssuerID returns the value of the "issuer_id" field in the mutation.
+func (m *JwtTokenMutation) IssuerID() (r string, exists bool) {
+	v := m.issuer
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIssuerID returns the old "issuer_id" field's value of the JwtToken entity.
+// If the JwtToken object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JwtTokenMutation) OldIssuerID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIssuerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIssuerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIssuerID: %w", err)
+	}
+	return oldValue.IssuerID, nil
+}
+
+// ResetIssuerID resets all changes to the "issuer_id" field.
+func (m *JwtTokenMutation) ResetIssuerID() {
+	m.issuer = nil
 }
 
 // ClearIssuer clears the "issuer" edge to the User entity.
@@ -1102,14 +1133,6 @@ func (m *JwtTokenMutation) ClearIssuer() {
 // IssuerCleared reports if the "issuer" edge to the User entity was cleared.
 func (m *JwtTokenMutation) IssuerCleared() bool {
 	return m.clearedissuer
-}
-
-// IssuerID returns the "issuer" edge ID in the mutation.
-func (m *JwtTokenMutation) IssuerID() (id string, exists bool) {
-	if m.issuer != nil {
-		return *m.issuer, true
-	}
-	return
 }
 
 // IssuerIDs returns the "issuer" edge IDs in the mutation.
@@ -1162,7 +1185,7 @@ func (m *JwtTokenMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *JwtTokenMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.token != nil {
 		fields = append(fields, jwttoken.FieldToken)
 	}
@@ -1171,6 +1194,9 @@ func (m *JwtTokenMutation) Fields() []string {
 	}
 	if m.claims != nil {
 		fields = append(fields, jwttoken.FieldClaims)
+	}
+	if m.issuer != nil {
+		fields = append(fields, jwttoken.FieldIssuerID)
 	}
 	return fields
 }
@@ -1186,6 +1212,8 @@ func (m *JwtTokenMutation) Field(name string) (ent.Value, bool) {
 		return m.Revoked()
 	case jwttoken.FieldClaims:
 		return m.Claims()
+	case jwttoken.FieldIssuerID:
+		return m.IssuerID()
 	}
 	return nil, false
 }
@@ -1201,6 +1229,8 @@ func (m *JwtTokenMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldRevoked(ctx)
 	case jwttoken.FieldClaims:
 		return m.OldClaims(ctx)
+	case jwttoken.FieldIssuerID:
+		return m.OldIssuerID(ctx)
 	}
 	return nil, fmt.Errorf("unknown JwtToken field %s", name)
 }
@@ -1230,6 +1260,13 @@ func (m *JwtTokenMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetClaims(v)
+		return nil
+	case jwttoken.FieldIssuerID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIssuerID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown JwtToken field %s", name)
@@ -1288,6 +1325,9 @@ func (m *JwtTokenMutation) ResetField(name string) error {
 		return nil
 	case jwttoken.FieldClaims:
 		m.ResetClaims()
+		return nil
+	case jwttoken.FieldIssuerID:
+		m.ResetIssuerID()
 		return nil
 	}
 	return fmt.Errorf("unknown JwtToken field %s", name)

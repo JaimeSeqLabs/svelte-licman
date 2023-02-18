@@ -410,7 +410,6 @@ func (uq *UserQuery) loadIssued(ctx context.Context, query *JwtTokenQuery, nodes
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
 	query.Where(predicate.JwtToken(func(s *sql.Selector) {
 		s.Where(sql.InValues(user.IssuedColumn, fks...))
 	}))
@@ -419,13 +418,10 @@ func (uq *UserQuery) loadIssued(ctx context.Context, query *JwtTokenQuery, nodes
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_issued
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_issued" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		fk := n.IssuerID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_issued" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "issuer_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

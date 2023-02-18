@@ -54,9 +54,9 @@ func (jtu *JwtTokenUpdate) SetClaims(m map[string]interface{}) *JwtTokenUpdate {
 	return jtu
 }
 
-// SetIssuerID sets the "issuer" edge to the User entity by ID.
-func (jtu *JwtTokenUpdate) SetIssuerID(id string) *JwtTokenUpdate {
-	jtu.mutation.SetIssuerID(id)
+// SetIssuerID sets the "issuer_id" field.
+func (jtu *JwtTokenUpdate) SetIssuerID(s string) *JwtTokenUpdate {
+	jtu.mutation.SetIssuerID(s)
 	return jtu
 }
 
@@ -227,9 +227,9 @@ func (jtuo *JwtTokenUpdateOne) SetClaims(m map[string]interface{}) *JwtTokenUpda
 	return jtuo
 }
 
-// SetIssuerID sets the "issuer" edge to the User entity by ID.
-func (jtuo *JwtTokenUpdateOne) SetIssuerID(id string) *JwtTokenUpdateOne {
-	jtuo.mutation.SetIssuerID(id)
+// SetIssuerID sets the "issuer_id" field.
+func (jtuo *JwtTokenUpdateOne) SetIssuerID(s string) *JwtTokenUpdateOne {
+	jtuo.mutation.SetIssuerID(s)
 	return jtuo
 }
 

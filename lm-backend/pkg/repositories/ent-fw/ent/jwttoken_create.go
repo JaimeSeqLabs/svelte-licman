@@ -46,6 +46,12 @@ func (jtc *JwtTokenCreate) SetClaims(m map[string]interface{}) *JwtTokenCreate {
 	return jtc
 }
 
+// SetIssuerID sets the "issuer_id" field.
+func (jtc *JwtTokenCreate) SetIssuerID(s string) *JwtTokenCreate {
+	jtc.mutation.SetIssuerID(s)
+	return jtc
+}
+
 // SetID sets the "id" field.
 func (jtc *JwtTokenCreate) SetID(s string) *JwtTokenCreate {
 	jtc.mutation.SetID(s)
@@ -57,12 +63,6 @@ func (jtc *JwtTokenCreate) SetNillableID(s *string) *JwtTokenCreate {
 	if s != nil {
 		jtc.SetID(*s)
 	}
-	return jtc
-}
-
-// SetIssuerID sets the "issuer" edge to the User entity by ID.
-func (jtc *JwtTokenCreate) SetIssuerID(id string) *JwtTokenCreate {
-	jtc.mutation.SetIssuerID(id)
 	return jtc
 }
 
@@ -131,6 +131,9 @@ func (jtc *JwtTokenCreate) check() error {
 	}
 	if _, ok := jtc.mutation.Claims(); !ok {
 		return &ValidationError{Name: "claims", err: errors.New(`ent: missing required field "JwtToken.claims"`)}
+	}
+	if _, ok := jtc.mutation.IssuerID(); !ok {
+		return &ValidationError{Name: "issuer_id", err: errors.New(`ent: missing required field "JwtToken.issuer_id"`)}
 	}
 	if _, ok := jtc.mutation.IssuerID(); !ok {
 		return &ValidationError{Name: "issuer", err: errors.New(`ent: missing required edge "JwtToken.issuer"`)}
@@ -205,7 +208,7 @@ func (jtc *JwtTokenCreate) createSpec() (*JwtToken, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_issued = &nodes[0]
+		_node.IssuerID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

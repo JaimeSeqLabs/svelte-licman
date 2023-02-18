@@ -13,6 +13,8 @@ const (
 	FieldRevoked = "revoked"
 	// FieldClaims holds the string denoting the claims field in the database.
 	FieldClaims = "claims"
+	// FieldIssuerID holds the string denoting the issuer_id field in the database.
+	FieldIssuerID = "issuer_id"
 	// EdgeIssuer holds the string denoting the issuer edge name in mutations.
 	EdgeIssuer = "issuer"
 	// Table holds the table name of the jwttoken in the database.
@@ -23,7 +25,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	IssuerInverseTable = "users"
 	// IssuerColumn is the table column denoting the issuer relation/edge.
-	IssuerColumn = "user_issued"
+	IssuerColumn = "issuer_id"
 )
 
 // Columns holds all SQL columns for jwttoken fields.
@@ -32,23 +34,13 @@ var Columns = []string{
 	FieldToken,
 	FieldRevoked,
 	FieldClaims,
-}
-
-// ForeignKeys holds the SQL foreign-keys that are owned by the "jwt_tokens"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"user_issued",
+	FieldIssuerID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
-			return true
-		}
-	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
 			return true
 		}
 	}

@@ -23,10 +23,11 @@ type JwtToken struct {
 	Revoked bool `json:"revoked,omitempty"`
 	// Claims holds the value of the "claims" field.
 	Claims map[string]interface{} `json:"claims,omitempty"`
+	// IssuerID holds the value of the "issuer_id" field.
+	IssuerID string `json:"issuer_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the JwtTokenQuery when eager-loading is set.
-	Edges       JwtTokenEdges `json:"edges"`
-	user_issued *string
+	Edges JwtTokenEdges `json:"edges"`
 }
 
 // JwtTokenEdges holds the relations/edges for other nodes in the graph.
@@ -60,9 +61,7 @@ func (*JwtToken) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case jwttoken.FieldRevoked:
 			values[i] = new(sql.NullBool)
-		case jwttoken.FieldID, jwttoken.FieldToken:
-			values[i] = new(sql.NullString)
-		case jwttoken.ForeignKeys[0]: // user_issued
+		case jwttoken.FieldID, jwttoken.FieldToken, jwttoken.FieldIssuerID:
 			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type JwtToken", columns[i])
@@ -105,12 +104,11 @@ func (jt *JwtToken) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field claims: %w", err)
 				}
 			}
-		case jwttoken.ForeignKeys[0]:
+		case jwttoken.FieldIssuerID:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field user_issued", values[i])
+				return fmt.Errorf("unexpected type %T for field issuer_id", values[i])
 			} else if value.Valid {
-				jt.user_issued = new(string)
-				*jt.user_issued = value.String
+				jt.IssuerID = value.String
 			}
 		}
 	}
@@ -153,6 +151,9 @@ func (jt *JwtToken) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("claims=")
 	builder.WriteString(fmt.Sprintf("%v", jt.Claims))
+	builder.WriteString(", ")
+	builder.WriteString("issuer_id=")
+	builder.WriteString(jt.IssuerID)
 	builder.WriteByte(')')
 	return builder.String()
 }

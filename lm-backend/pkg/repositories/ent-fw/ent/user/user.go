@@ -25,7 +25,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "jwttoken" package.
 	IssuedInverseTable = "jwt_tokens"
 	// IssuedColumn is the table column denoting the issued relation/edge.
-	IssuedColumn = "user_issued"
+	IssuedColumn = "issuer_id"
 )
 
 // Columns holds all SQL columns for user fields.

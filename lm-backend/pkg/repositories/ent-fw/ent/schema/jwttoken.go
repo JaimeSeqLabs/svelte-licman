@@ -25,6 +25,8 @@ func (JwtToken) Fields() []ent.Field {
 			Default(false),
 		field.
 			JSON("claims", map[string]any{}),
+		field.
+			String("issuer_id"),
 	}
 }
 
@@ -34,6 +36,7 @@ func (JwtToken) Edges() []ent.Edge {
 		edge.From("issuer", User.Type).
 			Ref("issued").
 			Unique().
-			Required(),
+			Required().
+			Field("issuer_id"),
 	}
 }
