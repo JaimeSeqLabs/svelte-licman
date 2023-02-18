@@ -1,24 +1,126 @@
 package service
 
 import (
+	"errors"
 	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories"
+	"license-manager/pkg/repositories/ent-fw/ent"
+	"log"
 )
 
 
 type authService struct {
-	credsRepo repositories.CredentialsRepository
+	userRepo repositories.UserRepository
 	jwtService JWTService
 }
 
-func NewAuthService(credsRepo repositories.CredentialsRepository, jwtService JWTService) AuthService {
+func NewAuthService(userRepo repositories.UserRepository, jwtService JWTService) AuthService {
 	return &authService{
-		credsRepo: credsRepo,
+		userRepo: userRepo,
 		jwtService: jwtService,
 	}
 }
 
-func (auth *authService) Register(creds domain.Credentials) error {
+func (auth *authService) RegisterUser(user domain.User) error {
+	registered, err := auth.IsRegistered(user)
+	if err != nil {
+		return err
+	}
+	if registered {
+		return errors.New("user already registered")
+	}
+	return auth.userRepo.Save(user)
+}
+
+func (auth *authService) IsRegistered(user domain.User) (bool, error) {
+	found, err := auth.userRepo.FindByNameAndMail(user.Name, user.Mail)
+	if err != nil {
+
+		if ent.IsNotFound(err) { // TODO: remove this dependency from ent
+			return false, nil
+		}
+		return false, err
+	}
+	return (found.ID != ""), nil
+}
+
+func (auth *authService) FindUserByMailAndPsswd(mail, passwdHash string) (domain.User, error) {
+	return auth.userRepo.FindByMailAndPassword(mail, passwdHash)
+}
+
+func (auth *authService) MergeClaimsFor(user domain.User, claims domain.Claims) error {
+	
+	user.Claims = merge(user.Claims, claims)
+	
+	updated, err := auth.userRepo.Update(user)
+	if err != nil {
+		return err
+	}
+	if !updated {
+		return errors.New("user is not registered, unable to update claims")
+	}
+
+	return nil
+}
+
+func (auth *authService) SetClaimsFor(user domain.User, claims domain.Claims) error {
+	
+	user.Claims = claims
+	
+	updated, err := auth.userRepo.Update(user)
+	if err != nil {
+		return err
+	}
+	if !updated {
+		return errors.New("user is not registered, unable to set claims")
+	}
+	
+	return nil
+}
+
+func (auth *authService) CreateTokenFor(user domain.User) (domain.Token, error) {
+
+	// if ID not provided double check if user is registered
+	if user.ID == "" {
+		dbUser, err := auth.userRepo.FindByMailAndPassword(user.Mail, user.PasswordHash)
+		if err != nil {
+			return domain.Token{}, err
+		}
+		user = dbUser
+	}
+
+	token, err := auth.jwtService.GenTokenFor(user, user.Claims) // for now same claims as user
+	if err != nil {
+		return domain.Token{}, err
+	}
+
+	log.Printf("new token issued to user %s %s\n", user.Name, user.Mail)
+
+	return token, err
+}
+
+func (auth *authService) RevokeTokensFor(user domain.User) (revoked int, err error) {
+	
+	if user.ID == "" {
+		dbUser, err := auth.userRepo.FindByMailAndPassword(user.Mail, user.PasswordHash)
+		if err != nil {
+			return 0, err
+		}
+		user = dbUser
+	}
+
+	return auth.jwtService.RevokeTokensFor(user)
+}
+
+
+func merge(original, updated map[string]any) map[string]any {
+	for k, v := range updated {
+		original[k] = v
+	}
+	return original
+}
+
+/* func (auth *authService) Register(creds domain.Credentials) error {
 	return auth.credsRepo.Save(creds)
 }
 
@@ -59,4 +161,4 @@ func (auth *authService) CreateTokenFor(creds domain.Credentials) (domain.Token,
 func (auth *authService) RevokeCreds(user string, passwdHash string) error {
 	// TODO: maybe cascade to jwt tokens also
 	return auth.credsRepo.DeleteByUserNameAndPasswordHash(user, passwdHash)
-}
+} */

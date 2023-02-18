@@ -8,4 +8,5 @@ type JwtTokenRepository interface {
 	FindClaimsByToken(token string) (domain.Claims, error)
 	IsRevoked(token string) (bool, error)
 	Delete(token string) error
+	DeleteAllByIssuer(userID string) (int, error)
 }

@@ -97,6 +97,25 @@ func TestReadData(t *testing.T) {
 
 }
 
+func TestReadDataNotFound(t *testing.T) {
+	
+	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
+	defer client.Close()
+
+	if err := client.Schema.Create(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	
+	repo := user_repo.NewUserEntRepo(client)
+
+	_, err := repo.FindByNameAndMail("jaime", "jaime@mail.com")
+
+	if !ent.IsNotFound(err) {
+		t.Fatal("'not found error' expected")
+	}
+
+}
+
 func TestUpdateData(t *testing.T) {
 
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
@@ -139,6 +158,38 @@ func TestUpdateData(t *testing.T) {
 
 	if !reflect.DeepEqual(updated, got) {
 		t.Fatalf("updated failed: want %v but got %v", updated, got)
+	}
+
+}
+
+func TestUpdateDataNotFound(t *testing.T) {
+
+	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
+	defer client.Close()
+
+	if err := client.Schema.Create(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	
+	repo := user_repo.NewUserEntRepo(client)
+
+	user := domain.User{
+		Name: "jaime",
+		Mail: "jaime@mail.com",
+		PasswordHash: "<passwd_hash>",
+		Claims: domain.Claims{
+			domain.UserKindClaim: "admin",
+		},
+	}
+
+	updated, err := repo.Update(user)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if updated {
+		t.Fatal("'updated' flag expected to be false")
 	}
 
 }

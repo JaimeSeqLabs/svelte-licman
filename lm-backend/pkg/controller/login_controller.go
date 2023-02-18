@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"license-manager/pkg/controller/exchange"
 	"license-manager/pkg/domain"
-	"license-manager/pkg/pkgerrors"
 	"license-manager/pkg/service"
 	"log"
 	"net/http"
@@ -35,34 +34,29 @@ func (lc *loginController) Routes() chi.Router {
 func (lc *loginController) handleLoginPOST(w http.ResponseWriter, r *http.Request) {
 
 	// extract from request
-	login, err := lc.extractLoginFrom(r)
+	creds, err := lc.extractCredentialsFrom(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// authenticate
-	creds, err := lc.findCredentials(login)
+	user, err := lc.findUserWith(creds)
 	if err != nil {
-		if errors.Is(err, pkgerrors.ErrCredsNotFound) {
-			http.Error(w, fmt.Sprintf("User %s is unauthorized", login.User), http.StatusUnauthorized)
-			return
-		} else {
-			log.Println(err.Error())
-			http.Error(w, fmt.Sprintf("Failed to authenticate user %s", login.User), http.StatusInternalServerError)
-			return
-		}
+		log.Println(err.Error())
+		http.Error(w, fmt.Sprintf("Failed to authenticate user %s", creds.User), http.StatusUnauthorized)
+		return
 	}
 
 	// check minimum access claims
-	kind := creds.Claims.GetUserKind()
+	kind := user.Claims.GetUserKind()
 	if kind == "" {
-		http.Error(w, fmt.Sprintf("User %s does not claim any user kind", login.User), http.StatusUnauthorized)
+		http.Error(w, fmt.Sprintf("User %s does not claim any user kind", creds.User), http.StatusUnauthorized)
 		return
 	}
 
 	// sign claims
-	token, err := lc.authService.CreateTokenFor(creds)
+	token, err := lc.authService.CreateTokenFor(user)
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -79,13 +73,23 @@ func (lc *loginController) handleLoginPOST(w http.ResponseWriter, r *http.Reques
 
 }
 
-func (lc *loginController) extractLoginFrom(r *http.Request) (exchange.LoginCredentials, error) {
+func (lc *loginController) extractCredentialsFrom(r *http.Request) (exchange.LoginCredentials, error) {
 	var creds exchange.LoginCredentials
 	err := json.NewDecoder(r.Body).Decode(&creds)
 	return creds, err
 }
 
-func (lc *loginController) findCredentials(login exchange.LoginCredentials) (domain.Credentials, error) {
-	creds, err := lc.authService.FindByUserNameAndPasswordHash(login.User, login.PasswordHash)
-	return creds, err
+func (lc *loginController) findUserWith(creds exchange.LoginCredentials) (domain.User, error) {
+
+	if creds.Mail != "" && creds.PasswordHash != "" {
+		user, err := lc.authService.FindUserByMailAndPsswd(creds.Mail, creds.PasswordHash)
+		if err != nil {
+			return domain.User{}, err
+		}
+		return user, nil
+	}
+
+	// maybe login with username + passwd if mail missing
+
+	return domain.User{}, errors.New("login credentials are missing values")
 }

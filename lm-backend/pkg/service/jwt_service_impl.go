@@ -22,7 +22,7 @@ func NewJWTService(secret string, tokenRepo repositories.JwtTokenRepository) JWT
 	}
 }
 
-func (jwts *jwtService) GenTokenFor(claims domain.Claims) (domain.Token, error) {
+func (jwts *jwtService) GenTokenFor(issuer domain.User, claims domain.Claims) (domain.Token, error) {
 	
 	_, tokenStr, err := jwts.tokenAuth.Encode(claims)
 	if err != nil {
@@ -33,6 +33,7 @@ func (jwts *jwtService) GenTokenFor(claims domain.Claims) (domain.Token, error) 
 		Value: tokenStr,
 		Revoked: false,
 		Claims: claims,
+		IssuerID: issuer.ID,
 	}
 	
 	err = jwts.tokenRepo.Save(token)
@@ -50,4 +51,8 @@ func (jwts *jwtService) GetClaimsFromCtx(ctx context.Context) (domain.Claims, er
 
 func (jwts *jwtService) GetJWTAuth() *jwtauth.JWTAuth {
 	return jwts.tokenAuth
+}
+
+func (jwts *jwtService) RevokeTokensFor(issuer domain.User) (int, error) {
+	return jwts.tokenRepo.DeleteAllByIssuer(issuer.ID)
 }

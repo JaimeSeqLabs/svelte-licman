@@ -2,6 +2,7 @@ package exchange
 
 type LoginCredentials struct {
 	User string `json:"user"`
+	Mail string `json:"mail,omitempty"`
 	PasswordHash string `json:"password_hash"`
 }
 

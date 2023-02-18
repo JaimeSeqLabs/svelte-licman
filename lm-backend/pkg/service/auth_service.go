@@ -4,16 +4,15 @@ import "license-manager/pkg/domain"
 
 type AuthService interface {
 	
-	Register(creds domain.Credentials) error
-	IsRegistered(user string, passwdHash string) bool
+	RegisterUser(user domain.User) error
+	IsRegistered(user domain.User) (bool, error)
 	
-	FindByUserNameAndPasswordHash(user, passwdHash string) (domain.Credentials, error)
+	FindUserByMailAndPsswd(mail, passwdHash string) (domain.User, error)
 
-	MergeClaimsFor(user string, passwdHash string, claims domain.Claims) error
-	SetClaimsFor(user string, passwdHash string, claims domain.Claims) error
-	
-	RevokeCreds(user string, passwdHash string) error
+	MergeClaimsFor(user domain.User, claims domain.Claims) error
+	SetClaimsFor(user domain.User, claims domain.Claims) error
 
-	CreateTokenFor(creds domain.Credentials) (domain.Token, error)
+	CreateTokenFor(user domain.User) (domain.Token, error)
+	RevokeTokensFor(user domain.User) (revoked int, err error)
 
 }

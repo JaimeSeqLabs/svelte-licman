@@ -72,6 +72,19 @@ func (repo *jwtTokenEntRepo) Delete(tokenValue string) error {
 	return nil
 }
 
+func (repo *jwtTokenEntRepo) DeleteAllByIssuer(userID string) (int, error) {
+	deleted, err := repo.client.JwtToken.Delete().
+		Where(
+			jwttoken.IssuerIDEQ(userID),
+		).
+		Exec(context.TODO())
+	if err != nil {
+		return 0, err
+	}
+	return deleted, nil
+}
+
+
 func toEntity(dto *ent.JwtToken) domain.Token {
 	return domain.Token {
 		Value: dto.Token,

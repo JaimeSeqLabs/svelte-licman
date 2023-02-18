@@ -8,7 +8,8 @@ import (
 )
 
 type JWTService interface {
-	GenTokenFor(claims domain.Claims) (domain.Token, error)
+	GenTokenFor(issuer domain.User, claims domain.Claims) (domain.Token, error)
 	GetClaimsFromCtx(context.Context) (domain.Claims, error)
 	GetJWTAuth() *jwtauth.JWTAuth
+	RevokeTokensFor(issuer domain.User) (revoked int, err error)
 }
