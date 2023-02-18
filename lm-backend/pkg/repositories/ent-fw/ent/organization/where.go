@@ -10,47 +10,47 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.Organization {
+func ID(id string) predicate.Organization {
 	return predicate.Organization(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.Organization {
+func IDEQ(id string) predicate.Organization {
 	return predicate.Organization(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.Organization {
+func IDNEQ(id string) predicate.Organization {
 	return predicate.Organization(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.Organization {
+func IDIn(ids ...string) predicate.Organization {
 	return predicate.Organization(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.Organization {
+func IDNotIn(ids ...string) predicate.Organization {
 	return predicate.Organization(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.Organization {
+func IDGT(id string) predicate.Organization {
 	return predicate.Organization(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.Organization {
+func IDGTE(id string) predicate.Organization {
 	return predicate.Organization(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.Organization {
+func IDLT(id string) predicate.Organization {
 	return predicate.Organization(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.Organization {
+func IDLTE(id string) predicate.Organization {
 	return predicate.Organization(sql.FieldLTE(FieldID, id))
 }
 
@@ -65,7 +65,7 @@ func Location(v string) predicate.Organization {
 }
 
 // ContactID applies equality check predicate on the "contact_id" field. It's identical to ContactIDEQ.
-func ContactID(v int) predicate.Organization {
+func ContactID(v string) predicate.Organization {
 	return predicate.Organization(sql.FieldEQ(FieldContactID, v))
 }
 
@@ -200,23 +200,58 @@ func LocationContainsFold(v string) predicate.Organization {
 }
 
 // ContactIDEQ applies the EQ predicate on the "contact_id" field.
-func ContactIDEQ(v int) predicate.Organization {
+func ContactIDEQ(v string) predicate.Organization {
 	return predicate.Organization(sql.FieldEQ(FieldContactID, v))
 }
 
 // ContactIDNEQ applies the NEQ predicate on the "contact_id" field.
-func ContactIDNEQ(v int) predicate.Organization {
+func ContactIDNEQ(v string) predicate.Organization {
 	return predicate.Organization(sql.FieldNEQ(FieldContactID, v))
 }
 
 // ContactIDIn applies the In predicate on the "contact_id" field.
-func ContactIDIn(vs ...int) predicate.Organization {
+func ContactIDIn(vs ...string) predicate.Organization {
 	return predicate.Organization(sql.FieldIn(FieldContactID, vs...))
 }
 
 // ContactIDNotIn applies the NotIn predicate on the "contact_id" field.
-func ContactIDNotIn(vs ...int) predicate.Organization {
+func ContactIDNotIn(vs ...string) predicate.Organization {
 	return predicate.Organization(sql.FieldNotIn(FieldContactID, vs...))
+}
+
+// ContactIDGT applies the GT predicate on the "contact_id" field.
+func ContactIDGT(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldGT(FieldContactID, v))
+}
+
+// ContactIDGTE applies the GTE predicate on the "contact_id" field.
+func ContactIDGTE(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldGTE(FieldContactID, v))
+}
+
+// ContactIDLT applies the LT predicate on the "contact_id" field.
+func ContactIDLT(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldLT(FieldContactID, v))
+}
+
+// ContactIDLTE applies the LTE predicate on the "contact_id" field.
+func ContactIDLTE(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldLTE(FieldContactID, v))
+}
+
+// ContactIDContains applies the Contains predicate on the "contact_id" field.
+func ContactIDContains(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldContains(FieldContactID, v))
+}
+
+// ContactIDHasPrefix applies the HasPrefix predicate on the "contact_id" field.
+func ContactIDHasPrefix(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldHasPrefix(FieldContactID, v))
+}
+
+// ContactIDHasSuffix applies the HasSuffix predicate on the "contact_id" field.
+func ContactIDHasSuffix(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldHasSuffix(FieldContactID, v))
 }
 
 // ContactIDIsNil applies the IsNil predicate on the "contact_id" field.
@@ -227,6 +262,16 @@ func ContactIDIsNil() predicate.Organization {
 // ContactIDNotNil applies the NotNil predicate on the "contact_id" field.
 func ContactIDNotNil() predicate.Organization {
 	return predicate.Organization(sql.FieldNotNull(FieldContactID))
+}
+
+// ContactIDEqualFold applies the EqualFold predicate on the "contact_id" field.
+func ContactIDEqualFold(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldEqualFold(FieldContactID, v))
+}
+
+// ContactIDContainsFold applies the ContainsFold predicate on the "contact_id" field.
+func ContactIDContainsFold(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldContainsFold(FieldContactID, v))
 }
 
 // HasContact applies the HasEdge predicate on the "contact" edge.

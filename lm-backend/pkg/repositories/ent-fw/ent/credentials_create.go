@@ -37,6 +37,20 @@ func (cc *CredentialsCreate) SetClaims(m map[string]interface{}) *CredentialsCre
 	return cc
 }
 
+// SetID sets the "id" field.
+func (cc *CredentialsCreate) SetID(s string) *CredentialsCreate {
+	cc.mutation.SetID(s)
+	return cc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (cc *CredentialsCreate) SetNillableID(s *string) *CredentialsCreate {
+	if s != nil {
+		cc.SetID(*s)
+	}
+	return cc
+}
+
 // Mutation returns the CredentialsMutation object of the builder.
 func (cc *CredentialsCreate) Mutation() *CredentialsMutation {
 	return cc.mutation
@@ -44,6 +58,7 @@ func (cc *CredentialsCreate) Mutation() *CredentialsMutation {
 
 // Save creates the Credentials in the database.
 func (cc *CredentialsCreate) Save(ctx context.Context) (*Credentials, error) {
+	cc.defaults()
 	return withHooks[*Credentials, CredentialsMutation](ctx, cc.sqlSave, cc.mutation, cc.hooks)
 }
 
@@ -66,6 +81,14 @@ func (cc *CredentialsCreate) Exec(ctx context.Context) error {
 func (cc *CredentialsCreate) ExecX(ctx context.Context) {
 	if err := cc.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (cc *CredentialsCreate) defaults() {
+	if _, ok := cc.mutation.ID(); !ok {
+		v := credentials.DefaultID()
+		cc.mutation.SetID(v)
 	}
 }
 
@@ -104,8 +127,13 @@ func (cc *CredentialsCreate) sqlSave(ctx context.Context) (*Credentials, error) 
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected Credentials.ID type: %T", _spec.ID.Value)
+		}
+	}
 	cc.mutation.id = &_node.ID
 	cc.mutation.done = true
 	return _node, nil
@@ -117,11 +145,15 @@ func (cc *CredentialsCreate) createSpec() (*Credentials, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: credentials.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: credentials.FieldID,
 			},
 		}
 	)
+	if id, ok := cc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := cc.mutation.Username(); ok {
 		_spec.SetField(credentials.FieldUsername, field.TypeString, value)
 		_node.Username = value
@@ -151,6 +183,7 @@ func (ccb *CredentialsCreateBulk) Save(ctx context.Context) ([]*Credentials, err
 	for i := range ccb.builders {
 		func(i int, root context.Context) {
 			builder := ccb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*CredentialsMutation)
 				if !ok {
@@ -177,10 +210,6 @@ func (ccb *CredentialsCreateBulk) Save(ctx context.Context) ([]*Credentials, err
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

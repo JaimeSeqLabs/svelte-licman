@@ -60,4 +60,6 @@ var (
 	TokenValidator func(string) error
 	// DefaultRevoked holds the default value on creation for the "revoked" field.
 	DefaultRevoked bool
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() string
 )

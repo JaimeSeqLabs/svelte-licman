@@ -46,8 +46,22 @@ func (jtc *JwtTokenCreate) SetClaims(m map[string]interface{}) *JwtTokenCreate {
 	return jtc
 }
 
+// SetID sets the "id" field.
+func (jtc *JwtTokenCreate) SetID(s string) *JwtTokenCreate {
+	jtc.mutation.SetID(s)
+	return jtc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (jtc *JwtTokenCreate) SetNillableID(s *string) *JwtTokenCreate {
+	if s != nil {
+		jtc.SetID(*s)
+	}
+	return jtc
+}
+
 // SetIssuerID sets the "issuer" edge to the User entity by ID.
-func (jtc *JwtTokenCreate) SetIssuerID(id int) *JwtTokenCreate {
+func (jtc *JwtTokenCreate) SetIssuerID(id string) *JwtTokenCreate {
 	jtc.mutation.SetIssuerID(id)
 	return jtc
 }
@@ -96,6 +110,10 @@ func (jtc *JwtTokenCreate) defaults() {
 		v := jwttoken.DefaultRevoked
 		jtc.mutation.SetRevoked(v)
 	}
+	if _, ok := jtc.mutation.ID(); !ok {
+		v := jwttoken.DefaultID()
+		jtc.mutation.SetID(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -131,8 +149,13 @@ func (jtc *JwtTokenCreate) sqlSave(ctx context.Context) (*JwtToken, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected JwtToken.ID type: %T", _spec.ID.Value)
+		}
+	}
 	jtc.mutation.id = &_node.ID
 	jtc.mutation.done = true
 	return _node, nil
@@ -144,11 +167,15 @@ func (jtc *JwtTokenCreate) createSpec() (*JwtToken, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: jwttoken.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: jwttoken.FieldID,
 			},
 		}
 	)
+	if id, ok := jtc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := jtc.mutation.Token(); ok {
 		_spec.SetField(jwttoken.FieldToken, field.TypeString, value)
 		_node.Token = value
@@ -170,7 +197,7 @@ func (jtc *JwtTokenCreate) createSpec() (*JwtToken, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: user.FieldID,
 				},
 			},
@@ -225,10 +252,6 @@ func (jtcb *JwtTokenCreateBulk) Save(ctx context.Context) ([]*JwtToken, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

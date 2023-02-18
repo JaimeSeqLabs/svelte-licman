@@ -101,7 +101,7 @@ func (cu *CredentialsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   credentials.Table,
 			Columns: credentials.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: credentials.FieldID,
 			},
 		},
@@ -223,7 +223,7 @@ func (cuo *CredentialsUpdateOne) sqlSave(ctx context.Context) (_node *Credential
 			Table:   credentials.Table,
 			Columns: credentials.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: credentials.FieldID,
 			},
 		},

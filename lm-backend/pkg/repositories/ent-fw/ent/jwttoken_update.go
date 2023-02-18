@@ -55,7 +55,7 @@ func (jtu *JwtTokenUpdate) SetClaims(m map[string]interface{}) *JwtTokenUpdate {
 }
 
 // SetIssuerID sets the "issuer" edge to the User entity by ID.
-func (jtu *JwtTokenUpdate) SetIssuerID(id int) *JwtTokenUpdate {
+func (jtu *JwtTokenUpdate) SetIssuerID(id string) *JwtTokenUpdate {
 	jtu.mutation.SetIssuerID(id)
 	return jtu
 }
@@ -125,7 +125,7 @@ func (jtu *JwtTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   jwttoken.Table,
 			Columns: jwttoken.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: jwttoken.FieldID,
 			},
 		},
@@ -155,7 +155,7 @@ func (jtu *JwtTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: user.FieldID,
 				},
 			},
@@ -171,7 +171,7 @@ func (jtu *JwtTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: user.FieldID,
 				},
 			},
@@ -228,7 +228,7 @@ func (jtuo *JwtTokenUpdateOne) SetClaims(m map[string]interface{}) *JwtTokenUpda
 }
 
 // SetIssuerID sets the "issuer" edge to the User entity by ID.
-func (jtuo *JwtTokenUpdateOne) SetIssuerID(id int) *JwtTokenUpdateOne {
+func (jtuo *JwtTokenUpdateOne) SetIssuerID(id string) *JwtTokenUpdateOne {
 	jtuo.mutation.SetIssuerID(id)
 	return jtuo
 }
@@ -305,7 +305,7 @@ func (jtuo *JwtTokenUpdateOne) sqlSave(ctx context.Context) (_node *JwtToken, er
 			Table:   jwttoken.Table,
 			Columns: jwttoken.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: jwttoken.FieldID,
 			},
 		},
@@ -352,7 +352,7 @@ func (jtuo *JwtTokenUpdateOne) sqlSave(ctx context.Context) (_node *JwtToken, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: user.FieldID,
 				},
 			},
@@ -368,7 +368,7 @@ func (jtuo *JwtTokenUpdateOne) sqlSave(ctx context.Context) (_node *JwtToken, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: user.FieldID,
 				},
 			},

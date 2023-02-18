@@ -15,13 +15,13 @@ import (
 type Organization struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Location holds the value of the "location" field.
 	Location string `json:"location,omitempty"`
 	// ContactID holds the value of the "contact_id" field.
-	ContactID int `json:"contact_id,omitempty"`
+	ContactID string `json:"contact_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrganizationQuery when eager-loading is set.
 	Edges OrganizationEdges `json:"edges"`
@@ -54,9 +54,7 @@ func (*Organization) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case organization.FieldID, organization.FieldContactID:
-			values[i] = new(sql.NullInt64)
-		case organization.FieldName, organization.FieldLocation:
+		case organization.FieldID, organization.FieldName, organization.FieldLocation, organization.FieldContactID:
 			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Organization", columns[i])
@@ -74,11 +72,11 @@ func (o *Organization) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case organization.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value.Valid {
+				o.ID = value.String
 			}
-			o.ID = int(value.Int64)
 		case organization.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -92,10 +90,10 @@ func (o *Organization) assignValues(columns []string, values []any) error {
 				o.Location = value.String
 			}
 		case organization.FieldContactID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field contact_id", values[i])
 			} else if value.Valid {
-				o.ContactID = int(value.Int64)
+				o.ContactID = value.String
 			}
 		}
 	}
@@ -137,7 +135,7 @@ func (o *Organization) String() string {
 	builder.WriteString(o.Location)
 	builder.WriteString(", ")
 	builder.WriteString("contact_id=")
-	builder.WriteString(fmt.Sprintf("%v", o.ContactID))
+	builder.WriteString(o.ContactID)
 	builder.WriteByte(')')
 	return builder.String()
 }

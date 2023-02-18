@@ -44,7 +44,7 @@ func (jtd *JwtTokenDelete) sqlExec(ctx context.Context) (int, error) {
 		Node: &sqlgraph.NodeSpec{
 			Table: jwttoken.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: jwttoken.FieldID,
 			},
 		},

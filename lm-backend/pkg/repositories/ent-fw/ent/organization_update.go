@@ -41,15 +41,15 @@ func (ou *OrganizationUpdate) SetLocation(s string) *OrganizationUpdate {
 }
 
 // SetContactID sets the "contact_id" field.
-func (ou *OrganizationUpdate) SetContactID(i int) *OrganizationUpdate {
-	ou.mutation.SetContactID(i)
+func (ou *OrganizationUpdate) SetContactID(s string) *OrganizationUpdate {
+	ou.mutation.SetContactID(s)
 	return ou
 }
 
 // SetNillableContactID sets the "contact_id" field if the given value is not nil.
-func (ou *OrganizationUpdate) SetNillableContactID(i *int) *OrganizationUpdate {
-	if i != nil {
-		ou.SetContactID(*i)
+func (ou *OrganizationUpdate) SetNillableContactID(s *string) *OrganizationUpdate {
+	if s != nil {
+		ou.SetContactID(*s)
 	}
 	return ou
 }
@@ -127,7 +127,7 @@ func (ou *OrganizationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   organization.Table,
 			Columns: organization.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: organization.FieldID,
 			},
 		},
@@ -154,7 +154,7 @@ func (ou *OrganizationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: contact.FieldID,
 				},
 			},
@@ -170,7 +170,7 @@ func (ou *OrganizationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: contact.FieldID,
 				},
 			},
@@ -213,15 +213,15 @@ func (ouo *OrganizationUpdateOne) SetLocation(s string) *OrganizationUpdateOne {
 }
 
 // SetContactID sets the "contact_id" field.
-func (ouo *OrganizationUpdateOne) SetContactID(i int) *OrganizationUpdateOne {
-	ouo.mutation.SetContactID(i)
+func (ouo *OrganizationUpdateOne) SetContactID(s string) *OrganizationUpdateOne {
+	ouo.mutation.SetContactID(s)
 	return ouo
 }
 
 // SetNillableContactID sets the "contact_id" field if the given value is not nil.
-func (ouo *OrganizationUpdateOne) SetNillableContactID(i *int) *OrganizationUpdateOne {
-	if i != nil {
-		ouo.SetContactID(*i)
+func (ouo *OrganizationUpdateOne) SetNillableContactID(s *string) *OrganizationUpdateOne {
+	if s != nil {
+		ouo.SetContactID(*s)
 	}
 	return ouo
 }
@@ -306,7 +306,7 @@ func (ouo *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizat
 			Table:   organization.Table,
 			Columns: organization.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: organization.FieldID,
 			},
 		},
@@ -350,7 +350,7 @@ func (ouo *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizat
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: contact.FieldID,
 				},
 			},
@@ -366,7 +366,7 @@ func (ouo *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizat
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: contact.FieldID,
 				},
 			},

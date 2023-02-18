@@ -37,4 +37,6 @@ var (
 	NameValidator func(string) error
 	// MailValidator is a validator for the "mail" field. It is called by the builders before save.
 	MailValidator func(string) error
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() string
 )

@@ -81,8 +81,8 @@ func (cq *ContactQuery) FirstX(ctx context.Context) *Contact {
 
 // FirstID returns the first Contact ID from the query.
 // Returns a *NotFoundError when no Contact ID was found.
-func (cq *ContactQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (cq *ContactQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = cq.Limit(1).IDs(setContextOp(ctx, cq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -94,7 +94,7 @@ func (cq *ContactQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (cq *ContactQuery) FirstIDX(ctx context.Context) int {
+func (cq *ContactQuery) FirstIDX(ctx context.Context) string {
 	id, err := cq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -132,8 +132,8 @@ func (cq *ContactQuery) OnlyX(ctx context.Context) *Contact {
 // OnlyID is like Only, but returns the only Contact ID in the query.
 // Returns a *NotSingularError when more than one Contact ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (cq *ContactQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (cq *ContactQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = cq.Limit(2).IDs(setContextOp(ctx, cq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -149,7 +149,7 @@ func (cq *ContactQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (cq *ContactQuery) OnlyIDX(ctx context.Context) int {
+func (cq *ContactQuery) OnlyIDX(ctx context.Context) string {
 	id, err := cq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -177,8 +177,8 @@ func (cq *ContactQuery) AllX(ctx context.Context) []*Contact {
 }
 
 // IDs executes the query and returns a list of Contact IDs.
-func (cq *ContactQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (cq *ContactQuery) IDs(ctx context.Context) ([]string, error) {
+	var ids []string
 	ctx = setContextOp(ctx, cq.ctx, "IDs")
 	if err := cq.Select(contact.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
@@ -187,7 +187,7 @@ func (cq *ContactQuery) IDs(ctx context.Context) ([]int, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (cq *ContactQuery) IDsX(ctx context.Context) []int {
+func (cq *ContactQuery) IDsX(ctx context.Context) []string {
 	ids, err := cq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -367,7 +367,7 @@ func (cq *ContactQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   contact.Table,
 			Columns: contact.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: contact.FieldID,
 			},
 		},

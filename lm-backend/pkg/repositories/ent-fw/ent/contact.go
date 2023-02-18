@@ -14,7 +14,7 @@ import (
 type Contact struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Mail holds the value of the "mail" field.
@@ -26,9 +26,7 @@ func (*Contact) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case contact.FieldID:
-			values[i] = new(sql.NullInt64)
-		case contact.FieldName, contact.FieldMail:
+		case contact.FieldID, contact.FieldName, contact.FieldMail:
 			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Contact", columns[i])
@@ -46,11 +44,11 @@ func (c *Contact) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case contact.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value.Valid {
+				c.ID = value.String
 			}
-			c.ID = int(value.Int64)
 		case contact.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])

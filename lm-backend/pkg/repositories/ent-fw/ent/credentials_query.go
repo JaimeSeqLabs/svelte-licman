@@ -81,8 +81,8 @@ func (cq *CredentialsQuery) FirstX(ctx context.Context) *Credentials {
 
 // FirstID returns the first Credentials ID from the query.
 // Returns a *NotFoundError when no Credentials ID was found.
-func (cq *CredentialsQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (cq *CredentialsQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = cq.Limit(1).IDs(setContextOp(ctx, cq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -94,7 +94,7 @@ func (cq *CredentialsQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (cq *CredentialsQuery) FirstIDX(ctx context.Context) int {
+func (cq *CredentialsQuery) FirstIDX(ctx context.Context) string {
 	id, err := cq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -132,8 +132,8 @@ func (cq *CredentialsQuery) OnlyX(ctx context.Context) *Credentials {
 // OnlyID is like Only, but returns the only Credentials ID in the query.
 // Returns a *NotSingularError when more than one Credentials ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (cq *CredentialsQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (cq *CredentialsQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = cq.Limit(2).IDs(setContextOp(ctx, cq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -149,7 +149,7 @@ func (cq *CredentialsQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (cq *CredentialsQuery) OnlyIDX(ctx context.Context) int {
+func (cq *CredentialsQuery) OnlyIDX(ctx context.Context) string {
 	id, err := cq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -177,8 +177,8 @@ func (cq *CredentialsQuery) AllX(ctx context.Context) []*Credentials {
 }
 
 // IDs executes the query and returns a list of Credentials IDs.
-func (cq *CredentialsQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (cq *CredentialsQuery) IDs(ctx context.Context) ([]string, error) {
+	var ids []string
 	ctx = setContextOp(ctx, cq.ctx, "IDs")
 	if err := cq.Select(credentials.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
@@ -187,7 +187,7 @@ func (cq *CredentialsQuery) IDs(ctx context.Context) ([]int, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (cq *CredentialsQuery) IDsX(ctx context.Context) []int {
+func (cq *CredentialsQuery) IDsX(ctx context.Context) []string {
 	ids, err := cq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -367,7 +367,7 @@ func (cq *CredentialsQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   credentials.Table,
 			Columns: credentials.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: credentials.FieldID,
 			},
 		},

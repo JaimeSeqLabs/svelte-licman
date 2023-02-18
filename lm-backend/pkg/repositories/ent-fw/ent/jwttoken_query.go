@@ -106,8 +106,8 @@ func (jtq *JwtTokenQuery) FirstX(ctx context.Context) *JwtToken {
 
 // FirstID returns the first JwtToken ID from the query.
 // Returns a *NotFoundError when no JwtToken ID was found.
-func (jtq *JwtTokenQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (jtq *JwtTokenQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = jtq.Limit(1).IDs(setContextOp(ctx, jtq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -119,7 +119,7 @@ func (jtq *JwtTokenQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (jtq *JwtTokenQuery) FirstIDX(ctx context.Context) int {
+func (jtq *JwtTokenQuery) FirstIDX(ctx context.Context) string {
 	id, err := jtq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -157,8 +157,8 @@ func (jtq *JwtTokenQuery) OnlyX(ctx context.Context) *JwtToken {
 // OnlyID is like Only, but returns the only JwtToken ID in the query.
 // Returns a *NotSingularError when more than one JwtToken ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (jtq *JwtTokenQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (jtq *JwtTokenQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = jtq.Limit(2).IDs(setContextOp(ctx, jtq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -174,7 +174,7 @@ func (jtq *JwtTokenQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (jtq *JwtTokenQuery) OnlyIDX(ctx context.Context) int {
+func (jtq *JwtTokenQuery) OnlyIDX(ctx context.Context) string {
 	id, err := jtq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -202,8 +202,8 @@ func (jtq *JwtTokenQuery) AllX(ctx context.Context) []*JwtToken {
 }
 
 // IDs executes the query and returns a list of JwtToken IDs.
-func (jtq *JwtTokenQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (jtq *JwtTokenQuery) IDs(ctx context.Context) ([]string, error) {
+	var ids []string
 	ctx = setContextOp(ctx, jtq.ctx, "IDs")
 	if err := jtq.Select(jwttoken.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
@@ -212,7 +212,7 @@ func (jtq *JwtTokenQuery) IDs(ctx context.Context) ([]int, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (jtq *JwtTokenQuery) IDsX(ctx context.Context) []int {
+func (jtq *JwtTokenQuery) IDsX(ctx context.Context) []string {
 	ids, err := jtq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -407,8 +407,8 @@ func (jtq *JwtTokenQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Jw
 }
 
 func (jtq *JwtTokenQuery) loadIssuer(ctx context.Context, query *UserQuery, nodes []*JwtToken, init func(*JwtToken), assign func(*JwtToken, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*JwtToken)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*JwtToken)
 	for i := range nodes {
 		if nodes[i].user_issued == nil {
 			continue
@@ -454,7 +454,7 @@ func (jtq *JwtTokenQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   jwttoken.Table,
 			Columns: jwttoken.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: jwttoken.FieldID,
 			},
 		},

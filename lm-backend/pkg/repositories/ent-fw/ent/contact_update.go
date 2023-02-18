@@ -95,7 +95,7 @@ func (cu *ContactUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   contact.Table,
 			Columns: contact.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: contact.FieldID,
 			},
 		},
@@ -208,7 +208,7 @@ func (cuo *ContactUpdateOne) sqlSave(ctx context.Context) (_node *Contact, err e
 			Table:   contact.Table,
 			Columns: contact.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: contact.FieldID,
 			},
 		},

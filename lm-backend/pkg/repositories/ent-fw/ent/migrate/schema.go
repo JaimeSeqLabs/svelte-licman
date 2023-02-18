@@ -10,7 +10,7 @@ import (
 var (
 	// ContactsColumns holds the columns for the "contacts" table.
 	ContactsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "mail", Type: field.TypeString},
 	}
@@ -22,7 +22,7 @@ var (
 	}
 	// CredentialsColumns holds the columns for the "credentials" table.
 	CredentialsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeString},
 		{Name: "username", Type: field.TypeString},
 		{Name: "password_hash", Type: field.TypeString},
 		{Name: "claims", Type: field.TypeJSON},
@@ -35,11 +35,11 @@ var (
 	}
 	// JwtTokensColumns holds the columns for the "jwt_tokens" table.
 	JwtTokensColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeString},
 		{Name: "token", Type: field.TypeString, Unique: true},
 		{Name: "revoked", Type: field.TypeBool, Default: false},
 		{Name: "claims", Type: field.TypeJSON},
-		{Name: "user_issued", Type: field.TypeInt},
+		{Name: "user_issued", Type: field.TypeString},
 	}
 	// JwtTokensTable holds the schema information for the "jwt_tokens" table.
 	JwtTokensTable = &schema.Table{
@@ -57,10 +57,10 @@ var (
 	}
 	// OrganizationsColumns holds the columns for the "organizations" table.
 	OrganizationsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "location", Type: field.TypeString},
-		{Name: "contact_id", Type: field.TypeInt, Nullable: true},
+		{Name: "contact_id", Type: field.TypeString, Nullable: true},
 	}
 	// OrganizationsTable holds the schema information for the "organizations" table.
 	OrganizationsTable = &schema.Table{
@@ -78,7 +78,7 @@ var (
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeString},
 		{Name: "username", Type: field.TypeString},
 		{Name: "mail", Type: field.TypeString, Unique: true},
 		{Name: "password_hash", Type: field.TypeString},

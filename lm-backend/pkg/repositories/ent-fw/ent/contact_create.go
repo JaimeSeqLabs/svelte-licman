@@ -31,6 +31,20 @@ func (cc *ContactCreate) SetMail(s string) *ContactCreate {
 	return cc
 }
 
+// SetID sets the "id" field.
+func (cc *ContactCreate) SetID(s string) *ContactCreate {
+	cc.mutation.SetID(s)
+	return cc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (cc *ContactCreate) SetNillableID(s *string) *ContactCreate {
+	if s != nil {
+		cc.SetID(*s)
+	}
+	return cc
+}
+
 // Mutation returns the ContactMutation object of the builder.
 func (cc *ContactCreate) Mutation() *ContactMutation {
 	return cc.mutation
@@ -38,6 +52,7 @@ func (cc *ContactCreate) Mutation() *ContactMutation {
 
 // Save creates the Contact in the database.
 func (cc *ContactCreate) Save(ctx context.Context) (*Contact, error) {
+	cc.defaults()
 	return withHooks[*Contact, ContactMutation](ctx, cc.sqlSave, cc.mutation, cc.hooks)
 }
 
@@ -60,6 +75,14 @@ func (cc *ContactCreate) Exec(ctx context.Context) error {
 func (cc *ContactCreate) ExecX(ctx context.Context) {
 	if err := cc.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (cc *ContactCreate) defaults() {
+	if _, ok := cc.mutation.ID(); !ok {
+		v := contact.DefaultID()
+		cc.mutation.SetID(v)
 	}
 }
 
@@ -95,8 +118,13 @@ func (cc *ContactCreate) sqlSave(ctx context.Context) (*Contact, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected Contact.ID type: %T", _spec.ID.Value)
+		}
+	}
 	cc.mutation.id = &_node.ID
 	cc.mutation.done = true
 	return _node, nil
@@ -108,11 +136,15 @@ func (cc *ContactCreate) createSpec() (*Contact, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: contact.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: contact.FieldID,
 			},
 		}
 	)
+	if id, ok := cc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := cc.mutation.Name(); ok {
 		_spec.SetField(contact.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -138,6 +170,7 @@ func (ccb *ContactCreateBulk) Save(ctx context.Context) ([]*Contact, error) {
 	for i := range ccb.builders {
 		func(i int, root context.Context) {
 			builder := ccb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ContactMutation)
 				if !ok {
@@ -164,10 +197,6 @@ func (ccb *ContactCreateBulk) Save(ctx context.Context) ([]*Contact, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

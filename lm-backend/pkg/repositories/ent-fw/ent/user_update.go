@@ -53,14 +53,14 @@ func (uu *UserUpdate) SetClaims(m map[string]interface{}) *UserUpdate {
 }
 
 // AddIssuedIDs adds the "issued" edge to the JwtToken entity by IDs.
-func (uu *UserUpdate) AddIssuedIDs(ids ...int) *UserUpdate {
+func (uu *UserUpdate) AddIssuedIDs(ids ...string) *UserUpdate {
 	uu.mutation.AddIssuedIDs(ids...)
 	return uu
 }
 
 // AddIssued adds the "issued" edges to the JwtToken entity.
 func (uu *UserUpdate) AddIssued(j ...*JwtToken) *UserUpdate {
-	ids := make([]int, len(j))
+	ids := make([]string, len(j))
 	for i := range j {
 		ids[i] = j[i].ID
 	}
@@ -79,14 +79,14 @@ func (uu *UserUpdate) ClearIssued() *UserUpdate {
 }
 
 // RemoveIssuedIDs removes the "issued" edge to JwtToken entities by IDs.
-func (uu *UserUpdate) RemoveIssuedIDs(ids ...int) *UserUpdate {
+func (uu *UserUpdate) RemoveIssuedIDs(ids ...string) *UserUpdate {
 	uu.mutation.RemoveIssuedIDs(ids...)
 	return uu
 }
 
 // RemoveIssued removes "issued" edges to JwtToken entities.
 func (uu *UserUpdate) RemoveIssued(j ...*JwtToken) *UserUpdate {
-	ids := make([]int, len(j))
+	ids := make([]string, len(j))
 	for i := range j {
 		ids[i] = j[i].ID
 	}
@@ -149,7 +149,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   user.Table,
 			Columns: user.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: user.FieldID,
 			},
 		},
@@ -182,7 +182,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: jwttoken.FieldID,
 				},
 			},
@@ -198,7 +198,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: jwttoken.FieldID,
 				},
 			},
@@ -217,7 +217,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: jwttoken.FieldID,
 				},
 			},
@@ -272,14 +272,14 @@ func (uuo *UserUpdateOne) SetClaims(m map[string]interface{}) *UserUpdateOne {
 }
 
 // AddIssuedIDs adds the "issued" edge to the JwtToken entity by IDs.
-func (uuo *UserUpdateOne) AddIssuedIDs(ids ...int) *UserUpdateOne {
+func (uuo *UserUpdateOne) AddIssuedIDs(ids ...string) *UserUpdateOne {
 	uuo.mutation.AddIssuedIDs(ids...)
 	return uuo
 }
 
 // AddIssued adds the "issued" edges to the JwtToken entity.
 func (uuo *UserUpdateOne) AddIssued(j ...*JwtToken) *UserUpdateOne {
-	ids := make([]int, len(j))
+	ids := make([]string, len(j))
 	for i := range j {
 		ids[i] = j[i].ID
 	}
@@ -298,14 +298,14 @@ func (uuo *UserUpdateOne) ClearIssued() *UserUpdateOne {
 }
 
 // RemoveIssuedIDs removes the "issued" edge to JwtToken entities by IDs.
-func (uuo *UserUpdateOne) RemoveIssuedIDs(ids ...int) *UserUpdateOne {
+func (uuo *UserUpdateOne) RemoveIssuedIDs(ids ...string) *UserUpdateOne {
 	uuo.mutation.RemoveIssuedIDs(ids...)
 	return uuo
 }
 
 // RemoveIssued removes "issued" edges to JwtToken entities.
 func (uuo *UserUpdateOne) RemoveIssued(j ...*JwtToken) *UserUpdateOne {
-	ids := make([]int, len(j))
+	ids := make([]string, len(j))
 	for i := range j {
 		ids[i] = j[i].ID
 	}
@@ -375,7 +375,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Table:   user.Table,
 			Columns: user.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: user.FieldID,
 			},
 		},
@@ -425,7 +425,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: jwttoken.FieldID,
 				},
 			},
@@ -441,7 +441,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: jwttoken.FieldID,
 				},
 			},
@@ -460,7 +460,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: jwttoken.FieldID,
 				},
 			},

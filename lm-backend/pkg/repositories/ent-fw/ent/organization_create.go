@@ -33,15 +33,29 @@ func (oc *OrganizationCreate) SetLocation(s string) *OrganizationCreate {
 }
 
 // SetContactID sets the "contact_id" field.
-func (oc *OrganizationCreate) SetContactID(i int) *OrganizationCreate {
-	oc.mutation.SetContactID(i)
+func (oc *OrganizationCreate) SetContactID(s string) *OrganizationCreate {
+	oc.mutation.SetContactID(s)
 	return oc
 }
 
 // SetNillableContactID sets the "contact_id" field if the given value is not nil.
-func (oc *OrganizationCreate) SetNillableContactID(i *int) *OrganizationCreate {
-	if i != nil {
-		oc.SetContactID(*i)
+func (oc *OrganizationCreate) SetNillableContactID(s *string) *OrganizationCreate {
+	if s != nil {
+		oc.SetContactID(*s)
+	}
+	return oc
+}
+
+// SetID sets the "id" field.
+func (oc *OrganizationCreate) SetID(s string) *OrganizationCreate {
+	oc.mutation.SetID(s)
+	return oc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (oc *OrganizationCreate) SetNillableID(s *string) *OrganizationCreate {
+	if s != nil {
+		oc.SetID(*s)
 	}
 	return oc
 }
@@ -58,6 +72,7 @@ func (oc *OrganizationCreate) Mutation() *OrganizationMutation {
 
 // Save creates the Organization in the database.
 func (oc *OrganizationCreate) Save(ctx context.Context) (*Organization, error) {
+	oc.defaults()
 	return withHooks[*Organization, OrganizationMutation](ctx, oc.sqlSave, oc.mutation, oc.hooks)
 }
 
@@ -80,6 +95,14 @@ func (oc *OrganizationCreate) Exec(ctx context.Context) error {
 func (oc *OrganizationCreate) ExecX(ctx context.Context) {
 	if err := oc.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (oc *OrganizationCreate) defaults() {
+	if _, ok := oc.mutation.ID(); !ok {
+		v := organization.DefaultID()
+		oc.mutation.SetID(v)
 	}
 }
 
@@ -115,8 +138,13 @@ func (oc *OrganizationCreate) sqlSave(ctx context.Context) (*Organization, error
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected Organization.ID type: %T", _spec.ID.Value)
+		}
+	}
 	oc.mutation.id = &_node.ID
 	oc.mutation.done = true
 	return _node, nil
@@ -128,11 +156,15 @@ func (oc *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 		_spec = &sqlgraph.CreateSpec{
 			Table: organization.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: organization.FieldID,
 			},
 		}
 	)
+	if id, ok := oc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := oc.mutation.Name(); ok {
 		_spec.SetField(organization.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -150,7 +182,7 @@ func (oc *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
+					Type:   field.TypeString,
 					Column: contact.FieldID,
 				},
 			},
@@ -178,6 +210,7 @@ func (ocb *OrganizationCreateBulk) Save(ctx context.Context) ([]*Organization, e
 	for i := range ocb.builders {
 		func(i int, root context.Context) {
 			builder := ocb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*OrganizationMutation)
 				if !ok {
@@ -204,10 +237,6 @@ func (ocb *OrganizationCreateBulk) Save(ctx context.Context) ([]*Organization, e
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

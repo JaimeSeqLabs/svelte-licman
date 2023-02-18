@@ -16,7 +16,7 @@ import (
 type JwtToken struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// Token holds the value of the "token" field.
 	Token string `json:"token,omitempty"`
 	// Revoked holds the value of the "revoked" field.
@@ -26,7 +26,7 @@ type JwtToken struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the JwtTokenQuery when eager-loading is set.
 	Edges       JwtTokenEdges `json:"edges"`
-	user_issued *int
+	user_issued *string
 }
 
 // JwtTokenEdges holds the relations/edges for other nodes in the graph.
@@ -60,12 +60,10 @@ func (*JwtToken) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case jwttoken.FieldRevoked:
 			values[i] = new(sql.NullBool)
-		case jwttoken.FieldID:
-			values[i] = new(sql.NullInt64)
-		case jwttoken.FieldToken:
+		case jwttoken.FieldID, jwttoken.FieldToken:
 			values[i] = new(sql.NullString)
 		case jwttoken.ForeignKeys[0]: // user_issued
-			values[i] = new(sql.NullInt64)
+			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type JwtToken", columns[i])
 		}
@@ -82,11 +80,11 @@ func (jt *JwtToken) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case jwttoken.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value.Valid {
+				jt.ID = value.String
 			}
-			jt.ID = int(value.Int64)
 		case jwttoken.FieldToken:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field token", values[i])
@@ -108,11 +106,11 @@ func (jt *JwtToken) assignValues(columns []string, values []any) error {
 				}
 			}
 		case jwttoken.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field user_issued", value)
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field user_issued", values[i])
 			} else if value.Valid {
-				jt.user_issued = new(int)
-				*jt.user_issued = int(value.Int64)
+				jt.user_issued = new(string)
+				*jt.user_issued = value.String
 			}
 		}
 	}

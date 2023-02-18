@@ -7,7 +7,6 @@ import (
 	"license-manager/pkg/repositories/ent-fw/ent"
 	"license-manager/pkg/repositories/ent-fw/ent/organization"
 	"log"
-	"strconv"
 )
 
 type orgEntRepo struct {
@@ -49,7 +48,7 @@ func (repo *orgEntRepo) Save(org domain.Organization) error {
 		Create().
 		SetName(org.Name).
 		SetLocation(org.Location).
-		SetNillableContactID(getContactIdAsNillableInt(org)).
+		SetNillableContactID(getNillableContactID(org)).
 		Save(context.TODO())
 	
 	return err
@@ -85,7 +84,7 @@ func (repo *orgEntRepo) Update(org domain.Organization) (updated bool, err error
 		Update().
 		SetName(org.Name).
 		SetLocation(org.Location).
-		SetNillableContactID(getContactIdAsNillableInt(org)).
+		SetNillableContactID(getNillableContactID(org)).
 		Where(
 			organization.NameEQ(org.Name),
 		).
@@ -107,25 +106,19 @@ func (repo *orgEntRepo) DeleteByName(name string) error {
 }
 
 func ToEntity(dto *ent.Organization) domain.Organization {
-	cid := ""
-	if dto.ContactID > 0 {
-		cid = strconv.Itoa(dto.ContactID)
-	}
 	return domain.Organization{
 		Name: dto.Name,
 		Location: dto.Location,
-		ContactID: cid,
+		ContactID: dto.ContactID,
 	}
 }
 
-func getContactIdAsNillableInt(org domain.Organization) *int {
-	var contactID *int
-	if cid, err := strconv.Atoi(org.ContactID); err != nil {
-		contactID = nil
+func getNillableContactID(org domain.Organization) (cid *string) {
+	if org.ContactID == "" {
+		cid = nil
 	} else {
-		contactID = &cid
+		cid = &org.ContactID
 	}
-	return contactID
+	return
 }
-
 

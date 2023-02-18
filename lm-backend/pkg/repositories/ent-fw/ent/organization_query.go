@@ -105,8 +105,8 @@ func (oq *OrganizationQuery) FirstX(ctx context.Context) *Organization {
 
 // FirstID returns the first Organization ID from the query.
 // Returns a *NotFoundError when no Organization ID was found.
-func (oq *OrganizationQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (oq *OrganizationQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = oq.Limit(1).IDs(setContextOp(ctx, oq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -118,7 +118,7 @@ func (oq *OrganizationQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (oq *OrganizationQuery) FirstIDX(ctx context.Context) int {
+func (oq *OrganizationQuery) FirstIDX(ctx context.Context) string {
 	id, err := oq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -156,8 +156,8 @@ func (oq *OrganizationQuery) OnlyX(ctx context.Context) *Organization {
 // OnlyID is like Only, but returns the only Organization ID in the query.
 // Returns a *NotSingularError when more than one Organization ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (oq *OrganizationQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (oq *OrganizationQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = oq.Limit(2).IDs(setContextOp(ctx, oq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -173,7 +173,7 @@ func (oq *OrganizationQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (oq *OrganizationQuery) OnlyIDX(ctx context.Context) int {
+func (oq *OrganizationQuery) OnlyIDX(ctx context.Context) string {
 	id, err := oq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -201,8 +201,8 @@ func (oq *OrganizationQuery) AllX(ctx context.Context) []*Organization {
 }
 
 // IDs executes the query and returns a list of Organization IDs.
-func (oq *OrganizationQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (oq *OrganizationQuery) IDs(ctx context.Context) ([]string, error) {
+	var ids []string
 	ctx = setContextOp(ctx, oq.ctx, "IDs")
 	if err := oq.Select(organization.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
@@ -211,7 +211,7 @@ func (oq *OrganizationQuery) IDs(ctx context.Context) ([]int, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (oq *OrganizationQuery) IDsX(ctx context.Context) []int {
+func (oq *OrganizationQuery) IDsX(ctx context.Context) []string {
 	ids, err := oq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -399,8 +399,8 @@ func (oq *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 }
 
 func (oq *OrganizationQuery) loadContact(ctx context.Context, query *ContactQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *Contact)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Organization)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Organization)
 	for i := range nodes {
 		fk := nodes[i].ContactID
 		if _, ok := nodeids[fk]; !ok {
@@ -443,7 +443,7 @@ func (oq *OrganizationQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   organization.Table,
 			Columns: organization.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeString,
 				Column: organization.FieldID,
 			},
 		},

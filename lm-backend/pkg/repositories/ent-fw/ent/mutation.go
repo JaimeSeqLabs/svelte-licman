@@ -39,7 +39,7 @@ type ContactMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *string
 	name          *string
 	mail          *string
 	clearedFields map[string]struct{}
@@ -68,7 +68,7 @@ func newContactMutation(c config, op Op, opts ...contactOption) *ContactMutation
 }
 
 // withContactID sets the ID field of the mutation.
-func withContactID(id int) contactOption {
+func withContactID(id string) contactOption {
 	return func(m *ContactMutation) {
 		var (
 			err   error
@@ -118,9 +118,15 @@ func (m ContactMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Contact entities.
+func (m *ContactMutation) SetID(id string) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *ContactMutation) ID() (id int, exists bool) {
+func (m *ContactMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -131,12 +137,12 @@ func (m *ContactMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *ContactMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *ContactMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -419,7 +425,7 @@ type CredentialsMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *string
 	username      *string
 	password_hash *string
 	claims        *map[string]interface{}
@@ -449,7 +455,7 @@ func newCredentialsMutation(c config, op Op, opts ...credentialsOption) *Credent
 }
 
 // withCredentialsID sets the ID field of the mutation.
-func withCredentialsID(id int) credentialsOption {
+func withCredentialsID(id string) credentialsOption {
 	return func(m *CredentialsMutation) {
 		var (
 			err   error
@@ -499,9 +505,15 @@ func (m CredentialsMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Credentials entities.
+func (m *CredentialsMutation) SetID(id string) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *CredentialsMutation) ID() (id int, exists bool) {
+func (m *CredentialsMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -512,12 +524,12 @@ func (m *CredentialsMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *CredentialsMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *CredentialsMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -853,12 +865,12 @@ type JwtTokenMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *string
 	token         *string
 	revoked       *bool
 	claims        *map[string]interface{}
 	clearedFields map[string]struct{}
-	issuer        *int
+	issuer        *string
 	clearedissuer bool
 	done          bool
 	oldValue      func(context.Context) (*JwtToken, error)
@@ -885,7 +897,7 @@ func newJwtTokenMutation(c config, op Op, opts ...jwttokenOption) *JwtTokenMutat
 }
 
 // withJwtTokenID sets the ID field of the mutation.
-func withJwtTokenID(id int) jwttokenOption {
+func withJwtTokenID(id string) jwttokenOption {
 	return func(m *JwtTokenMutation) {
 		var (
 			err   error
@@ -935,9 +947,15 @@ func (m JwtTokenMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of JwtToken entities.
+func (m *JwtTokenMutation) SetID(id string) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *JwtTokenMutation) ID() (id int, exists bool) {
+func (m *JwtTokenMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -948,12 +966,12 @@ func (m *JwtTokenMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *JwtTokenMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *JwtTokenMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -1072,7 +1090,7 @@ func (m *JwtTokenMutation) ResetClaims() {
 }
 
 // SetIssuerID sets the "issuer" edge to the User entity by id.
-func (m *JwtTokenMutation) SetIssuerID(id int) {
+func (m *JwtTokenMutation) SetIssuerID(id string) {
 	m.issuer = &id
 }
 
@@ -1087,7 +1105,7 @@ func (m *JwtTokenMutation) IssuerCleared() bool {
 }
 
 // IssuerID returns the "issuer" edge ID in the mutation.
-func (m *JwtTokenMutation) IssuerID() (id int, exists bool) {
+func (m *JwtTokenMutation) IssuerID() (id string, exists bool) {
 	if m.issuer != nil {
 		return *m.issuer, true
 	}
@@ -1097,7 +1115,7 @@ func (m *JwtTokenMutation) IssuerID() (id int, exists bool) {
 // IssuerIDs returns the "issuer" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // IssuerID instead. It exists only for internal usage by the builders.
-func (m *JwtTokenMutation) IssuerIDs() (ids []int) {
+func (m *JwtTokenMutation) IssuerIDs() (ids []string) {
 	if id := m.issuer; id != nil {
 		ids = append(ids, *id)
 	}
@@ -1354,11 +1372,11 @@ type OrganizationMutation struct {
 	config
 	op             Op
 	typ            string
-	id             *int
+	id             *string
 	name           *string
 	location       *string
 	clearedFields  map[string]struct{}
-	contact        *int
+	contact        *string
 	clearedcontact bool
 	done           bool
 	oldValue       func(context.Context) (*Organization, error)
@@ -1385,7 +1403,7 @@ func newOrganizationMutation(c config, op Op, opts ...organizationOption) *Organ
 }
 
 // withOrganizationID sets the ID field of the mutation.
-func withOrganizationID(id int) organizationOption {
+func withOrganizationID(id string) organizationOption {
 	return func(m *OrganizationMutation) {
 		var (
 			err   error
@@ -1435,9 +1453,15 @@ func (m OrganizationMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Organization entities.
+func (m *OrganizationMutation) SetID(id string) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *OrganizationMutation) ID() (id int, exists bool) {
+func (m *OrganizationMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -1448,12 +1472,12 @@ func (m *OrganizationMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *OrganizationMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *OrganizationMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -1536,12 +1560,12 @@ func (m *OrganizationMutation) ResetLocation() {
 }
 
 // SetContactID sets the "contact_id" field.
-func (m *OrganizationMutation) SetContactID(i int) {
-	m.contact = &i
+func (m *OrganizationMutation) SetContactID(s string) {
+	m.contact = &s
 }
 
 // ContactID returns the value of the "contact_id" field in the mutation.
-func (m *OrganizationMutation) ContactID() (r int, exists bool) {
+func (m *OrganizationMutation) ContactID() (r string, exists bool) {
 	v := m.contact
 	if v == nil {
 		return
@@ -1552,7 +1576,7 @@ func (m *OrganizationMutation) ContactID() (r int, exists bool) {
 // OldContactID returns the old "contact_id" field's value of the Organization entity.
 // If the Organization object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrganizationMutation) OldContactID(ctx context.Context) (v int, err error) {
+func (m *OrganizationMutation) OldContactID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldContactID is only allowed on UpdateOne operations")
 	}
@@ -1597,7 +1621,7 @@ func (m *OrganizationMutation) ContactCleared() bool {
 // ContactIDs returns the "contact" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ContactID instead. It exists only for internal usage by the builders.
-func (m *OrganizationMutation) ContactIDs() (ids []int) {
+func (m *OrganizationMutation) ContactIDs() (ids []string) {
 	if id := m.contact; id != nil {
 		ids = append(ids, *id)
 	}
@@ -1707,7 +1731,7 @@ func (m *OrganizationMutation) SetField(name string, value ent.Value) error {
 		m.SetLocation(v)
 		return nil
 	case organization.FieldContactID:
-		v, ok := value.(int)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -1720,16 +1744,13 @@ func (m *OrganizationMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *OrganizationMutation) AddedFields() []string {
-	var fields []string
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *OrganizationMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	}
 	return nil, false
 }
 
@@ -1866,14 +1887,14 @@ type UserMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *string
 	username      *string
 	mail          *string
 	password_hash *string
 	claims        *map[string]interface{}
 	clearedFields map[string]struct{}
-	issued        map[int]struct{}
-	removedissued map[int]struct{}
+	issued        map[string]struct{}
+	removedissued map[string]struct{}
 	clearedissued bool
 	done          bool
 	oldValue      func(context.Context) (*User, error)
@@ -1900,7 +1921,7 @@ func newUserMutation(c config, op Op, opts ...userOption) *UserMutation {
 }
 
 // withUserID sets the ID field of the mutation.
-func withUserID(id int) userOption {
+func withUserID(id string) userOption {
 	return func(m *UserMutation) {
 		var (
 			err   error
@@ -1950,9 +1971,15 @@ func (m UserMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of User entities.
+func (m *UserMutation) SetID(id string) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *UserMutation) ID() (id int, exists bool) {
+func (m *UserMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -1963,12 +1990,12 @@ func (m *UserMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *UserMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *UserMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -2123,9 +2150,9 @@ func (m *UserMutation) ResetClaims() {
 }
 
 // AddIssuedIDs adds the "issued" edge to the JwtToken entity by ids.
-func (m *UserMutation) AddIssuedIDs(ids ...int) {
+func (m *UserMutation) AddIssuedIDs(ids ...string) {
 	if m.issued == nil {
-		m.issued = make(map[int]struct{})
+		m.issued = make(map[string]struct{})
 	}
 	for i := range ids {
 		m.issued[ids[i]] = struct{}{}
@@ -2143,9 +2170,9 @@ func (m *UserMutation) IssuedCleared() bool {
 }
 
 // RemoveIssuedIDs removes the "issued" edge to the JwtToken entity by IDs.
-func (m *UserMutation) RemoveIssuedIDs(ids ...int) {
+func (m *UserMutation) RemoveIssuedIDs(ids ...string) {
 	if m.removedissued == nil {
-		m.removedissued = make(map[int]struct{})
+		m.removedissued = make(map[string]struct{})
 	}
 	for i := range ids {
 		delete(m.issued, ids[i])
@@ -2154,7 +2181,7 @@ func (m *UserMutation) RemoveIssuedIDs(ids ...int) {
 }
 
 // RemovedIssued returns the removed IDs of the "issued" edge to the JwtToken entity.
-func (m *UserMutation) RemovedIssuedIDs() (ids []int) {
+func (m *UserMutation) RemovedIssuedIDs() (ids []string) {
 	for id := range m.removedissued {
 		ids = append(ids, id)
 	}
@@ -2162,7 +2189,7 @@ func (m *UserMutation) RemovedIssuedIDs() (ids []int) {
 }
 
 // IssuedIDs returns the "issued" edge IDs in the mutation.
-func (m *UserMutation) IssuedIDs() (ids []int) {
+func (m *UserMutation) IssuedIDs() (ids []string) {
 	for id := range m.issued {
 		ids = append(ids, id)
 	}

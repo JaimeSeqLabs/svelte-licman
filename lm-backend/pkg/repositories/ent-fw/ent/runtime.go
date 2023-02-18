@@ -18,55 +18,75 @@ func init() {
 	contactFields := schema.Contact{}.Fields()
 	_ = contactFields
 	// contactDescName is the schema descriptor for name field.
-	contactDescName := contactFields[0].Descriptor()
+	contactDescName := contactFields[1].Descriptor()
 	// contact.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	contact.NameValidator = contactDescName.Validators[0].(func(string) error)
 	// contactDescMail is the schema descriptor for mail field.
-	contactDescMail := contactFields[1].Descriptor()
+	contactDescMail := contactFields[2].Descriptor()
 	// contact.MailValidator is a validator for the "mail" field. It is called by the builders before save.
 	contact.MailValidator = contactDescMail.Validators[0].(func(string) error)
+	// contactDescID is the schema descriptor for id field.
+	contactDescID := contactFields[0].Descriptor()
+	// contact.DefaultID holds the default value on creation for the id field.
+	contact.DefaultID = contactDescID.Default.(func() string)
 	credentialsFields := schema.Credentials{}.Fields()
 	_ = credentialsFields
 	// credentialsDescUsername is the schema descriptor for username field.
-	credentialsDescUsername := credentialsFields[0].Descriptor()
+	credentialsDescUsername := credentialsFields[1].Descriptor()
 	// credentials.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	credentials.UsernameValidator = credentialsDescUsername.Validators[0].(func(string) error)
 	// credentialsDescPasswordHash is the schema descriptor for password_hash field.
-	credentialsDescPasswordHash := credentialsFields[1].Descriptor()
+	credentialsDescPasswordHash := credentialsFields[2].Descriptor()
 	// credentials.PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
 	credentials.PasswordHashValidator = credentialsDescPasswordHash.Validators[0].(func(string) error)
+	// credentialsDescID is the schema descriptor for id field.
+	credentialsDescID := credentialsFields[0].Descriptor()
+	// credentials.DefaultID holds the default value on creation for the id field.
+	credentials.DefaultID = credentialsDescID.Default.(func() string)
 	jwttokenFields := schema.JwtToken{}.Fields()
 	_ = jwttokenFields
 	// jwttokenDescToken is the schema descriptor for token field.
-	jwttokenDescToken := jwttokenFields[0].Descriptor()
+	jwttokenDescToken := jwttokenFields[1].Descriptor()
 	// jwttoken.TokenValidator is a validator for the "token" field. It is called by the builders before save.
 	jwttoken.TokenValidator = jwttokenDescToken.Validators[0].(func(string) error)
 	// jwttokenDescRevoked is the schema descriptor for revoked field.
-	jwttokenDescRevoked := jwttokenFields[1].Descriptor()
+	jwttokenDescRevoked := jwttokenFields[2].Descriptor()
 	// jwttoken.DefaultRevoked holds the default value on creation for the revoked field.
 	jwttoken.DefaultRevoked = jwttokenDescRevoked.Default.(bool)
+	// jwttokenDescID is the schema descriptor for id field.
+	jwttokenDescID := jwttokenFields[0].Descriptor()
+	// jwttoken.DefaultID holds the default value on creation for the id field.
+	jwttoken.DefaultID = jwttokenDescID.Default.(func() string)
 	organizationFields := schema.Organization{}.Fields()
 	_ = organizationFields
 	// organizationDescName is the schema descriptor for name field.
-	organizationDescName := organizationFields[0].Descriptor()
+	organizationDescName := organizationFields[1].Descriptor()
 	// organization.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	organization.NameValidator = organizationDescName.Validators[0].(func(string) error)
 	// organizationDescLocation is the schema descriptor for location field.
-	organizationDescLocation := organizationFields[1].Descriptor()
+	organizationDescLocation := organizationFields[2].Descriptor()
 	// organization.LocationValidator is a validator for the "location" field. It is called by the builders before save.
 	organization.LocationValidator = organizationDescLocation.Validators[0].(func(string) error)
+	// organizationDescID is the schema descriptor for id field.
+	organizationDescID := organizationFields[0].Descriptor()
+	// organization.DefaultID holds the default value on creation for the id field.
+	organization.DefaultID = organizationDescID.Default.(func() string)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescUsername is the schema descriptor for username field.
-	userDescUsername := userFields[0].Descriptor()
+	userDescUsername := userFields[1].Descriptor()
 	// user.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	user.UsernameValidator = userDescUsername.Validators[0].(func(string) error)
 	// userDescMail is the schema descriptor for mail field.
-	userDescMail := userFields[1].Descriptor()
+	userDescMail := userFields[2].Descriptor()
 	// user.MailValidator is a validator for the "mail" field. It is called by the builders before save.
 	user.MailValidator = userDescMail.Validators[0].(func(string) error)
 	// userDescPasswordHash is the schema descriptor for password_hash field.
-	userDescPasswordHash := userFields[2].Descriptor()
+	userDescPasswordHash := userFields[3].Descriptor()
 	// user.PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
 	user.PasswordHashValidator = userDescPasswordHash.Validators[0].(func(string) error)
+	// userDescID is the schema descriptor for id field.
+	userDescID := userFields[0].Descriptor()
+	// user.DefaultID holds the default value on creation for the id field.
+	user.DefaultID = userDescID.Default.(func() string)
 }
