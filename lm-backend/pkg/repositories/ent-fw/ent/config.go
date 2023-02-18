@@ -31,12 +31,14 @@ type (
 		Credentials  []ent.Hook
 		JwtToken     []ent.Hook
 		Organization []ent.Hook
+		User         []ent.Hook
 	}
 	inters struct {
 		Contact      []ent.Interceptor
 		Credentials  []ent.Interceptor
 		JwtToken     []ent.Interceptor
 		Organization []ent.Interceptor
+		User         []ent.Interceptor
 	}
 )
 

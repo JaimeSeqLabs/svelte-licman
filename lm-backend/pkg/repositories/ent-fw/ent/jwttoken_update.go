@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
+	"license-manager/pkg/repositories/ent-fw/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -53,9 +54,26 @@ func (jtu *JwtTokenUpdate) SetClaims(m map[string]interface{}) *JwtTokenUpdate {
 	return jtu
 }
 
+// SetIssuerID sets the "issuer" edge to the User entity by ID.
+func (jtu *JwtTokenUpdate) SetIssuerID(id int) *JwtTokenUpdate {
+	jtu.mutation.SetIssuerID(id)
+	return jtu
+}
+
+// SetIssuer sets the "issuer" edge to the User entity.
+func (jtu *JwtTokenUpdate) SetIssuer(u *User) *JwtTokenUpdate {
+	return jtu.SetIssuerID(u.ID)
+}
+
 // Mutation returns the JwtTokenMutation object of the builder.
 func (jtu *JwtTokenUpdate) Mutation() *JwtTokenMutation {
 	return jtu.mutation
+}
+
+// ClearIssuer clears the "issuer" edge to the User entity.
+func (jtu *JwtTokenUpdate) ClearIssuer() *JwtTokenUpdate {
+	jtu.mutation.ClearIssuer()
+	return jtu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -92,6 +110,9 @@ func (jtu *JwtTokenUpdate) check() error {
 			return &ValidationError{Name: "token", err: fmt.Errorf(`ent: validator failed for field "JwtToken.token": %w`, err)}
 		}
 	}
+	if _, ok := jtu.mutation.IssuerID(); jtu.mutation.IssuerCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "JwtToken.issuer"`)
+	}
 	return nil
 }
 
@@ -124,6 +145,41 @@ func (jtu *JwtTokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := jtu.mutation.Claims(); ok {
 		_spec.SetField(jwttoken.FieldClaims, field.TypeJSON, value)
+	}
+	if jtu.mutation.IssuerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   jwttoken.IssuerTable,
+			Columns: []string{jwttoken.IssuerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := jtu.mutation.IssuerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   jwttoken.IssuerTable,
+			Columns: []string{jwttoken.IssuerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, jtu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -171,9 +227,26 @@ func (jtuo *JwtTokenUpdateOne) SetClaims(m map[string]interface{}) *JwtTokenUpda
 	return jtuo
 }
 
+// SetIssuerID sets the "issuer" edge to the User entity by ID.
+func (jtuo *JwtTokenUpdateOne) SetIssuerID(id int) *JwtTokenUpdateOne {
+	jtuo.mutation.SetIssuerID(id)
+	return jtuo
+}
+
+// SetIssuer sets the "issuer" edge to the User entity.
+func (jtuo *JwtTokenUpdateOne) SetIssuer(u *User) *JwtTokenUpdateOne {
+	return jtuo.SetIssuerID(u.ID)
+}
+
 // Mutation returns the JwtTokenMutation object of the builder.
 func (jtuo *JwtTokenUpdateOne) Mutation() *JwtTokenMutation {
 	return jtuo.mutation
+}
+
+// ClearIssuer clears the "issuer" edge to the User entity.
+func (jtuo *JwtTokenUpdateOne) ClearIssuer() *JwtTokenUpdateOne {
+	jtuo.mutation.ClearIssuer()
+	return jtuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -216,6 +289,9 @@ func (jtuo *JwtTokenUpdateOne) check() error {
 		if err := jwttoken.TokenValidator(v); err != nil {
 			return &ValidationError{Name: "token", err: fmt.Errorf(`ent: validator failed for field "JwtToken.token": %w`, err)}
 		}
+	}
+	if _, ok := jtuo.mutation.IssuerID(); jtuo.mutation.IssuerCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "JwtToken.issuer"`)
 	}
 	return nil
 }
@@ -266,6 +342,41 @@ func (jtuo *JwtTokenUpdateOne) sqlSave(ctx context.Context) (_node *JwtToken, er
 	}
 	if value, ok := jtuo.mutation.Claims(); ok {
 		_spec.SetField(jwttoken.FieldClaims, field.TypeJSON, value)
+	}
+	if jtuo.mutation.IssuerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   jwttoken.IssuerTable,
+			Columns: []string{jwttoken.IssuerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := jtuo.mutation.IssuerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   jwttoken.IssuerTable,
+			Columns: []string{jwttoken.IssuerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &JwtToken{config: jtuo.config}
 	_spec.Assign = _node.assignValues

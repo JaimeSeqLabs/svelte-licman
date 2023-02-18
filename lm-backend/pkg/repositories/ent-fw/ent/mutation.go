@@ -11,6 +11,7 @@ import (
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
 	"license-manager/pkg/repositories/ent-fw/ent/organization"
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
+	"license-manager/pkg/repositories/ent-fw/ent/user"
 	"sync"
 
 	"entgo.io/ent"
@@ -30,6 +31,7 @@ const (
 	TypeCredentials  = "Credentials"
 	TypeJwtToken     = "JwtToken"
 	TypeOrganization = "Organization"
+	TypeUser         = "User"
 )
 
 // ContactMutation represents an operation that mutates the Contact nodes in the graph.
@@ -856,6 +858,8 @@ type JwtTokenMutation struct {
 	revoked       *bool
 	claims        *map[string]interface{}
 	clearedFields map[string]struct{}
+	issuer        *int
+	clearedissuer bool
 	done          bool
 	oldValue      func(context.Context) (*JwtToken, error)
 	predicates    []predicate.JwtToken
@@ -1067,6 +1071,45 @@ func (m *JwtTokenMutation) ResetClaims() {
 	m.claims = nil
 }
 
+// SetIssuerID sets the "issuer" edge to the User entity by id.
+func (m *JwtTokenMutation) SetIssuerID(id int) {
+	m.issuer = &id
+}
+
+// ClearIssuer clears the "issuer" edge to the User entity.
+func (m *JwtTokenMutation) ClearIssuer() {
+	m.clearedissuer = true
+}
+
+// IssuerCleared reports if the "issuer" edge to the User entity was cleared.
+func (m *JwtTokenMutation) IssuerCleared() bool {
+	return m.clearedissuer
+}
+
+// IssuerID returns the "issuer" edge ID in the mutation.
+func (m *JwtTokenMutation) IssuerID() (id int, exists bool) {
+	if m.issuer != nil {
+		return *m.issuer, true
+	}
+	return
+}
+
+// IssuerIDs returns the "issuer" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// IssuerID instead. It exists only for internal usage by the builders.
+func (m *JwtTokenMutation) IssuerIDs() (ids []int) {
+	if id := m.issuer; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetIssuer resets all changes to the "issuer" edge.
+func (m *JwtTokenMutation) ResetIssuer() {
+	m.issuer = nil
+	m.clearedissuer = false
+}
+
 // Where appends a list predicates to the JwtTokenMutation builder.
 func (m *JwtTokenMutation) Where(ps ...predicate.JwtToken) {
 	m.predicates = append(m.predicates, ps...)
@@ -1234,19 +1277,28 @@ func (m *JwtTokenMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *JwtTokenMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.issuer != nil {
+		edges = append(edges, jwttoken.EdgeIssuer)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *JwtTokenMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case jwttoken.EdgeIssuer:
+		if id := m.issuer; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *JwtTokenMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -1258,25 +1310,42 @@ func (m *JwtTokenMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *JwtTokenMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedissuer {
+		edges = append(edges, jwttoken.EdgeIssuer)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *JwtTokenMutation) EdgeCleared(name string) bool {
+	switch name {
+	case jwttoken.EdgeIssuer:
+		return m.clearedissuer
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *JwtTokenMutation) ClearEdge(name string) error {
+	switch name {
+	case jwttoken.EdgeIssuer:
+		m.ClearIssuer()
+		return nil
+	}
 	return fmt.Errorf("unknown JwtToken unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *JwtTokenMutation) ResetEdge(name string) error {
+	switch name {
+	case jwttoken.EdgeIssuer:
+		m.ResetIssuer()
+		return nil
+	}
 	return fmt.Errorf("unknown JwtToken edge %s", name)
 }
 
@@ -1790,4 +1859,585 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Organization edge %s", name)
+}
+
+// UserMutation represents an operation that mutates the User nodes in the graph.
+type UserMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	username      *string
+	mail          *string
+	password_hash *string
+	claims        *map[string]interface{}
+	clearedFields map[string]struct{}
+	issued        map[int]struct{}
+	removedissued map[int]struct{}
+	clearedissued bool
+	done          bool
+	oldValue      func(context.Context) (*User, error)
+	predicates    []predicate.User
+}
+
+var _ ent.Mutation = (*UserMutation)(nil)
+
+// userOption allows management of the mutation configuration using functional options.
+type userOption func(*UserMutation)
+
+// newUserMutation creates new mutation for the User entity.
+func newUserMutation(c config, op Op, opts ...userOption) *UserMutation {
+	m := &UserMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeUser,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withUserID sets the ID field of the mutation.
+func withUserID(id int) userOption {
+	return func(m *UserMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *User
+		)
+		m.oldValue = func(ctx context.Context) (*User, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().User.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withUser sets the old User of the mutation.
+func withUser(node *User) userOption {
+	return func(m *UserMutation) {
+		m.oldValue = func(context.Context) (*User, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m UserMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m UserMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *UserMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *UserMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().User.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUsername sets the "username" field.
+func (m *UserMutation) SetUsername(s string) {
+	m.username = &s
+}
+
+// Username returns the value of the "username" field in the mutation.
+func (m *UserMutation) Username() (r string, exists bool) {
+	v := m.username
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUsername returns the old "username" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldUsername(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUsername is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUsername requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUsername: %w", err)
+	}
+	return oldValue.Username, nil
+}
+
+// ResetUsername resets all changes to the "username" field.
+func (m *UserMutation) ResetUsername() {
+	m.username = nil
+}
+
+// SetMail sets the "mail" field.
+func (m *UserMutation) SetMail(s string) {
+	m.mail = &s
+}
+
+// Mail returns the value of the "mail" field in the mutation.
+func (m *UserMutation) Mail() (r string, exists bool) {
+	v := m.mail
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMail returns the old "mail" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldMail(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMail is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMail requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMail: %w", err)
+	}
+	return oldValue.Mail, nil
+}
+
+// ResetMail resets all changes to the "mail" field.
+func (m *UserMutation) ResetMail() {
+	m.mail = nil
+}
+
+// SetPasswordHash sets the "password_hash" field.
+func (m *UserMutation) SetPasswordHash(s string) {
+	m.password_hash = &s
+}
+
+// PasswordHash returns the value of the "password_hash" field in the mutation.
+func (m *UserMutation) PasswordHash() (r string, exists bool) {
+	v := m.password_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPasswordHash returns the old "password_hash" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldPasswordHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPasswordHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPasswordHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPasswordHash: %w", err)
+	}
+	return oldValue.PasswordHash, nil
+}
+
+// ResetPasswordHash resets all changes to the "password_hash" field.
+func (m *UserMutation) ResetPasswordHash() {
+	m.password_hash = nil
+}
+
+// SetClaims sets the "claims" field.
+func (m *UserMutation) SetClaims(value map[string]interface{}) {
+	m.claims = &value
+}
+
+// Claims returns the value of the "claims" field in the mutation.
+func (m *UserMutation) Claims() (r map[string]interface{}, exists bool) {
+	v := m.claims
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClaims returns the old "claims" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldClaims(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClaims is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClaims requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClaims: %w", err)
+	}
+	return oldValue.Claims, nil
+}
+
+// ResetClaims resets all changes to the "claims" field.
+func (m *UserMutation) ResetClaims() {
+	m.claims = nil
+}
+
+// AddIssuedIDs adds the "issued" edge to the JwtToken entity by ids.
+func (m *UserMutation) AddIssuedIDs(ids ...int) {
+	if m.issued == nil {
+		m.issued = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.issued[ids[i]] = struct{}{}
+	}
+}
+
+// ClearIssued clears the "issued" edge to the JwtToken entity.
+func (m *UserMutation) ClearIssued() {
+	m.clearedissued = true
+}
+
+// IssuedCleared reports if the "issued" edge to the JwtToken entity was cleared.
+func (m *UserMutation) IssuedCleared() bool {
+	return m.clearedissued
+}
+
+// RemoveIssuedIDs removes the "issued" edge to the JwtToken entity by IDs.
+func (m *UserMutation) RemoveIssuedIDs(ids ...int) {
+	if m.removedissued == nil {
+		m.removedissued = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.issued, ids[i])
+		m.removedissued[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedIssued returns the removed IDs of the "issued" edge to the JwtToken entity.
+func (m *UserMutation) RemovedIssuedIDs() (ids []int) {
+	for id := range m.removedissued {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// IssuedIDs returns the "issued" edge IDs in the mutation.
+func (m *UserMutation) IssuedIDs() (ids []int) {
+	for id := range m.issued {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetIssued resets all changes to the "issued" edge.
+func (m *UserMutation) ResetIssued() {
+	m.issued = nil
+	m.clearedissued = false
+	m.removedissued = nil
+}
+
+// Where appends a list predicates to the UserMutation builder.
+func (m *UserMutation) Where(ps ...predicate.User) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the UserMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UserMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.User, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *UserMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UserMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (User).
+func (m *UserMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *UserMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.username != nil {
+		fields = append(fields, user.FieldUsername)
+	}
+	if m.mail != nil {
+		fields = append(fields, user.FieldMail)
+	}
+	if m.password_hash != nil {
+		fields = append(fields, user.FieldPasswordHash)
+	}
+	if m.claims != nil {
+		fields = append(fields, user.FieldClaims)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *UserMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case user.FieldUsername:
+		return m.Username()
+	case user.FieldMail:
+		return m.Mail()
+	case user.FieldPasswordHash:
+		return m.PasswordHash()
+	case user.FieldClaims:
+		return m.Claims()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case user.FieldUsername:
+		return m.OldUsername(ctx)
+	case user.FieldMail:
+		return m.OldMail(ctx)
+	case user.FieldPasswordHash:
+		return m.OldPasswordHash(ctx)
+	case user.FieldClaims:
+		return m.OldClaims(ctx)
+	}
+	return nil, fmt.Errorf("unknown User field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case user.FieldUsername:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUsername(v)
+		return nil
+	case user.FieldMail:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMail(v)
+		return nil
+	case user.FieldPasswordHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPasswordHash(v)
+		return nil
+	case user.FieldClaims:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClaims(v)
+		return nil
+	}
+	return fmt.Errorf("unknown User field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *UserMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown User numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *UserMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *UserMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *UserMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown User nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *UserMutation) ResetField(name string) error {
+	switch name {
+	case user.FieldUsername:
+		m.ResetUsername()
+		return nil
+	case user.FieldMail:
+		m.ResetMail()
+		return nil
+	case user.FieldPasswordHash:
+		m.ResetPasswordHash()
+		return nil
+	case user.FieldClaims:
+		m.ResetClaims()
+		return nil
+	}
+	return fmt.Errorf("unknown User field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *UserMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.issued != nil {
+		edges = append(edges, user.EdgeIssued)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *UserMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case user.EdgeIssued:
+		ids := make([]ent.Value, 0, len(m.issued))
+		for id := range m.issued {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *UserMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedissued != nil {
+		edges = append(edges, user.EdgeIssued)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *UserMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case user.EdgeIssued:
+		ids := make([]ent.Value, 0, len(m.removedissued))
+		for id := range m.removedissued {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *UserMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedissued {
+		edges = append(edges, user.EdgeIssued)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *UserMutation) EdgeCleared(name string) bool {
+	switch name {
+	case user.EdgeIssued:
+		return m.clearedissued
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *UserMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown User unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *UserMutation) ResetEdge(name string) error {
+	switch name {
+	case user.EdgeIssued:
+		m.ResetIssued()
+		return nil
+	}
+	return fmt.Errorf("unknown User edge %s", name)
 }

@@ -10,6 +10,7 @@ import (
 	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
 	"license-manager/pkg/repositories/ent-fw/ent/organization"
+	"license-manager/pkg/repositories/ent-fw/ent/user"
 	"reflect"
 
 	"entgo.io/ent"
@@ -46,6 +47,7 @@ func columnChecker(table string) func(string) error {
 		credentials.Table:  credentials.ValidColumn,
 		jwttoken.Table:     jwttoken.ValidColumn,
 		organization.Table: organization.ValidColumn,
+		user.Table:         user.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

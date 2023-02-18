@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
+	"license-manager/pkg/repositories/ent-fw/ent/user"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
@@ -21,6 +22,8 @@ type JwtTokenQuery struct {
 	order      []OrderFunc
 	inters     []Interceptor
 	predicates []predicate.JwtToken
+	withIssuer *UserQuery
+	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -55,6 +58,28 @@ func (jtq *JwtTokenQuery) Unique(unique bool) *JwtTokenQuery {
 func (jtq *JwtTokenQuery) Order(o ...OrderFunc) *JwtTokenQuery {
 	jtq.order = append(jtq.order, o...)
 	return jtq
+}
+
+// QueryIssuer chains the current query on the "issuer" edge.
+func (jtq *JwtTokenQuery) QueryIssuer() *UserQuery {
+	query := (&UserClient{config: jtq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := jtq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := jtq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(jwttoken.Table, jwttoken.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, jwttoken.IssuerTable, jwttoken.IssuerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(jtq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first JwtToken entity from the query.
@@ -247,10 +272,22 @@ func (jtq *JwtTokenQuery) Clone() *JwtTokenQuery {
 		order:      append([]OrderFunc{}, jtq.order...),
 		inters:     append([]Interceptor{}, jtq.inters...),
 		predicates: append([]predicate.JwtToken{}, jtq.predicates...),
+		withIssuer: jtq.withIssuer.Clone(),
 		// clone intermediate query.
 		sql:  jtq.sql.Clone(),
 		path: jtq.path,
 	}
+}
+
+// WithIssuer tells the query-builder to eager-load the nodes that are connected to
+// the "issuer" edge. The optional arguments are used to configure the query builder of the edge.
+func (jtq *JwtTokenQuery) WithIssuer(opts ...func(*UserQuery)) *JwtTokenQuery {
+	query := (&UserClient{config: jtq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	jtq.withIssuer = query
+	return jtq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -329,15 +366,26 @@ func (jtq *JwtTokenQuery) prepareQuery(ctx context.Context) error {
 
 func (jtq *JwtTokenQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*JwtToken, error) {
 	var (
-		nodes = []*JwtToken{}
-		_spec = jtq.querySpec()
+		nodes       = []*JwtToken{}
+		withFKs     = jtq.withFKs
+		_spec       = jtq.querySpec()
+		loadedTypes = [1]bool{
+			jtq.withIssuer != nil,
+		}
 	)
+	if jtq.withIssuer != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, jwttoken.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*JwtToken).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &JwtToken{config: jtq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -349,7 +397,46 @@ func (jtq *JwtTokenQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Jw
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := jtq.withIssuer; query != nil {
+		if err := jtq.loadIssuer(ctx, query, nodes, nil,
+			func(n *JwtToken, e *User) { n.Edges.Issuer = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (jtq *JwtTokenQuery) loadIssuer(ctx context.Context, query *UserQuery, nodes []*JwtToken, init func(*JwtToken), assign func(*JwtToken, *User)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*JwtToken)
+	for i := range nodes {
+		if nodes[i].user_issued == nil {
+			continue
+		}
+		fk := *nodes[i].user_issued
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_issued" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (jtq *JwtTokenQuery) sqlCount(ctx context.Context) (int, error) {

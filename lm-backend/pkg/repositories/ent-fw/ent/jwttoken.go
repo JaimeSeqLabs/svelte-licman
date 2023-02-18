@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
+	"license-manager/pkg/repositories/ent-fw/ent/user"
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
@@ -22,6 +23,32 @@ type JwtToken struct {
 	Revoked bool `json:"revoked,omitempty"`
 	// Claims holds the value of the "claims" field.
 	Claims map[string]interface{} `json:"claims,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the JwtTokenQuery when eager-loading is set.
+	Edges       JwtTokenEdges `json:"edges"`
+	user_issued *int
+}
+
+// JwtTokenEdges holds the relations/edges for other nodes in the graph.
+type JwtTokenEdges struct {
+	// Issuer holds the value of the issuer edge.
+	Issuer *User `json:"issuer,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// IssuerOrErr returns the Issuer value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e JwtTokenEdges) IssuerOrErr() (*User, error) {
+	if e.loadedTypes[0] {
+		if e.Issuer == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.Issuer, nil
+	}
+	return nil, &NotLoadedError{edge: "issuer"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -37,6 +64,8 @@ func (*JwtToken) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case jwttoken.FieldToken:
 			values[i] = new(sql.NullString)
+		case jwttoken.ForeignKeys[0]: // user_issued
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type JwtToken", columns[i])
 		}
@@ -78,9 +107,21 @@ func (jt *JwtToken) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field claims: %w", err)
 				}
 			}
+		case jwttoken.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field user_issued", value)
+			} else if value.Valid {
+				jt.user_issued = new(int)
+				*jt.user_issued = int(value.Int64)
+			}
 		}
 	}
 	return nil
+}
+
+// QueryIssuer queries the "issuer" edge of the JwtToken entity.
+func (jt *JwtToken) QueryIssuer() *UserQuery {
+	return NewJwtTokenClient(jt.config).QueryIssuer(jt)
 }
 
 // Update returns a builder for updating this JwtToken.

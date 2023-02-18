@@ -39,12 +39,21 @@ var (
 		{Name: "token", Type: field.TypeString, Unique: true},
 		{Name: "revoked", Type: field.TypeBool, Default: false},
 		{Name: "claims", Type: field.TypeJSON},
+		{Name: "user_issued", Type: field.TypeInt},
 	}
 	// JwtTokensTable holds the schema information for the "jwt_tokens" table.
 	JwtTokensTable = &schema.Table{
 		Name:       "jwt_tokens",
 		Columns:    JwtTokensColumns,
 		PrimaryKey: []*schema.Column{JwtTokensColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "jwt_tokens_users_issued",
+				Columns:    []*schema.Column{JwtTokensColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
 	}
 	// OrganizationsColumns holds the columns for the "organizations" table.
 	OrganizationsColumns = []*schema.Column{
@@ -67,15 +76,31 @@ var (
 			},
 		},
 	}
+	// UsersColumns holds the columns for the "users" table.
+	UsersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "username", Type: field.TypeString},
+		{Name: "mail", Type: field.TypeString, Unique: true},
+		{Name: "password_hash", Type: field.TypeString},
+		{Name: "claims", Type: field.TypeJSON},
+	}
+	// UsersTable holds the schema information for the "users" table.
+	UsersTable = &schema.Table{
+		Name:       "users",
+		Columns:    UsersColumns,
+		PrimaryKey: []*schema.Column{UsersColumns[0]},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		ContactsTable,
 		CredentialsTable,
 		JwtTokensTable,
 		OrganizationsTable,
+		UsersTable,
 	}
 )
 
 func init() {
+	JwtTokensTable.ForeignKeys[0].RefTable = UsersTable
 	OrganizationsTable.ForeignKeys[0].RefTable = ContactsTable
 }

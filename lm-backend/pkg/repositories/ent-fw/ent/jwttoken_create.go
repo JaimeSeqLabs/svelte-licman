@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
+	"license-manager/pkg/repositories/ent-fw/ent/user"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -43,6 +44,17 @@ func (jtc *JwtTokenCreate) SetNillableRevoked(b *bool) *JwtTokenCreate {
 func (jtc *JwtTokenCreate) SetClaims(m map[string]interface{}) *JwtTokenCreate {
 	jtc.mutation.SetClaims(m)
 	return jtc
+}
+
+// SetIssuerID sets the "issuer" edge to the User entity by ID.
+func (jtc *JwtTokenCreate) SetIssuerID(id int) *JwtTokenCreate {
+	jtc.mutation.SetIssuerID(id)
+	return jtc
+}
+
+// SetIssuer sets the "issuer" edge to the User entity.
+func (jtc *JwtTokenCreate) SetIssuer(u *User) *JwtTokenCreate {
+	return jtc.SetIssuerID(u.ID)
 }
 
 // Mutation returns the JwtTokenMutation object of the builder.
@@ -102,6 +114,9 @@ func (jtc *JwtTokenCreate) check() error {
 	if _, ok := jtc.mutation.Claims(); !ok {
 		return &ValidationError{Name: "claims", err: errors.New(`ent: missing required field "JwtToken.claims"`)}
 	}
+	if _, ok := jtc.mutation.IssuerID(); !ok {
+		return &ValidationError{Name: "issuer", err: errors.New(`ent: missing required edge "JwtToken.issuer"`)}
+	}
 	return nil
 }
 
@@ -145,6 +160,26 @@ func (jtc *JwtTokenCreate) createSpec() (*JwtToken, *sqlgraph.CreateSpec) {
 	if value, ok := jtc.mutation.Claims(); ok {
 		_spec.SetField(jwttoken.FieldClaims, field.TypeJSON, value)
 		_node.Claims = value
+	}
+	if nodes := jtc.mutation.IssuerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   jwttoken.IssuerTable,
+			Columns: []string{jwttoken.IssuerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_issued = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

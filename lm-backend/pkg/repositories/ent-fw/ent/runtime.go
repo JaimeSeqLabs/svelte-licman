@@ -8,6 +8,7 @@ import (
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
 	"license-manager/pkg/repositories/ent-fw/ent/organization"
 	"license-manager/pkg/repositories/ent-fw/ent/schema"
+	"license-manager/pkg/repositories/ent-fw/ent/user"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -54,4 +55,18 @@ func init() {
 	organizationDescLocation := organizationFields[1].Descriptor()
 	// organization.LocationValidator is a validator for the "location" field. It is called by the builders before save.
 	organization.LocationValidator = organizationDescLocation.Validators[0].(func(string) error)
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescUsername is the schema descriptor for username field.
+	userDescUsername := userFields[0].Descriptor()
+	// user.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	user.UsernameValidator = userDescUsername.Validators[0].(func(string) error)
+	// userDescMail is the schema descriptor for mail field.
+	userDescMail := userFields[1].Descriptor()
+	// user.MailValidator is a validator for the "mail" field. It is called by the builders before save.
+	user.MailValidator = userDescMail.Validators[0].(func(string) error)
+	// userDescPasswordHash is the schema descriptor for password_hash field.
+	userDescPasswordHash := userFields[2].Descriptor()
+	// user.PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
+	user.PasswordHashValidator = userDescPasswordHash.Validators[0].(func(string) error)
 }
