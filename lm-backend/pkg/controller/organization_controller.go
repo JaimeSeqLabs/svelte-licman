@@ -1,9 +1,7 @@
 package controller
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"license-manager/pkg/controller/exchange"
 	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories"
@@ -139,23 +137,4 @@ func (oc *organizationController) DeleteOrg(w http.ResponseWriter, r *http.Reque
 func (oc *organizationController) RestoreOrg(w http.ResponseWriter, r *http.Request) {
 	// TODO: implement logical org delete/restore
 	http.Error(w, "unsupported operation", http.StatusNotImplemented)
-}
-
-func sendJSON(w http.ResponseWriter, v any) {
-	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(v)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func readJSON(r *http.Request, ptr any) error {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		return err
-	}
-	defer r.Body.Close()
-
-	return json.Unmarshal(body, ptr)
 }
