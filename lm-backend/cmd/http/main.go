@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"license-manager/pkg/controller"
 	"license-manager/pkg/repositories"
-	"license-manager/pkg/repositories/ent-fw/credentials"
 	"license-manager/pkg/repositories/ent-fw/ent"
+	"license-manager/pkg/repositories/ent-fw/organization"
+	"license-manager/pkg/repositories/ent-fw/user"
 	"license-manager/pkg/service"
 	"log"
 	"net/http"
@@ -45,14 +46,18 @@ func main() {
     }
 
 	jwtRepo := repositories.JwtTokenRepository(nil) // TODO
-	credsRepo := credentials_repo.NewCredentialsEntRepo(client)
+	userRepo := user_repo.NewUserEntRepo(client)
+	orgRepo := organization_repo.NewOrganizationEntRepo(
+		organization_repo.WithEntClient(client),
+	)
 
 	jwtService := service.NewJWTService("<this_is_a_secret>", jwtRepo)
-	authService := service.NewAuthService(credsRepo, jwtService)
+	authService := service.NewAuthService(userRepo, jwtService)
 
 	helloController := controller.NewHelloController()
 	loginController := controller.NewLoginController(authService)
 	adminController := controller.NewAdminController(jwtService)
+	organizationController := controller.NewOrganizationController(orgRepo)
 
 	router := chi.NewRouter()
 
@@ -68,6 +73,7 @@ func main() {
 		r.Use(middleware.Logger)
 		r.Use(jwtauth.Verifier(jwtService.GetJWTAuth()))
 		r.Mount("/is_admin", adminController.Routes())
+		r.Mount("/organizations", organizationController.Routes())
 	})
 
 	addr := "localhost:8080"

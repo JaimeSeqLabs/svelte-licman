@@ -24,6 +24,31 @@ type orgSqlRepo struct {
 	migrations []string
 }
 
+// UpdateByID implements repositories.OrganizationRepository
+func (*orgSqlRepo) UpdateByID(org domain.Organization) (updated bool, err error) {
+	panic("unimplemented")
+}
+
+// UpdateByName implements repositories.OrganizationRepository
+func (*orgSqlRepo) UpdateByName(org domain.Organization) (updated bool, err error) {
+	panic("unimplemented")
+}
+
+// DeleteByID implements repositories.OrganizationRepository
+func (*orgSqlRepo) DeleteByID(id string) error {
+	panic("unimplemented")
+}
+
+// FindAll implements repositories.OrganizationRepository
+func (*orgSqlRepo) FindAll() []domain.Organization {
+	panic("unimplemented")
+}
+
+// FindByID implements repositories.OrganizationRepository
+func (*orgSqlRepo) FindByID(id string) (domain.Organization, error) {
+	panic("unimplemented")
+}
+
 // *orgSqlRepo implements repo interface
 var _ repositories.OrganizationRepository = (*orgSqlRepo)(nil)
 
