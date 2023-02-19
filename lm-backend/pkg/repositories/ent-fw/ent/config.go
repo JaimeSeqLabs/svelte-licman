@@ -31,6 +31,7 @@ type (
 		Credentials  []ent.Hook
 		JwtToken     []ent.Hook
 		Organization []ent.Hook
+		Product      []ent.Hook
 		User         []ent.Hook
 	}
 	inters struct {
@@ -38,6 +39,7 @@ type (
 		Credentials  []ent.Interceptor
 		JwtToken     []ent.Interceptor
 		Organization []ent.Interceptor
+		Product      []ent.Interceptor
 		User         []ent.Interceptor
 	}
 )

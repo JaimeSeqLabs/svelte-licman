@@ -18,5 +18,8 @@ type JwtToken func(*sql.Selector)
 // Organization is the predicate function for organization builders.
 type Organization func(*sql.Selector)
 
+// Product is the predicate function for product builders.
+type Product func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

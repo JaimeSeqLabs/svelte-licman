@@ -20,6 +20,8 @@ type Tx struct {
 	JwtToken *JwtTokenClient
 	// Organization is the client for interacting with the Organization builders.
 	Organization *OrganizationClient
+	// Product is the client for interacting with the Product builders.
+	Product *ProductClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -157,6 +159,7 @@ func (tx *Tx) init() {
 	tx.Credentials = NewCredentialsClient(tx.config)
 	tx.JwtToken = NewJwtTokenClient(tx.config)
 	tx.Organization = NewOrganizationClient(tx.config)
+	tx.Product = NewProductClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

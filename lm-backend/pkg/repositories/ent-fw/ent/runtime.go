@@ -7,8 +7,10 @@ import (
 	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
 	"license-manager/pkg/repositories/ent-fw/ent/organization"
+	"license-manager/pkg/repositories/ent-fw/ent/product"
 	"license-manager/pkg/repositories/ent-fw/ent/schema"
 	"license-manager/pkg/repositories/ent-fw/ent/user"
+	"time"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -71,6 +73,38 @@ func init() {
 	organizationDescID := organizationFields[0].Descriptor()
 	// organization.DefaultID holds the default value on creation for the id field.
 	organization.DefaultID = organizationDescID.Default.(func() string)
+	productFields := schema.Product{}.Fields()
+	_ = productFields
+	// productDescSku is the schema descriptor for sku field.
+	productDescSku := productFields[1].Descriptor()
+	// product.SkuValidator is a validator for the "sku" field. It is called by the builders before save.
+	product.SkuValidator = productDescSku.Validators[0].(func(string) error)
+	// productDescName is the schema descriptor for name field.
+	productDescName := productFields[2].Descriptor()
+	// product.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	product.NameValidator = productDescName.Validators[0].(func(string) error)
+	// productDescInstallInstr is the schema descriptor for install_instr field.
+	productDescInstallInstr := productFields[3].Descriptor()
+	// product.DefaultInstallInstr holds the default value on creation for the install_instr field.
+	product.DefaultInstallInstr = productDescInstallInstr.Default.(string)
+	// productDescLicenseCount is the schema descriptor for license_count field.
+	productDescLicenseCount := productFields[4].Descriptor()
+	// product.DefaultLicenseCount holds the default value on creation for the license_count field.
+	product.DefaultLicenseCount = productDescLicenseCount.Default.(int)
+	// productDescDateCreated is the schema descriptor for date_created field.
+	productDescDateCreated := productFields[5].Descriptor()
+	// product.DefaultDateCreated holds the default value on creation for the date_created field.
+	product.DefaultDateCreated = productDescDateCreated.Default.(func() time.Time)
+	// productDescLastUpdated is the schema descriptor for last_updated field.
+	productDescLastUpdated := productFields[6].Descriptor()
+	// product.DefaultLastUpdated holds the default value on creation for the last_updated field.
+	product.DefaultLastUpdated = productDescLastUpdated.Default.(func() time.Time)
+	// product.UpdateDefaultLastUpdated holds the default value on update for the last_updated field.
+	product.UpdateDefaultLastUpdated = productDescLastUpdated.UpdateDefault.(func() time.Time)
+	// productDescID is the schema descriptor for id field.
+	productDescID := productFields[0].Descriptor()
+	// product.DefaultID holds the default value on creation for the id field.
+	product.DefaultID = productDescID.Default.(func() string)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescUsername is the schema descriptor for username field.

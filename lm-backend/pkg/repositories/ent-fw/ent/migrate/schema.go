@@ -76,6 +76,22 @@ var (
 			},
 		},
 	}
+	// ProductsColumns holds the columns for the "products" table.
+	ProductsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "sku", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "install_instr", Type: field.TypeString, Default: ""},
+		{Name: "license_count", Type: field.TypeInt, Default: 0},
+		{Name: "date_created", Type: field.TypeTime},
+		{Name: "last_updated", Type: field.TypeTime},
+	}
+	// ProductsTable holds the schema information for the "products" table.
+	ProductsTable = &schema.Table{
+		Name:       "products",
+		Columns:    ProductsColumns,
+		PrimaryKey: []*schema.Column{ProductsColumns[0]},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
@@ -96,6 +112,7 @@ var (
 		CredentialsTable,
 		JwtTokensTable,
 		OrganizationsTable,
+		ProductsTable,
 		UsersTable,
 	}
 )
