@@ -25,17 +25,17 @@ func NewOrganizationController(orgRepo repositories.OrganizationRepository) *org
 func (oc *organizationController) Routes() chi.Router {
 	router := chi.NewRouter()
 
-	router.Get("/", oc.listAllOrgs)
-	router.Get("/{id}", oc.describeOrg)
-	router.Put("/{id}", oc.updateOrg)
-	router.Post("/", oc.createOrg)
-	router.Patch("/delete/{id}", oc.deleteOrg)
-	router.Patch("/restore/{id}", oc.restoreOrg)
+	router.Get("/", oc.ListAllOrgs)
+	router.Get("/{id}", oc.DescribeOrg)
+	router.Put("/{id}", oc.UpdateOrg)
+	router.Post("/", oc.CreateOrg)
+	router.Patch("/delete/{id}", oc.DeleteOrg)
+	router.Patch("/restore/{id}", oc.RestoreOrg)
 
 	return router
 }
 
-func (oc *organizationController) listAllOrgs(w http.ResponseWriter, r *http.Request) {
+func (oc *organizationController) ListAllOrgs(w http.ResponseWriter, r *http.Request) {
 
 	orgs := oc.orgRepo.FindAll()
 
@@ -54,7 +54,7 @@ func (oc *organizationController) listAllOrgs(w http.ResponseWriter, r *http.Req
 	sendJSON(w, response)
 }
 
-func (oc *organizationController) describeOrg(w http.ResponseWriter, r *http.Request) {
+func (oc *organizationController) DescribeOrg(w http.ResponseWriter, r *http.Request) {
 
 	orgID := chi.URLParam(r, "id")
 
@@ -72,7 +72,7 @@ func (oc *organizationController) describeOrg(w http.ResponseWriter, r *http.Req
 	})
 }
 
-func (oc *organizationController) updateOrg(w http.ResponseWriter, r *http.Request) {
+func (oc *organizationController) UpdateOrg(w http.ResponseWriter, r *http.Request) {
 
 	orgID := chi.URLParam(r, "id")
 
@@ -102,7 +102,7 @@ func (oc *organizationController) updateOrg(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 }
 
-func (oc *organizationController) createOrg(w http.ResponseWriter, r *http.Request) {
+func (oc *organizationController) CreateOrg(w http.ResponseWriter, r *http.Request) {
 
 	var createReq exchange.CreateOrgRequest
 	if err := readJSON(r, &createReq); err != nil {
@@ -123,7 +123,7 @@ func (oc *organizationController) createOrg(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 }
 
-func (oc *organizationController) deleteOrg(w http.ResponseWriter, r *http.Request) {
+func (oc *organizationController) DeleteOrg(w http.ResponseWriter, r *http.Request) {
 
 	orgID := chi.URLParam(r, "id")
 
@@ -136,7 +136,7 @@ func (oc *organizationController) deleteOrg(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 }
 
-func (oc *organizationController) restoreOrg(w http.ResponseWriter, r *http.Request) {
+func (oc *organizationController) RestoreOrg(w http.ResponseWriter, r *http.Request) {
 	// TODO: implement logical org delete/restore
 	http.Error(w, "unsupported operation", http.StatusNotImplemented)
 }
