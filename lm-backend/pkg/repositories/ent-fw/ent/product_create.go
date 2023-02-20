@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"license-manager/pkg/repositories/ent-fw/ent/license"
 	"license-manager/pkg/repositories/ent-fw/ent/product"
 	"time"
 
@@ -100,6 +101,21 @@ func (pc *ProductCreate) SetNillableID(s *string) *ProductCreate {
 		pc.SetID(*s)
 	}
 	return pc
+}
+
+// AddLicenseIDs adds the "license" edge to the License entity by IDs.
+func (pc *ProductCreate) AddLicenseIDs(ids ...string) *ProductCreate {
+	pc.mutation.AddLicenseIDs(ids...)
+	return pc
+}
+
+// AddLicense adds the "license" edges to the License entity.
+func (pc *ProductCreate) AddLicense(l ...*License) *ProductCreate {
+	ids := make([]string, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return pc.AddLicenseIDs(ids...)
 }
 
 // Mutation returns the ProductMutation object of the builder.
@@ -253,6 +269,25 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.LastUpdated(); ok {
 		_spec.SetField(product.FieldLastUpdated, field.TypeTime, value)
 		_node.LastUpdated = value
+	}
+	if nodes := pc.mutation.LicenseIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   product.LicenseTable,
+			Columns: product.LicensePrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: license.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

@@ -29,8 +29,12 @@ func (Organization) Fields() []ent.Field {
 // Edges of the Organization.
 func (Organization) Edges() []ent.Edge {
 	return []ent.Edge{
+		
 		edge.To("contact", Contact.Type).
-		Unique().
-		Field("contact_id"),
+			Unique().
+			Field("contact_id"),
+
+		edge.To("licenses", License.Type),
+
 	}
 }

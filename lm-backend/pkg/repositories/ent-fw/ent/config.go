@@ -30,6 +30,7 @@ type (
 		Contact      []ent.Hook
 		Credentials  []ent.Hook
 		JwtToken     []ent.Hook
+		License      []ent.Hook
 		Organization []ent.Hook
 		Product      []ent.Hook
 		User         []ent.Hook
@@ -38,6 +39,7 @@ type (
 		Contact      []ent.Interceptor
 		Credentials  []ent.Interceptor
 		JwtToken     []ent.Interceptor
+		License      []ent.Interceptor
 		Organization []ent.Interceptor
 		Product      []ent.Interceptor
 		User         []ent.Interceptor

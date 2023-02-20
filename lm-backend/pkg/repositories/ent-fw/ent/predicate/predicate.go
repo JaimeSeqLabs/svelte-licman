@@ -15,6 +15,9 @@ type Credentials func(*sql.Selector)
 // JwtToken is the predicate function for jwttoken builders.
 type JwtToken func(*sql.Selector)
 
+// License is the predicate function for license builders.
+type License func(*sql.Selector)
+
 // Organization is the predicate function for organization builders.
 type Organization func(*sql.Selector)
 

@@ -6,6 +6,7 @@ import (
 	"license-manager/pkg/repositories/ent-fw/ent/contact"
 	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
+	"license-manager/pkg/repositories/ent-fw/ent/license"
 	"license-manager/pkg/repositories/ent-fw/ent/organization"
 	"license-manager/pkg/repositories/ent-fw/ent/product"
 	"license-manager/pkg/repositories/ent-fw/ent/schema"
@@ -59,6 +60,26 @@ func init() {
 	jwttokenDescID := jwttokenFields[0].Descriptor()
 	// jwttoken.DefaultID holds the default value on creation for the id field.
 	jwttoken.DefaultID = jwttokenDescID.Default.(func() string)
+	licenseFields := schema.License{}.Fields()
+	_ = licenseFields
+	// licenseDescAccessCount is the schema descriptor for access_count field.
+	licenseDescAccessCount := licenseFields[12].Descriptor()
+	// license.DefaultAccessCount holds the default value on creation for the access_count field.
+	license.DefaultAccessCount = licenseDescAccessCount.Default.(int)
+	// licenseDescDateCreated is the schema descriptor for date_created field.
+	licenseDescDateCreated := licenseFields[13].Descriptor()
+	// license.DefaultDateCreated holds the default value on creation for the date_created field.
+	license.DefaultDateCreated = licenseDescDateCreated.Default.(func() time.Time)
+	// licenseDescLastUpdated is the schema descriptor for last_updated field.
+	licenseDescLastUpdated := licenseFields[14].Descriptor()
+	// license.DefaultLastUpdated holds the default value on creation for the last_updated field.
+	license.DefaultLastUpdated = licenseDescLastUpdated.Default.(func() time.Time)
+	// license.UpdateDefaultLastUpdated holds the default value on update for the last_updated field.
+	license.UpdateDefaultLastUpdated = licenseDescLastUpdated.UpdateDefault.(func() time.Time)
+	// licenseDescID is the schema descriptor for id field.
+	licenseDescID := licenseFields[0].Descriptor()
+	// license.DefaultID holds the default value on creation for the id field.
+	license.DefaultID = licenseDescID.Default.(func() string)
 	organizationFields := schema.Organization{}.Fields()
 	_ = organizationFields
 	// organizationDescName is the schema descriptor for name field.

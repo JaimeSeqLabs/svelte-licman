@@ -28,6 +28,27 @@ type Product struct {
 	DateCreated time.Time `json:"date_created,omitempty"`
 	// LastUpdated holds the value of the "last_updated" field.
 	LastUpdated time.Time `json:"last_updated,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ProductQuery when eager-loading is set.
+	Edges ProductEdges `json:"edges"`
+}
+
+// ProductEdges holds the relations/edges for other nodes in the graph.
+type ProductEdges struct {
+	// License holds the value of the license edge.
+	License []*License `json:"license,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// LicenseOrErr returns the License value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProductEdges) LicenseOrErr() ([]*License, error) {
+	if e.loadedTypes[0] {
+		return e.License, nil
+	}
+	return nil, &NotLoadedError{edge: "license"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -101,6 +122,11 @@ func (pr *Product) assignValues(columns []string, values []any) error {
 		}
 	}
 	return nil
+}
+
+// QueryLicense queries the "license" edge of the Product entity.
+func (pr *Product) QueryLicense() *LicenseQuery {
+	return NewProductClient(pr.config).QueryLicense(pr)
 }
 
 // Update returns a builder for updating this Product.

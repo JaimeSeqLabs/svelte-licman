@@ -23,8 +23,15 @@ const (
 	FieldDateCreated = "date_created"
 	// FieldLastUpdated holds the string denoting the last_updated field in the database.
 	FieldLastUpdated = "last_updated"
+	// EdgeLicense holds the string denoting the license edge name in mutations.
+	EdgeLicense = "license"
 	// Table holds the table name of the product in the database.
 	Table = "products"
+	// LicenseTable is the table that holds the license relation/edge. The primary key declared below.
+	LicenseTable = "license_license_products"
+	// LicenseInverseTable is the table name for the License entity.
+	// It exists in this package in order to avoid circular dependency with the "license" package.
+	LicenseInverseTable = "licenses"
 )
 
 // Columns holds all SQL columns for product fields.
@@ -37,6 +44,12 @@ var Columns = []string{
 	FieldDateCreated,
 	FieldLastUpdated,
 }
+
+var (
+	// LicensePrimaryKey and LicenseColumn2 are the table columns denoting the
+	// primary key for the license relation (M2M).
+	LicensePrimaryKey = []string{"license_id", "product_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

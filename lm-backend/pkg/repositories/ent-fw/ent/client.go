@@ -13,6 +13,7 @@ import (
 	"license-manager/pkg/repositories/ent-fw/ent/contact"
 	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
+	"license-manager/pkg/repositories/ent-fw/ent/license"
 	"license-manager/pkg/repositories/ent-fw/ent/organization"
 	"license-manager/pkg/repositories/ent-fw/ent/product"
 	"license-manager/pkg/repositories/ent-fw/ent/user"
@@ -33,6 +34,8 @@ type Client struct {
 	Credentials *CredentialsClient
 	// JwtToken is the client for interacting with the JwtToken builders.
 	JwtToken *JwtTokenClient
+	// License is the client for interacting with the License builders.
+	License *LicenseClient
 	// Organization is the client for interacting with the Organization builders.
 	Organization *OrganizationClient
 	// Product is the client for interacting with the Product builders.
@@ -55,6 +58,7 @@ func (c *Client) init() {
 	c.Contact = NewContactClient(c.config)
 	c.Credentials = NewCredentialsClient(c.config)
 	c.JwtToken = NewJwtTokenClient(c.config)
+	c.License = NewLicenseClient(c.config)
 	c.Organization = NewOrganizationClient(c.config)
 	c.Product = NewProductClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -94,6 +98,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Contact:      NewContactClient(cfg),
 		Credentials:  NewCredentialsClient(cfg),
 		JwtToken:     NewJwtTokenClient(cfg),
+		License:      NewLicenseClient(cfg),
 		Organization: NewOrganizationClient(cfg),
 		Product:      NewProductClient(cfg),
 		User:         NewUserClient(cfg),
@@ -119,6 +124,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Contact:      NewContactClient(cfg),
 		Credentials:  NewCredentialsClient(cfg),
 		JwtToken:     NewJwtTokenClient(cfg),
+		License:      NewLicenseClient(cfg),
 		Organization: NewOrganizationClient(cfg),
 		Product:      NewProductClient(cfg),
 		User:         NewUserClient(cfg),
@@ -153,6 +159,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Contact.Use(hooks...)
 	c.Credentials.Use(hooks...)
 	c.JwtToken.Use(hooks...)
+	c.License.Use(hooks...)
 	c.Organization.Use(hooks...)
 	c.Product.Use(hooks...)
 	c.User.Use(hooks...)
@@ -164,6 +171,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Contact.Intercept(interceptors...)
 	c.Credentials.Intercept(interceptors...)
 	c.JwtToken.Intercept(interceptors...)
+	c.License.Intercept(interceptors...)
 	c.Organization.Intercept(interceptors...)
 	c.Product.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
@@ -178,6 +186,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Credentials.mutate(ctx, m)
 	case *JwtTokenMutation:
 		return c.JwtToken.mutate(ctx, m)
+	case *LicenseMutation:
+		return c.License.mutate(ctx, m)
 	case *OrganizationMutation:
 		return c.Organization.mutate(ctx, m)
 	case *ProductMutation:
@@ -559,6 +569,156 @@ func (c *JwtTokenClient) mutate(ctx context.Context, m *JwtTokenMutation) (Value
 	}
 }
 
+// LicenseClient is a client for the License schema.
+type LicenseClient struct {
+	config
+}
+
+// NewLicenseClient returns a client for the License from the given config.
+func NewLicenseClient(c config) *LicenseClient {
+	return &LicenseClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `license.Hooks(f(g(h())))`.
+func (c *LicenseClient) Use(hooks ...Hook) {
+	c.hooks.License = append(c.hooks.License, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `license.Intercept(f(g(h())))`.
+func (c *LicenseClient) Intercept(interceptors ...Interceptor) {
+	c.inters.License = append(c.inters.License, interceptors...)
+}
+
+// Create returns a builder for creating a License entity.
+func (c *LicenseClient) Create() *LicenseCreate {
+	mutation := newLicenseMutation(c.config, OpCreate)
+	return &LicenseCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of License entities.
+func (c *LicenseClient) CreateBulk(builders ...*LicenseCreate) *LicenseCreateBulk {
+	return &LicenseCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for License.
+func (c *LicenseClient) Update() *LicenseUpdate {
+	mutation := newLicenseMutation(c.config, OpUpdate)
+	return &LicenseUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LicenseClient) UpdateOne(l *License) *LicenseUpdateOne {
+	mutation := newLicenseMutation(c.config, OpUpdateOne, withLicense(l))
+	return &LicenseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LicenseClient) UpdateOneID(id string) *LicenseUpdateOne {
+	mutation := newLicenseMutation(c.config, OpUpdateOne, withLicenseID(id))
+	return &LicenseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for License.
+func (c *LicenseClient) Delete() *LicenseDelete {
+	mutation := newLicenseMutation(c.config, OpDelete)
+	return &LicenseDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LicenseClient) DeleteOne(l *License) *LicenseDeleteOne {
+	return c.DeleteOneID(l.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LicenseClient) DeleteOneID(id string) *LicenseDeleteOne {
+	builder := c.Delete().Where(license.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LicenseDeleteOne{builder}
+}
+
+// Query returns a query builder for License.
+func (c *LicenseClient) Query() *LicenseQuery {
+	return &LicenseQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLicense},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a License entity by its id.
+func (c *LicenseClient) Get(ctx context.Context, id string) (*License, error) {
+	return c.Query().Where(license.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LicenseClient) GetX(ctx context.Context, id string) *License {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryLicenseProducts queries the license_products edge of a License.
+func (c *LicenseClient) QueryLicenseProducts(l *License) *ProductQuery {
+	query := (&ProductClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := l.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(license.Table, license.FieldID, id),
+			sqlgraph.To(product.Table, product.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, license.LicenseProductsTable, license.LicenseProductsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(l.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOwnerOrg queries the owner_org edge of a License.
+func (c *LicenseClient) QueryOwnerOrg(l *License) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := l.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(license.Table, license.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, license.OwnerOrgTable, license.OwnerOrgColumn),
+		)
+		fromV = sqlgraph.Neighbors(l.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *LicenseClient) Hooks() []Hook {
+	return c.hooks.License
+}
+
+// Interceptors returns the client interceptors.
+func (c *LicenseClient) Interceptors() []Interceptor {
+	return c.inters.License
+}
+
+func (c *LicenseClient) mutate(ctx context.Context, m *LicenseMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LicenseCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LicenseUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LicenseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LicenseDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown License mutation op: %q", m.Op())
+	}
+}
+
 // OrganizationClient is a client for the Organization schema.
 type OrganizationClient struct {
 	config
@@ -661,6 +821,22 @@ func (c *OrganizationClient) QueryContact(o *Organization) *ContactQuery {
 			sqlgraph.From(organization.Table, organization.FieldID, id),
 			sqlgraph.To(contact.Table, contact.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, organization.ContactTable, organization.ContactColumn),
+		)
+		fromV = sqlgraph.Neighbors(o.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLicenses queries the licenses edge of a Organization.
+func (c *OrganizationClient) QueryLicenses(o *Organization) *LicenseQuery {
+	query := (&LicenseClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := o.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(license.Table, license.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.LicensesTable, organization.LicensesColumn),
 		)
 		fromV = sqlgraph.Neighbors(o.driver.Dialect(), step)
 		return fromV, nil
@@ -784,6 +960,22 @@ func (c *ProductClient) GetX(ctx context.Context, id string) *Product {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryLicense queries the license edge of a Product.
+func (c *ProductClient) QueryLicense(pr *Product) *LicenseQuery {
+	query := (&LicenseClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(product.Table, product.FieldID, id),
+			sqlgraph.To(license.Table, license.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, product.LicenseTable, product.LicensePrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.

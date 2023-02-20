@@ -44,6 +44,18 @@ func (f JwtTokenFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.JwtTokenMutation", m)
 }
 
+// The LicenseFunc type is an adapter to allow the use of ordinary
+// function as License mutator.
+type LicenseFunc func(context.Context, *ent.LicenseMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LicenseFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LicenseMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LicenseMutation", m)
+}
+
 // The OrganizationFunc type is an adapter to allow the use of ordinary
 // function as Organization mutator.
 type OrganizationFunc func(context.Context, *ent.OrganizationMutation) (ent.Value, error)

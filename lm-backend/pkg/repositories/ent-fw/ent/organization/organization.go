@@ -15,6 +15,8 @@ const (
 	FieldContactID = "contact_id"
 	// EdgeContact holds the string denoting the contact edge name in mutations.
 	EdgeContact = "contact"
+	// EdgeLicenses holds the string denoting the licenses edge name in mutations.
+	EdgeLicenses = "licenses"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// ContactTable is the table that holds the contact relation/edge.
@@ -24,6 +26,13 @@ const (
 	ContactInverseTable = "contacts"
 	// ContactColumn is the table column denoting the contact relation/edge.
 	ContactColumn = "contact_id"
+	// LicensesTable is the table that holds the licenses relation/edge.
+	LicensesTable = "licenses"
+	// LicensesInverseTable is the table name for the License entity.
+	// It exists in this package in order to avoid circular dependency with the "license" package.
+	LicensesInverseTable = "licenses"
+	// LicensesColumn is the table column denoting the licenses relation/edge.
+	LicensesColumn = "organization_licenses"
 )
 
 // Columns holds all SQL columns for organization fields.

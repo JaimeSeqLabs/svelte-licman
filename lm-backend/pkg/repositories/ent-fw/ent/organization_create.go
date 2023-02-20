@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"license-manager/pkg/repositories/ent-fw/ent/contact"
+	"license-manager/pkg/repositories/ent-fw/ent/license"
 	"license-manager/pkg/repositories/ent-fw/ent/organization"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -63,6 +64,21 @@ func (oc *OrganizationCreate) SetNillableID(s *string) *OrganizationCreate {
 // SetContact sets the "contact" edge to the Contact entity.
 func (oc *OrganizationCreate) SetContact(c *Contact) *OrganizationCreate {
 	return oc.SetContactID(c.ID)
+}
+
+// AddLicenseIDs adds the "licenses" edge to the License entity by IDs.
+func (oc *OrganizationCreate) AddLicenseIDs(ids ...string) *OrganizationCreate {
+	oc.mutation.AddLicenseIDs(ids...)
+	return oc
+}
+
+// AddLicenses adds the "licenses" edges to the License entity.
+func (oc *OrganizationCreate) AddLicenses(l ...*License) *OrganizationCreate {
+	ids := make([]string, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return oc.AddLicenseIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -191,6 +207,25 @@ func (oc *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.ContactID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := oc.mutation.LicensesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.LicensesTable,
+			Columns: []string{organization.LicensesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: license.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

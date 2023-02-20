@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"license-manager/pkg/repositories/ent-fw/ent/contact"
+	"license-manager/pkg/repositories/ent-fw/ent/license"
 	"license-manager/pkg/repositories/ent-fw/ent/organization"
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
 
@@ -65,6 +66,21 @@ func (ou *OrganizationUpdate) SetContact(c *Contact) *OrganizationUpdate {
 	return ou.SetContactID(c.ID)
 }
 
+// AddLicenseIDs adds the "licenses" edge to the License entity by IDs.
+func (ou *OrganizationUpdate) AddLicenseIDs(ids ...string) *OrganizationUpdate {
+	ou.mutation.AddLicenseIDs(ids...)
+	return ou
+}
+
+// AddLicenses adds the "licenses" edges to the License entity.
+func (ou *OrganizationUpdate) AddLicenses(l ...*License) *OrganizationUpdate {
+	ids := make([]string, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ou.AddLicenseIDs(ids...)
+}
+
 // Mutation returns the OrganizationMutation object of the builder.
 func (ou *OrganizationUpdate) Mutation() *OrganizationMutation {
 	return ou.mutation
@@ -74,6 +90,27 @@ func (ou *OrganizationUpdate) Mutation() *OrganizationMutation {
 func (ou *OrganizationUpdate) ClearContact() *OrganizationUpdate {
 	ou.mutation.ClearContact()
 	return ou
+}
+
+// ClearLicenses clears all "licenses" edges to the License entity.
+func (ou *OrganizationUpdate) ClearLicenses() *OrganizationUpdate {
+	ou.mutation.ClearLicenses()
+	return ou
+}
+
+// RemoveLicenseIDs removes the "licenses" edge to License entities by IDs.
+func (ou *OrganizationUpdate) RemoveLicenseIDs(ids ...string) *OrganizationUpdate {
+	ou.mutation.RemoveLicenseIDs(ids...)
+	return ou
+}
+
+// RemoveLicenses removes "licenses" edges to License entities.
+func (ou *OrganizationUpdate) RemoveLicenses(l ...*License) *OrganizationUpdate {
+	ids := make([]string, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ou.RemoveLicenseIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -180,6 +217,60 @@ func (ou *OrganizationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if ou.mutation.LicensesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.LicensesTable,
+			Columns: []string{organization.LicensesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: license.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ou.mutation.RemovedLicensesIDs(); len(nodes) > 0 && !ou.mutation.LicensesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.LicensesTable,
+			Columns: []string{organization.LicensesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: license.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ou.mutation.LicensesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.LicensesTable,
+			Columns: []string{organization.LicensesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: license.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ou.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{organization.Label}
@@ -237,6 +328,21 @@ func (ouo *OrganizationUpdateOne) SetContact(c *Contact) *OrganizationUpdateOne 
 	return ouo.SetContactID(c.ID)
 }
 
+// AddLicenseIDs adds the "licenses" edge to the License entity by IDs.
+func (ouo *OrganizationUpdateOne) AddLicenseIDs(ids ...string) *OrganizationUpdateOne {
+	ouo.mutation.AddLicenseIDs(ids...)
+	return ouo
+}
+
+// AddLicenses adds the "licenses" edges to the License entity.
+func (ouo *OrganizationUpdateOne) AddLicenses(l ...*License) *OrganizationUpdateOne {
+	ids := make([]string, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ouo.AddLicenseIDs(ids...)
+}
+
 // Mutation returns the OrganizationMutation object of the builder.
 func (ouo *OrganizationUpdateOne) Mutation() *OrganizationMutation {
 	return ouo.mutation
@@ -246,6 +352,27 @@ func (ouo *OrganizationUpdateOne) Mutation() *OrganizationMutation {
 func (ouo *OrganizationUpdateOne) ClearContact() *OrganizationUpdateOne {
 	ouo.mutation.ClearContact()
 	return ouo
+}
+
+// ClearLicenses clears all "licenses" edges to the License entity.
+func (ouo *OrganizationUpdateOne) ClearLicenses() *OrganizationUpdateOne {
+	ouo.mutation.ClearLicenses()
+	return ouo
+}
+
+// RemoveLicenseIDs removes the "licenses" edge to License entities by IDs.
+func (ouo *OrganizationUpdateOne) RemoveLicenseIDs(ids ...string) *OrganizationUpdateOne {
+	ouo.mutation.RemoveLicenseIDs(ids...)
+	return ouo
+}
+
+// RemoveLicenses removes "licenses" edges to License entities.
+func (ouo *OrganizationUpdateOne) RemoveLicenses(l ...*License) *OrganizationUpdateOne {
+	ids := make([]string, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ouo.RemoveLicenseIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -368,6 +495,60 @@ func (ouo *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizat
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: contact.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ouo.mutation.LicensesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.LicensesTable,
+			Columns: []string{organization.LicensesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: license.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ouo.mutation.RemovedLicensesIDs(); len(nodes) > 0 && !ouo.mutation.LicensesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.LicensesTable,
+			Columns: []string{organization.LicensesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: license.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ouo.mutation.LicensesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.LicensesTable,
+			Columns: []string{organization.LicensesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: license.FieldID,
 				},
 			},
 		}

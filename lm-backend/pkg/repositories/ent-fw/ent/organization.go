@@ -31,9 +31,11 @@ type Organization struct {
 type OrganizationEdges struct {
 	// Contact holds the value of the contact edge.
 	Contact *Contact `json:"contact,omitempty"`
+	// Licenses holds the value of the licenses edge.
+	Licenses []*License `json:"licenses,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // ContactOrErr returns the Contact value or an error if the edge
@@ -47,6 +49,15 @@ func (e OrganizationEdges) ContactOrErr() (*Contact, error) {
 		return e.Contact, nil
 	}
 	return nil, &NotLoadedError{edge: "contact"}
+}
+
+// LicensesOrErr returns the Licenses value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) LicensesOrErr() ([]*License, error) {
+	if e.loadedTypes[1] {
+		return e.Licenses, nil
+	}
+	return nil, &NotLoadedError{edge: "licenses"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -103,6 +114,11 @@ func (o *Organization) assignValues(columns []string, values []any) error {
 // QueryContact queries the "contact" edge of the Organization entity.
 func (o *Organization) QueryContact() *ContactQuery {
 	return NewOrganizationClient(o.config).QueryContact(o)
+}
+
+// QueryLicenses queries the "licenses" edge of the Organization entity.
+func (o *Organization) QueryLicenses() *LicenseQuery {
+	return NewOrganizationClient(o.config).QueryLicenses(o)
 }
 
 // Update returns a builder for updating this Organization.

@@ -55,6 +55,39 @@ var (
 			},
 		},
 	}
+	// LicensesColumns holds the columns for the "licenses" table.
+	LicensesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "features", Type: field.TypeString},
+		{Name: "status", Type: field.TypeString},
+		{Name: "version", Type: field.TypeString},
+		{Name: "note", Type: field.TypeString},
+		{Name: "contact", Type: field.TypeString},
+		{Name: "mail", Type: field.TypeString},
+		{Name: "secret", Type: field.TypeString},
+		{Name: "expiration_date", Type: field.TypeTime},
+		{Name: "activation_date", Type: field.TypeTime},
+		{Name: "last_accessed", Type: field.TypeTime},
+		{Name: "last_access_ip", Type: field.TypeString},
+		{Name: "access_count", Type: field.TypeInt, Default: 0},
+		{Name: "date_created", Type: field.TypeTime},
+		{Name: "last_updated", Type: field.TypeTime},
+		{Name: "organization_licenses", Type: field.TypeString, Nullable: true},
+	}
+	// LicensesTable holds the schema information for the "licenses" table.
+	LicensesTable = &schema.Table{
+		Name:       "licenses",
+		Columns:    LicensesColumns,
+		PrimaryKey: []*schema.Column{LicensesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "licenses_organizations_licenses",
+				Columns:    []*schema.Column{LicensesColumns[15]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// OrganizationsColumns holds the columns for the "organizations" table.
 	OrganizationsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
@@ -106,18 +139,48 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// LicenseLicenseProductsColumns holds the columns for the "license_license_products" table.
+	LicenseLicenseProductsColumns = []*schema.Column{
+		{Name: "license_id", Type: field.TypeString},
+		{Name: "product_id", Type: field.TypeString},
+	}
+	// LicenseLicenseProductsTable holds the schema information for the "license_license_products" table.
+	LicenseLicenseProductsTable = &schema.Table{
+		Name:       "license_license_products",
+		Columns:    LicenseLicenseProductsColumns,
+		PrimaryKey: []*schema.Column{LicenseLicenseProductsColumns[0], LicenseLicenseProductsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "license_license_products_license_id",
+				Columns:    []*schema.Column{LicenseLicenseProductsColumns[0]},
+				RefColumns: []*schema.Column{LicensesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "license_license_products_product_id",
+				Columns:    []*schema.Column{LicenseLicenseProductsColumns[1]},
+				RefColumns: []*schema.Column{ProductsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		ContactsTable,
 		CredentialsTable,
 		JwtTokensTable,
+		LicensesTable,
 		OrganizationsTable,
 		ProductsTable,
 		UsersTable,
+		LicenseLicenseProductsTable,
 	}
 )
 
 func init() {
 	JwtTokensTable.ForeignKeys[0].RefTable = UsersTable
+	LicensesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	OrganizationsTable.ForeignKeys[0].RefTable = ContactsTable
+	LicenseLicenseProductsTable.ForeignKeys[0].RefTable = LicensesTable
+	LicenseLicenseProductsTable.ForeignKeys[1].RefTable = ProductsTable
 }

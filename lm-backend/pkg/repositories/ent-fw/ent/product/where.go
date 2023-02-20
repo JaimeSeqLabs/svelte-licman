@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -397,6 +398,33 @@ func LastUpdatedLT(v time.Time) predicate.Product {
 // LastUpdatedLTE applies the LTE predicate on the "last_updated" field.
 func LastUpdatedLTE(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldLastUpdated, v))
+}
+
+// HasLicense applies the HasEdge predicate on the "license" edge.
+func HasLicense() predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, LicenseTable, LicensePrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLicenseWith applies the HasEdge predicate on the "license" edge with a given conditions (other predicates).
+func HasLicenseWith(preds ...predicate.License) predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(LicenseInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, LicenseTable, LicensePrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

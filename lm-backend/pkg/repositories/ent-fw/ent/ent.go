@@ -9,6 +9,7 @@ import (
 	"license-manager/pkg/repositories/ent-fw/ent/contact"
 	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
+	"license-manager/pkg/repositories/ent-fw/ent/license"
 	"license-manager/pkg/repositories/ent-fw/ent/organization"
 	"license-manager/pkg/repositories/ent-fw/ent/product"
 	"license-manager/pkg/repositories/ent-fw/ent/user"
@@ -47,6 +48,7 @@ func columnChecker(table string) func(string) error {
 		contact.Table:      contact.ValidColumn,
 		credentials.Table:  credentials.ValidColumn,
 		jwttoken.Table:     jwttoken.ValidColumn,
+		license.Table:      license.ValidColumn,
 		organization.Table: organization.ValidColumn,
 		product.Table:      product.ValidColumn,
 		user.Table:         user.ValidColumn,
