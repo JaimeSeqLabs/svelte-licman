@@ -140,6 +140,9 @@ func TestUpdateData(t *testing.T) {
 	prod.Name = "ProdName"
 	prod.InstallInstructions = "No setup needed"
 
+	// sleep to ensure "last_updated" field reflects changes
+	time.Sleep(1 * time.Second)
+
 	updated, err := repo.UpdateByID(prod)
 	if err != nil {
 		t.Fatal(err)
