@@ -37,6 +37,9 @@ func TestOrganizationBasic(t *testing.T) {
 
 	org := orgs[0]
 
+	// patch obj with ID coming from ent
+	target.ID = org.ID
+
 	if !reflect.DeepEqual(org, target) {
 		t.Fatalf("want %+v but got %+v", target, org)
 	}
