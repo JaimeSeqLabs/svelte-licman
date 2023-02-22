@@ -12,6 +12,6 @@ type LicenseRepository interface {
 	FindByProductID(prodID string) []domain.License
 
 	UpdateByID(id string, license domain.License) (domain.License, error)
-	DeleteByID(id string, license domain.License) error
+	DeleteByID(id string) error
 
 }

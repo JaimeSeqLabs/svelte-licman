@@ -35,6 +35,9 @@ func (repo *licenseEntRepo) Save(license domain.License) (ID string, err error) 
 		SetSecret(license.Secret).
 		SetExpirationDate(license.ExpirationDate).
 		SetActivationDate(license.ActivationDate).
+		SetLastAccessed(license.LastAccessed).
+		SetAccessCount(license.AccessCount).
+		SetLastAccessIP(license.LastAccessIP).
 		Save(context.TODO())
 	
 	if err != nil {
@@ -45,7 +48,11 @@ func (repo *licenseEntRepo) Save(license domain.License) (ID string, err error) 
 
 func (repo *licenseEntRepo) FindAll() []domain.License {
 	
-	all, err := repo.client.License.Query().All(context.TODO())
+	all, err := repo.client.License.
+		Query().
+		WithLicenseProducts().
+		WithOwnerOrg().
+		All(context.TODO())
 	
 	if err != nil || len(all) == 0 {
 		return []domain.License{}
@@ -55,8 +62,16 @@ func (repo *licenseEntRepo) FindAll() []domain.License {
 }
 
 func (repo *licenseEntRepo) FindByID(id string) (domain.License, error) {
+
+	license, err := repo.client.License.
+		Query().
+		Where(
+			license.IDEQ(id),
+		).
+		WithLicenseProducts().
+		WithOwnerOrg().
+		Only(context.TODO())
 	
-	license, err := repo.client.License.Get(context.TODO(), id)
 	if err != nil {
 		return domain.License{}, err
 	}
@@ -66,7 +81,10 @@ func (repo *licenseEntRepo) FindByID(id string) (domain.License, error) {
 
 func (repo *licenseEntRepo) FindByOrgID(orgID string) []domain.License {
 	
-	licenses, err := repo.client.License.Query().
+	licenses, err := repo.client.License.
+		Query().
+		WithOwnerOrg().
+		WithLicenseProducts().
 		Where(
 			license.HasOwnerOrgWith(
 				organization.IDEQ(orgID),
@@ -82,7 +100,10 @@ func (repo *licenseEntRepo) FindByOrgID(orgID string) []domain.License {
 
 func (repo *licenseEntRepo) FindByProductID(prodID string) []domain.License {
 	
-	licenses, err := repo.client.License.Query().
+	licenses, err := repo.client.License.
+		Query().
+		WithLicenseProducts().
+		WithOwnerOrg().
 		Where(
 			license.HasLicenseProductsWith(
 				product.IDEQ(prodID),
@@ -120,7 +141,7 @@ func (repo *licenseEntRepo) UpdateByID(id string, license domain.License) (domai
 	return toEntity(res), nil
 }
 
-func (repo *licenseEntRepo) DeleteByID(id string, license domain.License) error {
+func (repo *licenseEntRepo) DeleteByID(id string) error {
 	return repo.client.License.DeleteOneID(id).Exec(context.TODO())
 }
 
@@ -137,7 +158,7 @@ func toEntity(dto *ent.License) domain.License {
 		Mail: dto.Mail,
 		
 		ProductIDs: getProductIDs(dto),
-		OrganizationID: dto.Edges.OwnerOrg.ID,
+		OrganizationID: getOwnerOrgID(dto),
 
 		Secret: dto.Secret,
 
@@ -145,7 +166,7 @@ func toEntity(dto *ent.License) domain.License {
 		ActivationDate: dto.ActivationDate,
 		DateCreated: dto.DateCreated,
 		LastUpdated: dto.LastUpdated,
-		LastAccessed: dto.LastUpdated,
+		LastAccessed: dto.LastAccessed,
 
 		AccessCount: dto.AccessCount,
 		LastAccessIP: dto.LastAccessIP,
@@ -178,4 +199,15 @@ func getProductIDs(dto *ent.License) []string {
 	}
 
 	return ids
+}
+
+func getOwnerOrgID(dto *ent.License) string {
+	
+	org := dto.Edges.OwnerOrg
+
+	if org == nil {
+		return ""
+	}
+
+	return org.ID
 }
