@@ -30,12 +30,10 @@ func TestOrganizationBasic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	orgs := repo.FindByName("Org1")
-	if orgs == nil || len(orgs) != 1 {
-		t.Fatal("unable to find inserted org")
+	org, err := repo.FindByName("Org1")
+	if err != nil {
+		t.Fatal(err)
 	}
-
-	org := orgs[0]
 
 	// patch obj with ID coming from ent
 	target.ID = org.ID
