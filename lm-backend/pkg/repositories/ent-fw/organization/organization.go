@@ -63,24 +63,18 @@ func (repo *orgEntRepo) FindByID(id string) (domain.Organization, error) {
 	return toEntity(res), nil
 }
 
-func (repo *orgEntRepo) FindByName(name string) []domain.Organization {
+func (repo *orgEntRepo) FindByName(name string) (domain.Organization, error) {
 
 	res, err := repo.client.Organization.
 		Query().
 		Where(organization.NameEQ(name)).
-		All(context.TODO())
+		Only(context.TODO())
 
-	if err != nil || len(res) == 0 {
-		return []domain.Organization{}
+	if err != nil {
+		return domain.Organization{}, err
 	}
 
-	orgs := make([]domain.Organization, len(res))
-
-	for i, dto := range res {
-		orgs[i] = toEntity(dto)
-	}
-
-	return orgs
+	return toEntity(res), nil
 }
 
 func (repo *orgEntRepo) FindAll() []domain.Organization {
