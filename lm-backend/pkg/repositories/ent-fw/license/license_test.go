@@ -58,9 +58,6 @@ func TestCreateData(t *testing.T) {
 		ExpirationDate:	now.Add(5 * 30 * 24 * time.Hour), // 5 months
 		ActivationDate: now,
 
-		AccessCount: 0,
-		LastAccessed: now,
-		LastAccessIP: "192.168.1.1",
 	}
 
 	_, err := repo.Save(license)
@@ -163,7 +160,7 @@ func TestReadData(t *testing.T) {
 	}{
 		{ "ExpirationDate", license.ExpirationDate, found.ExpirationDate},
 		{ "ActivationDate", license.ActivationDate, found.ActivationDate},
-		{ "LastAccessed", license.LastAccessed, found.LastAccessed},
+		//{ "LastAccessed", license.LastAccessed, found.LastAccessed},
 	}
 	for _, e := range dateTable {
 		if !e.want.Equal(e.got) {
@@ -203,8 +200,6 @@ func TestReadData(t *testing.T) {
 
 		Secret: license.Secret,
 
-		AccessCount: license.AccessCount,
-		LastAccessIP: license.LastAccessIP,
 	}
 
 	got := domain.License {
@@ -223,8 +218,6 @@ func TestReadData(t *testing.T) {
 
 		Secret: found.Secret,
 
-		AccessCount: found.AccessCount,
-		LastAccessIP: found.LastAccessIP,
 	}
 
 	if !reflect.DeepEqual(want, got) {

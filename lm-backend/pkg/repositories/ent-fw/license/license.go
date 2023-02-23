@@ -35,9 +35,6 @@ func (repo *licenseEntRepo) Save(license domain.License) (ID string, err error) 
 		SetSecret(license.Secret).
 		SetExpirationDate(license.ExpirationDate).
 		SetActivationDate(license.ActivationDate).
-		SetLastAccessed(license.LastAccessed).
-		SetAccessCount(license.AccessCount).
-		SetLastAccessIP(license.LastAccessIP).
 		Save(context.TODO())
 	
 	if err != nil {
