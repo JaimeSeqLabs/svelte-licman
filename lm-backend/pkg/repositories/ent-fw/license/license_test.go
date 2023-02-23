@@ -81,12 +81,12 @@ func TestCreateData(t *testing.T) {
 	license.OrganizationID = org.ID
 	license.ProductIDs = []string{ prod1.ID, prod2.ID }
 
-	id, err := repo.Save(license)
+	res, err := repo.Save(license)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if id == "" {
+	if res.ID == "" {
 		t.Fatal("expected to return a valid ID")
 	}
 
@@ -141,12 +141,12 @@ func TestReadData(t *testing.T) {
 		LastAccessIP: "192.168.1.1",
 	}
 
-	id, err := repo.Save(license)
+	res, err := repo.Save(license)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	found, err := repo.FindByID(id)
+	found, err := repo.FindByID(res.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -186,7 +186,7 @@ func TestReadData(t *testing.T) {
 
 	want := domain.License {
 		
-		ID: id,
+		ID: res.ID,
 
 		Features: license.Features,
 		Status: license.Status,
@@ -204,7 +204,7 @@ func TestReadData(t *testing.T) {
 
 	got := domain.License {
 		
-		ID: id,
+		ID: res.ID,
 
 		Features: found.Features,
 		Status: found.Status,
@@ -276,7 +276,7 @@ func TestUpdateData(t *testing.T) {
 		LastAccessIP: "192.168.1.1",
 	}
 
-	id, err := repo.Save(license)
+	saved, err := repo.Save(license)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -284,12 +284,12 @@ func TestUpdateData(t *testing.T) {
 	newLicense := license
 	newLicense.Status = "suspended"
 
-	updated, err := repo.UpdateByID(id, newLicense)
+	updated, err := repo.UpdateByID(saved.ID, newLicense)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if updated.ID != id {
+	if updated.ID != saved.ID {
 		t.Fatal("updated license has different ID")
 	}
 
@@ -356,17 +356,17 @@ func TestDeleteData(t *testing.T) {
 		LastAccessIP: "192.168.1.1",
 	}
 
-	id, err := repo.Save(license)
+	saved, err := repo.Save(license)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = repo.DeleteByID(id)
+	err = repo.DeleteByID(saved.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = repo.FindByID(id)
+	_, err = repo.FindByID(saved.ID)
 
 	if !ent.IsNotFound(err) {
 		t.Fatal("expected 'not found' error")

@@ -4,7 +4,7 @@ import "license-manager/pkg/domain"
 
 type LicenseRepository interface {
 	
-	Save(domain.License) (ID string, err error)
+	Save(domain.License) (domain.License, error)
 	
 	FindAll() []domain.License
 	FindByID(string) (domain.License, error)

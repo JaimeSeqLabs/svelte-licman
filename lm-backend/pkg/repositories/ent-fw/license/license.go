@@ -21,7 +21,7 @@ func NewLicenseEntRepo(client *ent.Client) repositories.LicenseRepository {
 	}
 }
 
-func (repo *licenseEntRepo) Save(license domain.License) (ID string, err error) {
+func (repo *licenseEntRepo) Save(license domain.License) (domain.License, error) {
 	
 	res, err := repo.client.License.Create().
 		SetFeatures(license.Features).
@@ -38,9 +38,9 @@ func (repo *licenseEntRepo) Save(license domain.License) (ID string, err error) 
 		Save(context.TODO())
 	
 	if err != nil {
-		return "", err
+		return domain.License{}, err
 	}
-	return res.ID, nil
+	return toEntity(res), nil
 }
 
 func (repo *licenseEntRepo) FindAll() []domain.License {
