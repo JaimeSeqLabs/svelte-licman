@@ -97,30 +97,29 @@ func (repo *orgSqlRepo) Save(org domain.Organization) error {
 	return err
 }
 
-func (repo *orgSqlRepo) FindByName(name string) (res []domain.Organization) {
+func (repo *orgSqlRepo) FindByName(name string) (domain.Organization, error) {
 
 	rows, err := repo.db.Queryx(`
 		SELECT * FROM organization
 		WHERE organization.name = ?;
 	`, name)
 	if err != nil {
-		return nil // nil slice
+		return domain.Organization{}, err
 	}
 
-	for rows.Next() {
-
-		var org OrganizationSQLDTO
-
-		err := rows.StructScan(&org)
-		if err != nil {
-			rows.Close()
-			panic(err)
-		}
-
-		res = append(res, org.ToEntity())
+	if !rows.Next() {
+		return domain.Organization{}, fmt.Errorf("organization %s not found", name)
 	}
 
-	return
+	var org OrganizationSQLDTO
+
+	err = rows.StructScan(&org)
+	if err != nil {
+		rows.Close()
+		panic(err)
+	}
+
+	return org.ToEntity(), nil
 }
 
 func (repo *orgSqlRepo) Update(org domain.Organization) (bool, error) {

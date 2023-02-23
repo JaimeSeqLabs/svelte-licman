@@ -54,18 +54,14 @@ func TestOrgSQLFindOrg(t *testing.T) {
 	}
 
 	want := tests[0]
-	got := repo.FindByName(want.Name)
+	got, err := repo.FindByName(want.Name)
 
-	if got == nil {
-		t.Fatal("db error, failed to query any result")
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	if len(got) != 1 {
-		t.Fatal("failed to find the target entity")
-	}
-
-	if !reflect.DeepEqual(want, got[0]) {
-		t.Fatalf("Got unexpected value, want %+v but got %+v\n", want, got[0])
+	if !reflect.DeepEqual(want, got) {
+		t.Fatalf("Got unexpected value, want %+v but got %+v\n", want, got)
 	}
 }
 
@@ -97,7 +93,10 @@ func TestOrgSQLUpdateOrg(t *testing.T) {
 		t.Fatal("should mark updated boolean flag")
 	}
 
-	got := repo.FindByName(org.Name)[0]
+	got, err := repo.FindByName(org.Name)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if !reflect.DeepEqual(got, org) {
 		t.Fatal("returned value from repository is not updated")
@@ -152,8 +151,8 @@ func TestOrgSQLDeleteOrg(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res := repo.FindByName(org.Name)
-	if len(res) != 0 {
+	_, err = repo.FindByName(org.Name)
+	if err == nil {
 		t.Fatal("repository found value even if it was deleted")
 	}
 

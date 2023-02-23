@@ -27,7 +27,7 @@ func (Product) Fields() []ent.Field {
 			Unique(),
 		field.String("install_instr").
 			Default(""),
-		field.Int("license_count").
+		field.Int("license_count"). // TODO: remove, this can be obtained from edges
 			Default(0),
 
 		field.Time("date_created").
