@@ -700,6 +700,16 @@ func LastAccessedLTE(v time.Time) predicate.License {
 	return predicate.License(sql.FieldLTE(FieldLastAccessed, v))
 }
 
+// LastAccessedIsNil applies the IsNil predicate on the "last_accessed" field.
+func LastAccessedIsNil() predicate.License {
+	return predicate.License(sql.FieldIsNull(FieldLastAccessed))
+}
+
+// LastAccessedNotNil applies the NotNil predicate on the "last_accessed" field.
+func LastAccessedNotNil() predicate.License {
+	return predicate.License(sql.FieldNotNull(FieldLastAccessed))
+}
+
 // LastAccessIPEQ applies the EQ predicate on the "last_access_IP" field.
 func LastAccessIPEQ(v string) predicate.License {
 	return predicate.License(sql.FieldEQ(FieldLastAccessIP, v))
@@ -753,6 +763,16 @@ func LastAccessIPHasPrefix(v string) predicate.License {
 // LastAccessIPHasSuffix applies the HasSuffix predicate on the "last_access_IP" field.
 func LastAccessIPHasSuffix(v string) predicate.License {
 	return predicate.License(sql.FieldHasSuffix(FieldLastAccessIP, v))
+}
+
+// LastAccessIPIsNil applies the IsNil predicate on the "last_access_IP" field.
+func LastAccessIPIsNil() predicate.License {
+	return predicate.License(sql.FieldIsNull(FieldLastAccessIP))
+}
+
+// LastAccessIPNotNil applies the NotNil predicate on the "last_access_IP" field.
+func LastAccessIPNotNil() predicate.License {
+	return predicate.License(sql.FieldNotNull(FieldLastAccessIP))
 }
 
 // LastAccessIPEqualFold applies the EqualFold predicate on the "last_access_IP" field.

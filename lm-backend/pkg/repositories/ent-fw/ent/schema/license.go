@@ -34,8 +34,10 @@ func (License) Fields() []ent.Field {
 		field.Time("expiration_date"),
 		field.Time("activation_date"),
 		
-		field.Time("last_accessed"),
-		field.String("last_access_IP"),
+		field.Time("last_accessed").
+			Optional(),
+		field.String("last_access_IP").
+			Optional(),
 		field.Int("access_count").
 			Default(0),
 		

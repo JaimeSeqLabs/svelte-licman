@@ -90,9 +90,37 @@ func (lu *LicenseUpdate) SetLastAccessed(t time.Time) *LicenseUpdate {
 	return lu
 }
 
+// SetNillableLastAccessed sets the "last_accessed" field if the given value is not nil.
+func (lu *LicenseUpdate) SetNillableLastAccessed(t *time.Time) *LicenseUpdate {
+	if t != nil {
+		lu.SetLastAccessed(*t)
+	}
+	return lu
+}
+
+// ClearLastAccessed clears the value of the "last_accessed" field.
+func (lu *LicenseUpdate) ClearLastAccessed() *LicenseUpdate {
+	lu.mutation.ClearLastAccessed()
+	return lu
+}
+
 // SetLastAccessIP sets the "last_access_IP" field.
 func (lu *LicenseUpdate) SetLastAccessIP(s string) *LicenseUpdate {
 	lu.mutation.SetLastAccessIP(s)
+	return lu
+}
+
+// SetNillableLastAccessIP sets the "last_access_IP" field if the given value is not nil.
+func (lu *LicenseUpdate) SetNillableLastAccessIP(s *string) *LicenseUpdate {
+	if s != nil {
+		lu.SetLastAccessIP(*s)
+	}
+	return lu
+}
+
+// ClearLastAccessIP clears the value of the "last_access_IP" field.
+func (lu *LicenseUpdate) ClearLastAccessIP() *LicenseUpdate {
+	lu.mutation.ClearLastAccessIP()
 	return lu
 }
 
@@ -287,8 +315,14 @@ func (lu *LicenseUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := lu.mutation.LastAccessed(); ok {
 		_spec.SetField(license.FieldLastAccessed, field.TypeTime, value)
 	}
+	if lu.mutation.LastAccessedCleared() {
+		_spec.ClearField(license.FieldLastAccessed, field.TypeTime)
+	}
 	if value, ok := lu.mutation.LastAccessIP(); ok {
 		_spec.SetField(license.FieldLastAccessIP, field.TypeString, value)
+	}
+	if lu.mutation.LastAccessIPCleared() {
+		_spec.ClearField(license.FieldLastAccessIP, field.TypeString)
 	}
 	if value, ok := lu.mutation.AccessCount(); ok {
 		_spec.SetField(license.FieldAccessCount, field.TypeInt, value)
@@ -471,9 +505,37 @@ func (luo *LicenseUpdateOne) SetLastAccessed(t time.Time) *LicenseUpdateOne {
 	return luo
 }
 
+// SetNillableLastAccessed sets the "last_accessed" field if the given value is not nil.
+func (luo *LicenseUpdateOne) SetNillableLastAccessed(t *time.Time) *LicenseUpdateOne {
+	if t != nil {
+		luo.SetLastAccessed(*t)
+	}
+	return luo
+}
+
+// ClearLastAccessed clears the value of the "last_accessed" field.
+func (luo *LicenseUpdateOne) ClearLastAccessed() *LicenseUpdateOne {
+	luo.mutation.ClearLastAccessed()
+	return luo
+}
+
 // SetLastAccessIP sets the "last_access_IP" field.
 func (luo *LicenseUpdateOne) SetLastAccessIP(s string) *LicenseUpdateOne {
 	luo.mutation.SetLastAccessIP(s)
+	return luo
+}
+
+// SetNillableLastAccessIP sets the "last_access_IP" field if the given value is not nil.
+func (luo *LicenseUpdateOne) SetNillableLastAccessIP(s *string) *LicenseUpdateOne {
+	if s != nil {
+		luo.SetLastAccessIP(*s)
+	}
+	return luo
+}
+
+// ClearLastAccessIP clears the value of the "last_access_IP" field.
+func (luo *LicenseUpdateOne) ClearLastAccessIP() *LicenseUpdateOne {
+	luo.mutation.ClearLastAccessIP()
 	return luo
 }
 
@@ -692,8 +754,14 @@ func (luo *LicenseUpdateOne) sqlSave(ctx context.Context) (_node *License, err e
 	if value, ok := luo.mutation.LastAccessed(); ok {
 		_spec.SetField(license.FieldLastAccessed, field.TypeTime, value)
 	}
+	if luo.mutation.LastAccessedCleared() {
+		_spec.ClearField(license.FieldLastAccessed, field.TypeTime)
+	}
 	if value, ok := luo.mutation.LastAccessIP(); ok {
 		_spec.SetField(license.FieldLastAccessIP, field.TypeString, value)
+	}
+	if luo.mutation.LastAccessIPCleared() {
+		_spec.ClearField(license.FieldLastAccessIP, field.TypeString)
 	}
 	if value, ok := luo.mutation.AccessCount(); ok {
 		_spec.SetField(license.FieldAccessCount, field.TypeInt, value)

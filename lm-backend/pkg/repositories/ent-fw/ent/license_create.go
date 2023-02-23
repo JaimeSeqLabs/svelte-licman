@@ -82,9 +82,25 @@ func (lc *LicenseCreate) SetLastAccessed(t time.Time) *LicenseCreate {
 	return lc
 }
 
+// SetNillableLastAccessed sets the "last_accessed" field if the given value is not nil.
+func (lc *LicenseCreate) SetNillableLastAccessed(t *time.Time) *LicenseCreate {
+	if t != nil {
+		lc.SetLastAccessed(*t)
+	}
+	return lc
+}
+
 // SetLastAccessIP sets the "last_access_IP" field.
 func (lc *LicenseCreate) SetLastAccessIP(s string) *LicenseCreate {
 	lc.mutation.SetLastAccessIP(s)
+	return lc
+}
+
+// SetNillableLastAccessIP sets the "last_access_IP" field if the given value is not nil.
+func (lc *LicenseCreate) SetNillableLastAccessIP(s *string) *LicenseCreate {
+	if s != nil {
+		lc.SetLastAccessIP(*s)
+	}
 	return lc
 }
 
@@ -259,12 +275,6 @@ func (lc *LicenseCreate) check() error {
 	}
 	if _, ok := lc.mutation.ActivationDate(); !ok {
 		return &ValidationError{Name: "activation_date", err: errors.New(`ent: missing required field "License.activation_date"`)}
-	}
-	if _, ok := lc.mutation.LastAccessed(); !ok {
-		return &ValidationError{Name: "last_accessed", err: errors.New(`ent: missing required field "License.last_accessed"`)}
-	}
-	if _, ok := lc.mutation.LastAccessIP(); !ok {
-		return &ValidationError{Name: "last_access_IP", err: errors.New(`ent: missing required field "License.last_access_IP"`)}
 	}
 	if _, ok := lc.mutation.AccessCount(); !ok {
 		return &ValidationError{Name: "access_count", err: errors.New(`ent: missing required field "License.access_count"`)}

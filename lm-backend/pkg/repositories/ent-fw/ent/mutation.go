@@ -1903,9 +1903,22 @@ func (m *LicenseMutation) OldLastAccessed(ctx context.Context) (v time.Time, err
 	return oldValue.LastAccessed, nil
 }
 
+// ClearLastAccessed clears the value of the "last_accessed" field.
+func (m *LicenseMutation) ClearLastAccessed() {
+	m.last_accessed = nil
+	m.clearedFields[license.FieldLastAccessed] = struct{}{}
+}
+
+// LastAccessedCleared returns if the "last_accessed" field was cleared in this mutation.
+func (m *LicenseMutation) LastAccessedCleared() bool {
+	_, ok := m.clearedFields[license.FieldLastAccessed]
+	return ok
+}
+
 // ResetLastAccessed resets all changes to the "last_accessed" field.
 func (m *LicenseMutation) ResetLastAccessed() {
 	m.last_accessed = nil
+	delete(m.clearedFields, license.FieldLastAccessed)
 }
 
 // SetLastAccessIP sets the "last_access_IP" field.
@@ -1939,9 +1952,22 @@ func (m *LicenseMutation) OldLastAccessIP(ctx context.Context) (v string, err er
 	return oldValue.LastAccessIP, nil
 }
 
+// ClearLastAccessIP clears the value of the "last_access_IP" field.
+func (m *LicenseMutation) ClearLastAccessIP() {
+	m.last_access_IP = nil
+	m.clearedFields[license.FieldLastAccessIP] = struct{}{}
+}
+
+// LastAccessIPCleared returns if the "last_access_IP" field was cleared in this mutation.
+func (m *LicenseMutation) LastAccessIPCleared() bool {
+	_, ok := m.clearedFields[license.FieldLastAccessIP]
+	return ok
+}
+
 // ResetLastAccessIP resets all changes to the "last_access_IP" field.
 func (m *LicenseMutation) ResetLastAccessIP() {
 	m.last_access_IP = nil
+	delete(m.clearedFields, license.FieldLastAccessIP)
 }
 
 // SetAccessCount sets the "access_count" field.
@@ -2466,7 +2492,14 @@ func (m *LicenseMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *LicenseMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(license.FieldLastAccessed) {
+		fields = append(fields, license.FieldLastAccessed)
+	}
+	if m.FieldCleared(license.FieldLastAccessIP) {
+		fields = append(fields, license.FieldLastAccessIP)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -2479,6 +2512,14 @@ func (m *LicenseMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *LicenseMutation) ClearField(name string) error {
+	switch name {
+	case license.FieldLastAccessed:
+		m.ClearLastAccessed()
+		return nil
+	case license.FieldLastAccessIP:
+		m.ClearLastAccessIP()
+		return nil
+	}
 	return fmt.Errorf("unknown License nullable field %s", name)
 }
 
