@@ -59,6 +59,19 @@ func (repo * productEntRepo) FindByID(id string) (domain.Product, error) {
 	return toEntity(prod), nil
 }
 
+func (repo * productEntRepo) FindByIDs(ids []string) ([]domain.Product, error) {
+
+	prods, err := repo.client.Product.Query().
+		Where(product.IDIn(ids...)).
+		All(context.TODO())
+	
+	if err != nil {
+		return nil, err
+	}
+
+	return toEntitySlice(prods), nil
+}
+
 func (repo * productEntRepo) FindBySKU(sku string) (domain.Product, error) {
 	
 	prod, err := repo.client.Product.Query().
@@ -107,4 +120,15 @@ func toEntity(dto *ent.Product) domain.Product {
 		DateCreated: dto.DateCreated,
 		LastUpdated: dto.LastUpdated,
 	}
+}
+
+func toEntitySlice(dtos []*ent.Product) []domain.Product {
+	
+	products := make([]domain.Product, len(dtos))
+
+	for i, dto := range dtos {
+		products[i] = toEntity(dto)
+	}
+
+	return products
 }
