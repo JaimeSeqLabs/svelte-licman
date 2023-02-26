@@ -20,6 +20,8 @@ type CreateLicenseRequest struct {
 	// NOTE: name not ID
 	OrganizationName string `json:"organization_name"`
 
+	Quotas map[string]string `json:"quotas"`
+
 	Secret string `json:"secret"`
 
 	ExpirationDate time.Time `json:"expiration_date"`

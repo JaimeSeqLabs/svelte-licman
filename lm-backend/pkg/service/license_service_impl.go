@@ -57,6 +57,7 @@ func (ls *licenseService) CreateLicense(req exchange.CreateLicenseRequest) (doma
 		Mail: req.Mail,
 		ProductIDs: prodIDs,
 		OrganizationID: org.ID,
+		Quotas: req.Quotas,
 		Secret: req.Secret,
 		ExpirationDate: req.ExpirationDate,
 		ActivationDate: req.ActivationDate,
