@@ -2,29 +2,33 @@ package domain
 
 import "time"
 
+const (
+	LicenseCurrentVersion = "v1"
+)
+
 type License struct {
 	
-	ID string
+	ID string `json:"id"`
 
-	Features string
-	Status string // archived, suspended, expired, active
-	Version string
+	Features string `json:"features"`
+	Status string `json:"status"` // archived, suspended, expired, active
+	Version string `json:"version"`
 	
-	Note string
-	Contact string
-	Mail string
+	Note string `json:"note"`
+	Contact string `json:"contact"`
+	Mail string `json:"mail"`
 	
-	ProductIDs []string
-	OrganizationID string
+	ProductIDs []string `json:"product_ids"`
+	OrganizationID string `json:"organization_id"`
 
-	Secret string // json ignore
+	Secret string `json:"-"`
 
-	ExpirationDate time.Time
-	ActivationDate time.Time
-	DateCreated time.Time
-	LastUpdated time.Time
-	LastAccessed time.Time
+	ExpirationDate time.Time `json:"expiration_date"`
+	ActivationDate time.Time `json:"activation_date"`
+	DateCreated time.Time `json:"date_created"`
+	LastUpdated time.Time `json:"last_updated"`
+	LastAccessed time.Time `json:"last_accessed"`
 
-	AccessCount int
-	LastAccessIP string
+	AccessCount int `json:"access_count"`
+	LastAccessIP string `json:"-"`
 }
