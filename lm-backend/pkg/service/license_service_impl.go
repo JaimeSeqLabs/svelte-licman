@@ -70,15 +70,11 @@ func (ls *licenseService) CreateLicense(req exchange.CreateLicenseRequest) (doma
 
 func (ls *licenseService) UpdateLicense(id string, req exchange.UpdateLicenseRequest) (domain.License, error) {
 
-	updated, err := ls.licenseRepo.UpdateByID(id, domain.License{
-		Features: req.Features,
-		Status: req.Status,
-		Version: req.Version,
-		Note: req.Note,
-		Contact: req.Contact,
-		Mail: req.Mail,
-		ExpirationDate: req.ExpirationDate,
-	})
+	newLicense := req.License
+	newLicense.Quotas = req.Quotas
+	newLicense.ProductIDs = req.Products
+
+	updated, err := ls.licenseRepo.UpdateByID(id, newLicense)
 	if err != nil {
 		return domain.License{}, err
 	}

@@ -27,21 +27,39 @@ type CreateLicenseRequest struct {
 }
 
 type UpdateLicenseRequest struct {
-	
-	Features string `json:"features"`
 
-	Status string `json:"status"` // archived, suspended, expired, active
-	Version string `json:"version"`
+	License domain.License`json:"license"`
+	Products []string `json:"product_ids"`// product IDs
+	Quotas map[string]string`json:"quotas"`
 	
-	Note string `json:"note"`
-	Contact string `json:"contact"`
-	Mail string `json:"mail"`
-	
-	ExpirationDate time.Time `json:"expiration_date"`
 }
+
 
 type ListAllLicensesResponse struct {
 	Licenses []ListAllLicensesItem `json:"licenses"`
 }
 
 type ListAllLicensesItem domain.License
+
+type DescribeLicenseResponse struct {
+	License domain.License `json:"license"`
+	Quotas map[string]string `json:"quotas"`
+}
+
+type DecodeLicenseRequest struct {
+	Encoded string `json:"encoded"`
+}
+
+type DescribeLicenseStatusResponse struct {
+	
+	ID string `json:"id"`
+	OrganizationID string `json:"organization_id"`
+	Mail string `json:"mail"`
+	ActivationDate time.Time `json:"activation_date"`
+	ExpirationDate time.Time `json:"expiration_date"`
+	Status string `json:"status"` // archived, suspended, expired, active
+	Contact string `json:"contact"`
+	ProductIDs []string `json:"product_ids"`
+	Quotas map[string]string `json:"quotas"`
+
+}
