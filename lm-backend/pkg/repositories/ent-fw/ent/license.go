@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"license-manager/pkg/repositories/ent-fw/ent/license"
 	"license-manager/pkg/repositories/ent-fw/ent/organization"
@@ -29,6 +30,8 @@ type License struct {
 	Contact string `json:"contact,omitempty"`
 	// Mail holds the value of the "mail" field.
 	Mail string `json:"mail,omitempty"`
+	// Quotas holds the value of the "quotas" field.
+	Quotas map[string]string `json:"quotas,omitempty"`
 	// Secret holds the value of the "secret" field.
 	Secret string `json:"-"`
 	// ExpirationDate holds the value of the "expiration_date" field.
@@ -89,6 +92,8 @@ func (*License) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case license.FieldQuotas:
+			values[i] = new([]byte)
 		case license.FieldAccessCount:
 			values[i] = new(sql.NullInt64)
 		case license.FieldID, license.FieldFeatures, license.FieldStatus, license.FieldVersion, license.FieldNote, license.FieldContact, license.FieldMail, license.FieldSecret, license.FieldLastAccessIP:
@@ -153,6 +158,14 @@ func (l *License) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field mail", values[i])
 			} else if value.Valid {
 				l.Mail = value.String
+			}
+		case license.FieldQuotas:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field quotas", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &l.Quotas); err != nil {
+					return fmt.Errorf("unmarshal field quotas: %w", err)
+				}
 			}
 		case license.FieldSecret:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -264,6 +277,9 @@ func (l *License) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("mail=")
 	builder.WriteString(l.Mail)
+	builder.WriteString(", ")
+	builder.WriteString("quotas=")
+	builder.WriteString(fmt.Sprintf("%v", l.Quotas))
 	builder.WriteString(", ")
 	builder.WriteString("secret=")
 	builder.WriteString(l.Secret)

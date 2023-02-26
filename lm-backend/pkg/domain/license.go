@@ -20,6 +20,7 @@ type License struct {
 	
 	ProductIDs []string `json:"product_ids"`
 	OrganizationID string `json:"organization_id"`
+	Quotas map[string]string `json:"quotas"`
 
 	Secret string `json:"-"`
 

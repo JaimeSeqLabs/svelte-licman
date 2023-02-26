@@ -23,6 +23,8 @@ const (
 	FieldContact = "contact"
 	// FieldMail holds the string denoting the mail field in the database.
 	FieldMail = "mail"
+	// FieldQuotas holds the string denoting the quotas field in the database.
+	FieldQuotas = "quotas"
 	// FieldSecret holds the string denoting the secret field in the database.
 	FieldSecret = "secret"
 	// FieldExpirationDate holds the string denoting the expiration_date field in the database.
@@ -68,6 +70,7 @@ var Columns = []string{
 	FieldNote,
 	FieldContact,
 	FieldMail,
+	FieldQuotas,
 	FieldSecret,
 	FieldExpirationDate,
 	FieldActivationDate,
@@ -106,6 +109,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultQuotas holds the default value on creation for the "quotas" field.
+	DefaultQuotas map[string]string
 	// DefaultAccessCount holds the default value on creation for the "access_count" field.
 	DefaultAccessCount int
 	// DefaultDateCreated holds the default value on creation for the "date_created" field.

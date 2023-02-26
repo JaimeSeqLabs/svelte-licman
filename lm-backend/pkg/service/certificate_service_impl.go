@@ -15,13 +15,12 @@ import (
 )
 
 type certificateService struct {
-	quotaService QuotaService
     licenseService LicenseService
 	prodRepo     repositories.ProductRepository
 }
 
-func NewCertificateService(qs QuotaService, ls LicenseService, prodRepo repositories.ProductRepository) CertificateService {
-	return &certificateService{qs, ls, prodRepo}
+func NewCertificateService(ls LicenseService, prodRepo repositories.ProductRepository) CertificateService {
+	return &certificateService{ls, prodRepo}
 }
 
 func (cs *certificateService) ValidateCertificate(req exchange.LicenseValidateRequest) (domain.License, error) {
@@ -86,9 +85,9 @@ func (cs *certificateService) CreateCertificate(license domain.License) (string,
 		return "", fmt.Errorf("license %s missing a valid secret", license.ID)
 	}
 
-	qMap := cs.quotaService.BuildLicenseQuotaMap(license)
-	if qMap == nil {
-		return "", fmt.Errorf("unable to build quota map for license %s", license.ID)
+	qMap, err := cs.licenseService.FindQuotasByID(license.ID)
+	if err != nil || qMap == nil {
+		return "", fmt.Errorf("unable to get quota map for license %s", license.ID)
 	}
 
 	skus, err := cs.getProdIDsAsSKUs(license.ProductIDs)

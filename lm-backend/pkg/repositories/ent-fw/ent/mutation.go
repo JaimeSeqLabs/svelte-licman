@@ -1424,6 +1424,7 @@ type LicenseMutation struct {
 	note                    *string
 	contact                 *string
 	mail                    *string
+	quotas                  *map[string]string
 	secret                  *string
 	expiration_date         *time.Time
 	activation_date         *time.Time
@@ -1762,6 +1763,42 @@ func (m *LicenseMutation) OldMail(ctx context.Context) (v string, err error) {
 // ResetMail resets all changes to the "mail" field.
 func (m *LicenseMutation) ResetMail() {
 	m.mail = nil
+}
+
+// SetQuotas sets the "quotas" field.
+func (m *LicenseMutation) SetQuotas(value map[string]string) {
+	m.quotas = &value
+}
+
+// Quotas returns the value of the "quotas" field in the mutation.
+func (m *LicenseMutation) Quotas() (r map[string]string, exists bool) {
+	v := m.quotas
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuotas returns the old "quotas" field's value of the License entity.
+// If the License object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LicenseMutation) OldQuotas(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuotas is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuotas requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuotas: %w", err)
+	}
+	return oldValue.Quotas, nil
+}
+
+// ResetQuotas resets all changes to the "quotas" field.
+func (m *LicenseMutation) ResetQuotas() {
+	m.quotas = nil
 }
 
 // SetSecret sets the "secret" field.
@@ -2225,7 +2262,7 @@ func (m *LicenseMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *LicenseMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.features != nil {
 		fields = append(fields, license.FieldFeatures)
 	}
@@ -2243,6 +2280,9 @@ func (m *LicenseMutation) Fields() []string {
 	}
 	if m.mail != nil {
 		fields = append(fields, license.FieldMail)
+	}
+	if m.quotas != nil {
+		fields = append(fields, license.FieldQuotas)
 	}
 	if m.secret != nil {
 		fields = append(fields, license.FieldSecret)
@@ -2288,6 +2328,8 @@ func (m *LicenseMutation) Field(name string) (ent.Value, bool) {
 		return m.Contact()
 	case license.FieldMail:
 		return m.Mail()
+	case license.FieldQuotas:
+		return m.Quotas()
 	case license.FieldSecret:
 		return m.Secret()
 	case license.FieldExpirationDate:
@@ -2325,6 +2367,8 @@ func (m *LicenseMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldContact(ctx)
 	case license.FieldMail:
 		return m.OldMail(ctx)
+	case license.FieldQuotas:
+		return m.OldQuotas(ctx)
 	case license.FieldSecret:
 		return m.OldSecret(ctx)
 	case license.FieldExpirationDate:
@@ -2391,6 +2435,13 @@ func (m *LicenseMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetMail(v)
+		return nil
+	case license.FieldQuotas:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuotas(v)
 		return nil
 	case license.FieldSecret:
 		v, ok := value.(string)
@@ -2544,6 +2595,9 @@ func (m *LicenseMutation) ResetField(name string) error {
 		return nil
 	case license.FieldMail:
 		m.ResetMail()
+		return nil
+	case license.FieldQuotas:
+		m.ResetQuotas()
 		return nil
 	case license.FieldSecret:
 		m.ResetSecret()

@@ -64,6 +64,7 @@ var (
 		{Name: "note", Type: field.TypeString},
 		{Name: "contact", Type: field.TypeString},
 		{Name: "mail", Type: field.TypeString},
+		{Name: "quotas", Type: field.TypeJSON},
 		{Name: "secret", Type: field.TypeString},
 		{Name: "expiration_date", Type: field.TypeTime},
 		{Name: "activation_date", Type: field.TypeTime},
@@ -82,7 +83,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "licenses_organizations_licenses",
-				Columns:    []*schema.Column{LicensesColumns[15]},
+				Columns:    []*schema.Column{LicensesColumns[16]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

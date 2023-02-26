@@ -103,3 +103,30 @@ func (ls *licenseService) SuspendLicense(id string) error {
 
 	return err
 }
+
+func (ls *licenseService) FindQuotasByID(id string) (map[string]string, error) {
+
+	license, err := ls.licenseRepo.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return license.Quotas, nil
+}
+
+func (ls *licenseService) SetQuotasByID(id string, q map[string]string) error {
+
+	license, err := ls.licenseRepo.FindByID(id)
+	if err != nil {
+		return err
+	}
+
+	license.Quotas = q
+
+	_, err = ls.licenseRepo.UpdateByID(id, license)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

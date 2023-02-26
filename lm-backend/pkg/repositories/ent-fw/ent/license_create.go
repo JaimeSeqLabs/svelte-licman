@@ -58,6 +58,12 @@ func (lc *LicenseCreate) SetMail(s string) *LicenseCreate {
 	return lc
 }
 
+// SetQuotas sets the "quotas" field.
+func (lc *LicenseCreate) SetQuotas(m map[string]string) *LicenseCreate {
+	lc.mutation.SetQuotas(m)
+	return lc
+}
+
 // SetSecret sets the "secret" field.
 func (lc *LicenseCreate) SetSecret(s string) *LicenseCreate {
 	lc.mutation.SetSecret(s)
@@ -229,6 +235,10 @@ func (lc *LicenseCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (lc *LicenseCreate) defaults() {
+	if _, ok := lc.mutation.Quotas(); !ok {
+		v := license.DefaultQuotas
+		lc.mutation.SetQuotas(v)
+	}
 	if _, ok := lc.mutation.AccessCount(); !ok {
 		v := license.DefaultAccessCount
 		lc.mutation.SetAccessCount(v)
@@ -266,6 +276,9 @@ func (lc *LicenseCreate) check() error {
 	}
 	if _, ok := lc.mutation.Mail(); !ok {
 		return &ValidationError{Name: "mail", err: errors.New(`ent: missing required field "License.mail"`)}
+	}
+	if _, ok := lc.mutation.Quotas(); !ok {
+		return &ValidationError{Name: "quotas", err: errors.New(`ent: missing required field "License.quotas"`)}
 	}
 	if _, ok := lc.mutation.Secret(); !ok {
 		return &ValidationError{Name: "secret", err: errors.New(`ent: missing required field "License.secret"`)}
@@ -352,6 +365,10 @@ func (lc *LicenseCreate) createSpec() (*License, *sqlgraph.CreateSpec) {
 	if value, ok := lc.mutation.Mail(); ok {
 		_spec.SetField(license.FieldMail, field.TypeString, value)
 		_node.Mail = value
+	}
+	if value, ok := lc.mutation.Quotas(); ok {
+		_spec.SetField(license.FieldQuotas, field.TypeJSON, value)
+		_node.Quotas = value
 	}
 	if value, ok := lc.mutation.Secret(); ok {
 		_spec.SetField(license.FieldSecret, field.TypeString, value)

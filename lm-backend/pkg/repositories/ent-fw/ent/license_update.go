@@ -66,6 +66,12 @@ func (lu *LicenseUpdate) SetMail(s string) *LicenseUpdate {
 	return lu
 }
 
+// SetQuotas sets the "quotas" field.
+func (lu *LicenseUpdate) SetQuotas(m map[string]string) *LicenseUpdate {
+	lu.mutation.SetQuotas(m)
+	return lu
+}
+
 // SetSecret sets the "secret" field.
 func (lu *LicenseUpdate) SetSecret(s string) *LicenseUpdate {
 	lu.mutation.SetSecret(s)
@@ -303,6 +309,9 @@ func (lu *LicenseUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := lu.mutation.Mail(); ok {
 		_spec.SetField(license.FieldMail, field.TypeString, value)
 	}
+	if value, ok := lu.mutation.Quotas(); ok {
+		_spec.SetField(license.FieldQuotas, field.TypeJSON, value)
+	}
 	if value, ok := lu.mutation.Secret(); ok {
 		_spec.SetField(license.FieldSecret, field.TypeString, value)
 	}
@@ -478,6 +487,12 @@ func (luo *LicenseUpdateOne) SetContact(s string) *LicenseUpdateOne {
 // SetMail sets the "mail" field.
 func (luo *LicenseUpdateOne) SetMail(s string) *LicenseUpdateOne {
 	luo.mutation.SetMail(s)
+	return luo
+}
+
+// SetQuotas sets the "quotas" field.
+func (luo *LicenseUpdateOne) SetQuotas(m map[string]string) *LicenseUpdateOne {
+	luo.mutation.SetQuotas(m)
 	return luo
 }
 
@@ -741,6 +756,9 @@ func (luo *LicenseUpdateOne) sqlSave(ctx context.Context) (_node *License, err e
 	}
 	if value, ok := luo.mutation.Mail(); ok {
 		_spec.SetField(license.FieldMail, field.TypeString, value)
+	}
+	if value, ok := luo.mutation.Quotas(); ok {
+		_spec.SetField(license.FieldQuotas, field.TypeJSON, value)
 	}
 	if value, ok := luo.mutation.Secret(); ok {
 		_spec.SetField(license.FieldSecret, field.TypeString, value)

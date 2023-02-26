@@ -32,6 +32,7 @@ func (repo *licenseEntRepo) Save(license domain.License) (domain.License, error)
 		SetMail(license.Mail).
 		AddLicenseProductIDs(license.ProductIDs...).
 		SetOwnerOrgID(license.OrganizationID).
+		SetQuotas(license.Quotas).
 		SetSecret(license.Secret).
 		SetExpirationDate(license.ExpirationDate).
 		SetActivationDate(license.ActivationDate).
@@ -123,6 +124,7 @@ func (repo *licenseEntRepo) UpdateByID(id string, license domain.License) (domai
 		SetNote(license.Note).
 		SetContact(license.Contact).
 		SetMail(license.Mail).
+		SetQuotas(license.Quotas).
 		AddLicenseProductIDs(license.ProductIDs...).
 		SetOwnerOrgID(license.OrganizationID).
 		SetSecret(license.Secret).
@@ -156,6 +158,7 @@ func toEntity(dto *ent.License) domain.License {
 		
 		ProductIDs: getProductIDs(dto),
 		OrganizationID: getOwnerOrgID(dto),
+		Quotas: dto.Quotas,
 
 		Secret: dto.Secret,
 

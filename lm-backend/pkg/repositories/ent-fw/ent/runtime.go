@@ -62,16 +62,20 @@ func init() {
 	jwttoken.DefaultID = jwttokenDescID.Default.(func() string)
 	licenseFields := schema.License{}.Fields()
 	_ = licenseFields
+	// licenseDescQuotas is the schema descriptor for quotas field.
+	licenseDescQuotas := licenseFields[7].Descriptor()
+	// license.DefaultQuotas holds the default value on creation for the quotas field.
+	license.DefaultQuotas = licenseDescQuotas.Default.(map[string]string)
 	// licenseDescAccessCount is the schema descriptor for access_count field.
-	licenseDescAccessCount := licenseFields[12].Descriptor()
+	licenseDescAccessCount := licenseFields[13].Descriptor()
 	// license.DefaultAccessCount holds the default value on creation for the access_count field.
 	license.DefaultAccessCount = licenseDescAccessCount.Default.(int)
 	// licenseDescDateCreated is the schema descriptor for date_created field.
-	licenseDescDateCreated := licenseFields[13].Descriptor()
+	licenseDescDateCreated := licenseFields[14].Descriptor()
 	// license.DefaultDateCreated holds the default value on creation for the date_created field.
 	license.DefaultDateCreated = licenseDescDateCreated.Default.(func() time.Time)
 	// licenseDescLastUpdated is the schema descriptor for last_updated field.
-	licenseDescLastUpdated := licenseFields[14].Descriptor()
+	licenseDescLastUpdated := licenseFields[15].Descriptor()
 	// license.DefaultLastUpdated holds the default value on creation for the last_updated field.
 	license.DefaultLastUpdated = licenseDescLastUpdated.Default.(func() time.Time)
 	// license.UpdateDefaultLastUpdated holds the default value on update for the last_updated field.

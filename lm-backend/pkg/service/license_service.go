@@ -14,4 +14,7 @@ type LicenseService interface {
 	DeleteLicense(id string) error
 
 	SuspendLicense(id string) error
+	
+	FindQuotasByID(id string) (map[string]string, error)
+	SetQuotasByID(id string, q map[string]string) error
 }

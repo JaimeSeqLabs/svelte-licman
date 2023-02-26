@@ -28,6 +28,9 @@ func (License) Fields() []ent.Field {
 		field.String("contact"),
 		field.String("mail"),
 
+		field.JSON("quotas", map[string]string{}).
+			Default(map[string]string{}),
+
 		field.String("secret").
 			StructTag(`json:"-"`), // ensure this is not exported to json
 

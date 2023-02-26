@@ -375,3 +375,117 @@ func TestDeleteData(t *testing.T) {
 
 }
 
+func TestLicenseQuotas(t *testing.T) {
+
+	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&_fk=1")
+	defer client.Close()
+
+	if err := client.Schema.Create(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+
+	org := client.Organization.Create().
+		SetName("org").
+		SetLocation("Barcelona").
+		SaveX(context.TODO())
+	prod1 := client.Product.Create().
+		SetSku("sku1").
+		SetName("prod1").
+		SaveX(context.TODO())
+	prod2 := client.Product.Create().
+		SetSku("sku2").
+		SetName("prod2").
+		SaveX(context.TODO())
+	
+	repo := license_repo.NewLicenseEntRepo(client)
+
+	now := time.Now()
+
+	quotas := map[string]string {
+		"maxWorkspaces": "5",
+		"maxUsers": "3",
+	}
+
+	license := domain.License {
+
+		Features: "licenseFeatures",
+		Status: "active",
+		Version: "1.0.0",
+		
+		Note: "",
+		Contact: "jaime",
+		Mail: "jaime@mail.com",
+		
+		ProductIDs: []string{ prod1.ID, prod2.ID },
+		OrganizationID: org.ID,
+		Quotas: quotas,
+
+		Secret: "<this_is_very_secret>",
+
+		ExpirationDate:	now.Add(5 * 30 * 24 * time.Hour), // 5 months
+		ActivationDate: now,
+
+		AccessCount: 0,
+		LastAccessed: now,
+		LastAccessIP: "192.168.1.1",
+	}
+
+	saved, err := repo.Save(license)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := repo.FindByID(saved.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !equal(quotas, got.Quotas) {
+		t.Fatalf("the saved quota map does not match the original one, want %+v but got %+v", quotas, got.Quotas)
+	}
+
+	newLicense := license
+	newLicense.Quotas = map[string]string {
+		"maxWorkspaces": "15",
+		"maxUsers": "10",
+	}
+
+	updated, err := repo.UpdateByID(saved.ID, newLicense)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !equal(newLicense.Quotas, updated.Quotas) {
+		t.Fatalf("the saved quota map does not match the original one, want %+v but got %+v", quotas, updated.Quotas)
+	}
+
+}
+
+func equal[K comparable, V any](m1, m2 map[K]V) bool {
+
+	if m1 == nil {
+		return m2 == nil
+	}
+
+	if m2 == nil {
+		return m1 == nil
+	}
+
+	if len(m1) != len(m2) {
+		return false
+	}
+
+	for k, v := range m1 {
+		if v2, found := m2[k]; found {
+
+			if !reflect.DeepEqual(v, v2) {
+				return false
+			}
+
+		} else {
+			return false // element not found
+		}
+	}
+
+	return true
+}
