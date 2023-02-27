@@ -2,7 +2,7 @@ package service
 
 import (
 	"crypto/hmac"
-	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -187,7 +187,7 @@ func decodeCert(cert string) (data domain.CertificateData, signature string, jso
 
 func getHMACSignature(payload, secret string) string {
 	
-	mac := hmac.New(sha1.New, []byte(secret))
+	mac := hmac.New(sha256.New, []byte(secret))
 	
 	mac.Write([]byte(payload))
 	
