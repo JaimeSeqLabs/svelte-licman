@@ -96,6 +96,7 @@ func (repo *userEntRepo) DeleteByNameAndMail(name string, mail string) error {
 
 func toEntity(dto *ent.User) domain.User {
 	return domain.User {
+		ID: dto.ID,
 		Name: dto.Username,
 		Mail: dto.Mail,
 		PasswordHash: dto.PasswordHash,
