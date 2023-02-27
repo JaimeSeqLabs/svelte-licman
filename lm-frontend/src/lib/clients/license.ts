@@ -89,7 +89,7 @@ export type DescribeLicenseStatusResponse = {
 }
 
 const baseLicenseClient = axios.create({
-    baseURL: LM_PRIVATE_API,
+    baseURL: LM_PRIVATE_API + "/licenses",
     timeout: 1_000,
     headers: {'X-lm-client': 'license'}
 })
