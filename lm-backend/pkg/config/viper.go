@@ -7,6 +7,8 @@ type ApplicationCfg struct {
 	DBURL 			string `mapstructure:"LM_DB_URL"`
 	JWTSecret 		string `mapstructure:"LM_JWT_SECRET"`
 	ServerAddress 	string `mapstructure:"LM_SERVER_ADDRESS"`
+	AdminMail		string `mapstructure:"LM_ADMIN_MAIL"`
+	AdminPassword	string `mapstructure:"LM_ADMIN_PASSWORD"`
 }
 
 func LoadCfg(path string) ApplicationCfg {

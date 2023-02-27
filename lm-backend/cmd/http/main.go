@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"license-manager/pkg/config"
 	"license-manager/pkg/controller"
+	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories/ent-fw/ent"
 	"license-manager/pkg/repositories/ent-fw/license"
 	"license-manager/pkg/repositories/ent-fw/organization"
@@ -62,6 +65,9 @@ func main() {
 	productController := controller.NewProductController(prodRepo)
 	licenseController := controller.NewLicenseController(licenseService, certificateService)
 	validationController := controller.NewValidationController(certificateService)
+
+	// initial data
+	registerAdmin(cfg, authService)
 
 	router := chi.NewRouter()
 
@@ -123,4 +129,28 @@ func getEntClient(cfg config.ApplicationCfg) *ent.Client {
 	}
 
 	return client
+}
+
+func registerAdmin(cfg config.ApplicationCfg, authService service.AuthService) {
+
+	if cfg.AdminMail == "" || cfg.AdminPassword == "" {
+		panic("initial admin mail and password needed to start the server")
+	}
+
+	sha := sha256.New()
+	sha.Write([]byte(cfg.AdminPassword))
+	hash := hex.EncodeToString(sha.Sum(nil))
+
+	err := authService.RegisterUser(domain.User{
+		Name: "Admin",
+		Mail: cfg.AdminMail,
+		PasswordHash: hash,
+		Claims: domain.Claims{
+			domain.UserKindClaim: "admin",
+		},
+	})
+	if err != nil {
+		panic(fmt.Errorf("cannot create initial admin user, failure to register: %w", err))
+	}
+
 }
