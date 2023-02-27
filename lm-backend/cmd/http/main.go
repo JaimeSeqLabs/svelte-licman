@@ -6,7 +6,9 @@ import (
 	"license-manager/pkg/controller"
 	"license-manager/pkg/repositories"
 	"license-manager/pkg/repositories/ent-fw/ent"
+	license_repo "license-manager/pkg/repositories/ent-fw/license"
 	"license-manager/pkg/repositories/ent-fw/organization"
+	product_repo "license-manager/pkg/repositories/ent-fw/product"
 	"license-manager/pkg/repositories/ent-fw/user"
 	"license-manager/pkg/service"
 	"log"
@@ -47,17 +49,22 @@ func main() {
 
 	jwtRepo := repositories.JwtTokenRepository(nil) // TODO
 	userRepo := user_repo.NewUserEntRepo(client)
-	orgRepo := organization_repo.NewOrganizationEntRepo(
-		organization_repo.WithEntClient(client),
-	)
+	orgRepo := organization_repo.NewOrganizationEntRepo(organization_repo.WithEntClient(client))
+	licenseRepo := license_repo.NewLicenseEntRepo(client)
+	prodRepo := product_repo.NewProductEntRepo(client)
 
 	jwtService := service.NewJWTService("<this_is_a_secret>", jwtRepo)
 	authService := service.NewAuthService(userRepo, jwtService)
+	licenseService := service.NewLicenseService(licenseRepo, orgRepo, prodRepo)
+	certificateService := service.NewCertificateService(licenseService, prodRepo)
 
 	helloController := controller.NewHelloController()
 	loginController := controller.NewLoginController(authService)
 	adminController := controller.NewAdminController(jwtService)
 	organizationController := controller.NewOrganizationController(orgRepo)
+	productController := controller.NewProductController(prodRepo)
+	licenseController := controller.NewLicenseController(licenseService, certificateService)
+	validationController := controller.NewValidationController(certificateService)
 
 	router := chi.NewRouter()
 
@@ -73,7 +80,11 @@ func main() {
 		r.Use(middleware.Logger)
 		r.Use(jwtauth.Verifier(jwtService.GetJWTAuth()))
 		r.Mount("/is_admin", adminController.Routes())
+		
 		r.Mount("/organizations", organizationController.Routes())
+		r.Mount("/licenses", licenseController.Routes())
+		r.Mount("/products", productController.Routes())
+		r.Mount("/validate", validationController.Routes())
 	})
 
 	addr := "localhost:8080"
