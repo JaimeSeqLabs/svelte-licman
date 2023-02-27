@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"license-manager/pkg/controller/exchange"
@@ -9,6 +8,7 @@ import (
 	"license-manager/pkg/service"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -33,9 +33,8 @@ func (lc *loginController) Routes() chi.Router {
 
 func (lc *loginController) handleLoginPOST(w http.ResponseWriter, r *http.Request) {
 
-	// extract from request
-	creds, err := lc.extractCredentialsFrom(r)
-	if err != nil {
+	var creds exchange.LoginCredentials
+	if err := readJSON(r, &creds); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -64,19 +63,12 @@ func (lc *loginController) handleLoginPOST(w http.ResponseWriter, r *http.Reques
 	}
 
 	// response
-	err = json.NewEncoder(w).Encode(exchange.JWTResponse{AccessToken: token.Value})
-	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-}
-
-func (lc *loginController) extractCredentialsFrom(r *http.Request) (exchange.LoginCredentials, error) {
-	var creds exchange.LoginCredentials
-	err := json.NewDecoder(r.Body).Decode(&creds)
-	return creds, err
+	http.SetCookie(w, &http.Cookie{
+		Name: "jwt",
+		Value: token.Value,
+		Expires: time.Now().Add(20 * time.Minute),
+	})
+	sendJSON(w, exchange.JWTResponse{AccessToken: token.Value})
 }
 
 func (lc *loginController) findUserWith(creds exchange.LoginCredentials) (domain.User, error) {
