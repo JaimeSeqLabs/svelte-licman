@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"license-manager/pkg/config"
 	"license-manager/pkg/controller"
 	"license-manager/pkg/repositories/ent-fw/ent"
 	"license-manager/pkg/repositories/ent-fw/license"
@@ -13,10 +14,12 @@ import (
 	"license-manager/pkg/service"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/spf13/viper"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -36,15 +39,10 @@ curl -i http://localhost:8080/api/is_admin -H "Accept: application/json" -H "Aut
 
 func main() {
 
-	client, err := ent.Open("sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
-	if err != nil {
-		log.Fatalf("failed opening connection to sqlite: %v", err)
-	}
+	cfg := getCfg()
+
+	client := getEntClient(cfg)
 	defer client.Close()
-	// Run migrations
-	if err := client.Schema.Create(context.Background()); err != nil {
-		log.Fatalf("failed creating schema resources: %v", err)
-	}
 
 	jwtRepo := token_repo.NewJwtTokenEntRepo(client)
 	userRepo := user_repo.NewUserEntRepo(client)
@@ -52,7 +50,7 @@ func main() {
 	licenseRepo := license_repo.NewLicenseEntRepo(client)
 	prodRepo := product_repo.NewProductEntRepo(client)
 
-	jwtService := service.NewJWTService("<this_is_a_secret>", jwtRepo)
+	jwtService := service.NewJWTService(cfg.JWTSecret, jwtRepo)
 	authService := service.NewAuthService(userRepo, jwtService)
 	licenseService := service.NewLicenseService(licenseRepo, orgRepo, prodRepo)
 	certificateService := service.NewCertificateService(licenseService, prodRepo)
@@ -86,8 +84,37 @@ func main() {
 		r.Mount("/validate", validationController.Routes())
 	})
 
-	addr := "localhost:8080"
+	addr := cfg.ServerAddress
 	fmt.Printf("> Server is running at 'http://%s'\n", addr)
 	http.ListenAndServe(addr, router)
 
+}
+
+func getCfg() config.ApplicationCfg {
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	cfg := config.LoadCfg(cwd)
+
+	fmt.Printf("> using config file %s\n", viper.ConfigFileUsed())
+
+	return cfg
+}
+
+func getEntClient(cfg config.ApplicationCfg) *ent.Client {
+
+	client, err := ent.Open(cfg.DBDriver, cfg.DBURL)
+	if err != nil {
+		log.Fatalf("failed opening connection to %s %s, reason: %v", cfg.DBDriver, cfg.DBURL, err)
+	}
+	
+	// Run migrations
+	if err := client.Schema.Create(context.Background()); err != nil {
+		log.Fatalf("failed creating schema resources: %v", err)
+	}
+
+	return client
 }
