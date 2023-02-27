@@ -2,8 +2,8 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"license-manager/pkg/domain"
+	"license-manager/pkg/pkgerrors"
 	"license-manager/pkg/repositories"
 	"license-manager/pkg/repositories/ent-fw/ent"
 	"log"
@@ -113,7 +113,7 @@ func (auth *authService) GetFirstTokenFor(user domain.User) (domain.Token, error
 	}
 
 	if len(tokens) < 1 {
-		return domain.Token{}, fmt.Errorf("user %s does not have any issued token", usr.ID)
+		return domain.Token{}, pkgerrors.ErrNoTokensFound
 	}
 
 	return tokens[0], nil

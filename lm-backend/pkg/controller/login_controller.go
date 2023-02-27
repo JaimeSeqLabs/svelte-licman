@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"license-manager/pkg/controller/exchange"
 	"license-manager/pkg/domain"
+	"license-manager/pkg/pkgerrors"
 	"license-manager/pkg/service"
 	"log"
 	"net/http"
@@ -54,12 +55,28 @@ func (lc *loginController) handleLoginPOST(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// sign claims
-	token, err := lc.authService.CreateTokenFor(user)
+	// get/create token
+	var token domain.Token
+
+	// try to get existing token
+	token, err = lc.authService.GetFirstTokenFor(user)
 	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		
+		// no tokens, create and sign claims
+		if errors.Is(err, pkgerrors.ErrNoTokensFound) {
+			
+			token, err = lc.authService.CreateTokenFor(user)
+			if err != nil {
+				log.Println(err.Error())
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		
+		} else { // db conn error
+			log.Println(err.Error())
+			http.Error(w, fmt.Sprintf("Failed to retrieve tokens for user %s", creds.User), http.StatusInternalServerError)
+			return
+		}	
 	}
 
 	// response
