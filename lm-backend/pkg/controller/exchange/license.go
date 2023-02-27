@@ -30,7 +30,7 @@ type CreateLicenseRequest struct {
 
 type UpdateLicenseRequest struct {
 
-	License domain.License`json:"license"`
+	License domain.License `json:"license"`
 	Products []string `json:"product_ids"`// product IDs
 	Quotas map[string]string`json:"quotas"`
 	
