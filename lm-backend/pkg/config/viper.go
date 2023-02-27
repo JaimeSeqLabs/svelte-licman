@@ -16,6 +16,8 @@ func LoadCfg(path string) ApplicationCfg {
 	viper.SetConfigName("app")
 	viper.SetConfigType("env")
 
+	viper.AutomaticEnv()
+
 	if err := viper.ReadInConfig(); err != nil {
 		panic(err)
 	}
