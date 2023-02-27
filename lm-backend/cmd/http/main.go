@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"license-manager/pkg/controller"
-	"license-manager/pkg/repositories"
 	"license-manager/pkg/repositories/ent-fw/ent"
-	license_repo "license-manager/pkg/repositories/ent-fw/license"
+	"license-manager/pkg/repositories/ent-fw/license"
 	"license-manager/pkg/repositories/ent-fw/organization"
-	product_repo "license-manager/pkg/repositories/ent-fw/product"
+	"license-manager/pkg/repositories/ent-fw/product"
+	"license-manager/pkg/repositories/ent-fw/token"
 	"license-manager/pkg/repositories/ent-fw/user"
 	"license-manager/pkg/service"
 	"log"
@@ -36,18 +36,17 @@ curl -i http://localhost:8080/api/is_admin -H "Accept: application/json" -H "Aut
 
 func main() {
 
-
 	client, err := ent.Open("sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
-    if err != nil {
-        log.Fatalf("failed opening connection to sqlite: %v", err)
-    }
+	if err != nil {
+		log.Fatalf("failed opening connection to sqlite: %v", err)
+	}
 	defer client.Close()
 	// Run migrations
 	if err := client.Schema.Create(context.Background()); err != nil {
-        log.Fatalf("failed creating schema resources: %v", err)
-    }
+		log.Fatalf("failed creating schema resources: %v", err)
+	}
 
-	jwtRepo := repositories.JwtTokenRepository(nil) // TODO
+	jwtRepo := token_repo.NewJwtTokenEntRepo(client)
 	userRepo := user_repo.NewUserEntRepo(client)
 	orgRepo := organization_repo.NewOrganizationEntRepo(organization_repo.WithEntClient(client))
 	licenseRepo := license_repo.NewLicenseEntRepo(client)
@@ -80,7 +79,7 @@ func main() {
 		r.Use(middleware.Logger)
 		r.Use(jwtauth.Verifier(jwtService.GetJWTAuth()))
 		r.Mount("/is_admin", adminController.Routes())
-		
+
 		r.Mount("/organizations", organizationController.Routes())
 		r.Mount("/licenses", licenseController.Routes())
 		r.Mount("/products", productController.Routes())
