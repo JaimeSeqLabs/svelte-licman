@@ -36,7 +36,6 @@ type UpdateLicenseRequest struct {
 	
 }
 
-
 type ListAllLicensesResponse struct {
 	Licenses []ListAllLicensesItem `json:"licenses"`
 }
