@@ -6,6 +6,7 @@ import (
 	"license-manager/pkg/repositories"
 	"license-manager/pkg/repositories/ent-fw/ent"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
+	"license-manager/pkg/repositories/ent-fw/ent/user"
 )
 
 type jwtTokenEntRepo struct {
@@ -38,6 +39,21 @@ func (repo *jwtTokenEntRepo) FindByToken(tokenValue string) (domain.Token, error
 		return domain.Token{}, err
 	}
 	return toEntity(token), nil
+}
+
+func (repo *jwtTokenEntRepo) FindByIssuer(userID string) ([]domain.Token, error) {
+	
+	tokens, err := repo.client.JwtToken.
+		Query().
+		Where(jwttoken.HasIssuerWith(
+			user.IDEQ(userID),
+		)).
+		All(context.TODO())
+	if err != nil {
+		return nil, err
+	}
+
+	return toEntitySlice(tokens), nil
 }
 
 func (repo *jwtTokenEntRepo) FindClaimsByToken(tokenValue string) (domain.Claims, error) {
@@ -92,4 +108,15 @@ func toEntity(dto *ent.JwtToken) domain.Token {
 		Claims: domain.Claims(dto.Claims),
 		IssuerID: dto.IssuerID,
 	}
+}
+
+func toEntitySlice(dtos []*ent.JwtToken) []domain.Token {
+	
+	tokens := make([]domain.Token, len(dtos))
+
+	for i, dto := range dtos {
+		tokens[i] = toEntity(dto)
+	}
+
+	return tokens
 }

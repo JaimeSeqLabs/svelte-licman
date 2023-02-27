@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories"
 	"license-manager/pkg/repositories/ent-fw/ent"
@@ -97,6 +98,25 @@ func (auth *authService) CreateTokenFor(user domain.User) (domain.Token, error) 
 	log.Printf("new token issued to user %s %s\n", user.Name, user.Mail)
 
 	return token, err
+}
+
+func (auth *authService) GetFirstTokenFor(user domain.User) (domain.Token, error) {
+	
+	usr, err := auth.userRepo.FindByMailAndPassword(user.Mail, user.PasswordHash)
+	if err != nil {
+		return domain.Token{}, err
+	}
+
+	tokens, err := auth.jwtService.GetIssuedBy(usr.ID)
+	if err != nil {
+		return domain.Token{}, err
+	}
+
+	if len(tokens) < 1 {
+		return domain.Token{}, fmt.Errorf("user %s does not have any issued token", usr.ID)
+	}
+
+	return tokens[0], nil
 }
 
 func (auth *authService) RevokeTokensFor(user domain.User) (revoked int, err error) {

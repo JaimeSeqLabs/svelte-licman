@@ -49,6 +49,14 @@ func (jwts *jwtService) GetClaimsFromCtx(ctx context.Context) (domain.Claims, er
 	return domain.Claims(claims), nil
 }
 
+func (jwts *jwtService) GetIssuedBy(userID string) ([]domain.Token, error) {
+	res, err := jwts.tokenRepo.FindByIssuer(userID)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func (jwts *jwtService) GetJWTAuth() *jwtauth.JWTAuth {
 	return jwts.tokenAuth
 }

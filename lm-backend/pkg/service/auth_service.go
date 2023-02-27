@@ -13,6 +13,7 @@ type AuthService interface {
 	SetClaimsFor(user domain.User, claims domain.Claims) error
 
 	CreateTokenFor(user domain.User) (domain.Token, error)
+	GetFirstTokenFor(user domain.User) (domain.Token, error)
 	RevokeTokensFor(user domain.User) (revoked int, err error)
 
 }
