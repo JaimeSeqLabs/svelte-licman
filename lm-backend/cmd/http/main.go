@@ -84,6 +84,12 @@ func main() {
 		r.Mount("/validate", validationController.Routes())
 	})
 
+	fmt.Println("> Application endpoints:")
+	chi.Walk(router, func(method, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
+		fmt.Printf("   [%-7s] '%s'\n", method, route)
+		return nil
+	})
+
 	addr := cfg.ServerAddress
 	fmt.Printf("> Server is running at 'http://%s'\n", addr)
 	http.ListenAndServe(addr, router)
@@ -99,7 +105,7 @@ func getCfg() config.ApplicationCfg {
 
 	cfg := config.LoadCfg(cwd)
 
-	fmt.Printf("> using config file %s\n", viper.ConfigFileUsed())
+	fmt.Printf("> Using config file %s\n", viper.ConfigFileUsed())
 
 	return cfg
 }

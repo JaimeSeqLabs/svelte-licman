@@ -8,15 +8,26 @@ lm-backend
 |--cmd -> Source code for the main application binaries
 |   |--http -> Http server
 |--pkg -> Application components
-    |--controller -> Request handlers
-    |--domain -> Domain entities
-    |--repositories -> Persistence and repositories
-    |   |--sql -> Implementation with SQL persistence
-    |   |--ent -> Implementation with ent framework persistence
-    |   |--*_repo.go -> Repository interface
-    |--service -> Domain use cases
-        |--*.go -> Service interface
-        |--*_impl.go -> Service implementation
+|   |--config -> App configuration providers
+|   |--controller -> Request handlers
+|   |   |--exchange -> Request/Response structures
+|   |--domain -> Domain entities
+|   |--pkgerror -> Custom errors
+|   |--repositories -> Persistence and repositories
+|   |   |--sql -> SQL implementation
+|   |   |--ent -> Ent framework implementation
+|   |   |--*_repo.go -> Repository generic interface
+|   |--service -> Domain use cases
+|       |--*.go -> Service interface
+|       |--*_impl.go -> Service implementation
+|--dev.env -> Configuration file
+```
+
+## Run server
+To run the backend server you need an `app.env` configuration file in the same dir in which you are running the server, you can rename/copy `dev.env` to get started.
+
+```console
+go run cmd/http/main.go
 ```
 
 
