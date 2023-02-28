@@ -1,11 +1,12 @@
 <script lang="ts">
     import { goto } from "@roxi/routify";
-    import { Tile, TextInput, ButtonSet, Button, Select, SelectItem, Toggle, Modal, DatePicker, DatePickerInput, TextArea, TextAreaSkeleton } from "carbon-components-svelte";
+    import { Tile, TextInput, ButtonSet, Button, Select, SelectItem, Toggle, Modal, DatePicker, DatePickerInput, TextArea, TextAreaSkeleton, DataTable, NumberInput } from "carbon-components-svelte";
+    import { TrashCan } from "carbon-icons-svelte";
     import { onMount } from "svelte";
     import { createNewLicense } from "../../clients/license";
     import { describeOrg, listAllOrgs, type DescribeOrgResponse, type ListAllOrgsItem } from "../../clients/organizations";
     import { listAllProducts, type DescribeProductResponse } from "../../clients/product";
-
+    import { quotas, type Quota } from "../../clients/quota_store";
 
     // confirm suspend license modal
     let licenseIsSuspended = false
@@ -61,6 +62,9 @@
     export let licenseNotes = ""
     export let activationDate = ""
     export let expirationDate = ""
+    export let availableQuotas:Quota[] = []
+    export let customQuotas:Quota[] = []
+    let selectedCustomQuotaname:string = ""
 
     $: {
         let current = orgs.find(org => org.name == orgName)
@@ -68,6 +72,42 @@
             contactName = current.contact
             contactMail = current.mail
         }
+    }
+
+    quotas.subscribe(qs => {
+        availableQuotas = [{name:"", value:""}, ...qs]
+    })
+
+    // custom quotas table
+    let headers = [
+        {key: "name", value: "Name"},
+        {key: "value", value: "Value"},
+        {key: "actions",    value: "Actions"}
+    ]
+
+    // add selected quota to custom list
+    $: if (selectedCustomQuotaname != "") {
+        if (!customQuotas.find(q=>q.name == selectedCustomQuotaname)) {
+            let q = availableQuotas.find(quota => quota.name == selectedCustomQuotaname)
+            customQuotas = [...customQuotas, q]
+        }
+        selectedCustomQuotaname = ""
+    }
+
+    // update table rows when customQuotas change
+    let rows:{id: string,name: string,value:string}[] = []
+    $: {
+        rows = customQuotas.map(q => {
+            return {
+                id: q.name,
+                name: q.name,
+                value: q.value
+            }
+        })
+    }
+
+    function deleteCustomQuota(name: string) {
+        customQuotas = customQuotas.filter(q => q.name != name)
     }
 
     function onSubmit() {
@@ -80,7 +120,10 @@
             mail: contactMail,
             product_skus: [ prods.find(p => p.name == prodName).sku ],
             organization_name: orgName,
-            quotas: {},
+            quotas: customQuotas.reduce((acc, q)=> {
+                acc[q.name]=q.value
+                return acc
+            }, {}),
             expiration_date: expirationDate,
             activation_date: activationDate
         })
@@ -140,7 +183,38 @@
 
     <TextArea labelText="License Notes" bind:value={licenseNotes}/>
 
-    <!-- TODO: Custom quotas-->
+    
+    <!-- Custom quotas-->
+
+    <Select
+        labelText="Select custom quotas"
+        bind:selected={selectedCustomQuotaname}
+    >
+        {#each availableQuotas as q}
+            <SelectItem value={q.name}/>
+        {/each}
+    </Select>
+
+    <DataTable
+        {headers}
+        {rows}
+    >
+        <svelte:fragment slot="cell" let:cell let:row>
+
+            {#if cell.key == "actions"}
+                <Button kind="ghost" icon={TrashCan} iconDescription="Delete" on:click={() => deleteCustomQuota(row["name"])}/>
+            
+            {:else if cell.key == "value"}
+                <NumberInput value={cell.value}/>
+            
+            {:else}
+                {cell.value}
+            
+            {/if}
+
+        </svelte:fragment>
+
+    </DataTable>
 
 
 </Tile>

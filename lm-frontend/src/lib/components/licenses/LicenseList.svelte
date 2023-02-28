@@ -6,9 +6,13 @@ import InventoryList from "../inventory/InventoryList.svelte";
     import { listAllLicenses, type DomainLicense, type ListAllLicensesItem } from "../../clients/license";
     import { onMount } from "svelte";
     import { describeOrg, listAllOrgs, type DescribeOrgResponse } from "../../clients/organizations";
+    import { Button, Modal, Tile } from "carbon-components-svelte";
+    import { LM_PRIVATE_API } from "../../clients/common";
 
 
     export let onCreateButton = () => {}
+    let showLicenseDetailsModal = false
+    let licenseDetailLicense:DomainLicense
 
     let headers = [
         {key: "id",         value: "ID"},
@@ -54,6 +58,13 @@ import InventoryList from "../inventory/InventoryList.svelte";
             active: lic.status == "active"
         }
     })
+
+    function showDetailsFor(id:string) {
+        
+        licenseDetailLicense = licenses.find(lic => lic.id == id)
+        console.log(`show details for ${id}, ${licenseDetailLicense.id}`);
+        showLicenseDetailsModal = true
+    }
     
     onMount(() => {
         fetchLicenses()
@@ -70,16 +81,38 @@ import InventoryList from "../inventory/InventoryList.svelte";
     {headers}
     {rows}
     let:cell
+    let:row
 >
     <!-- Display license status with a tag -->
     {#if cell.key == "active"}
         <InventoryCellActiveTag {cell}/>
     <!-- Display action buttons-->
     {:else if cell.key == "actions"}
-        <InventoryCellActionButtons {cell}/>
+        <InventoryCellActionButtons
+            {cell} 
+            onDetails={()=>showDetailsFor(row["id"])}
+        />
     <!-- Display default cell value-->
     {:else}
         {cell.value}
     {/if}
 
 </InventoryList>
+
+<Modal
+    passiveModal
+    bind:open={showLicenseDetailsModal}
+    modalHeading="License Details"
+    on:close={()=>showLicenseDetailsModal=false}
+>
+
+<Tile> ID: {licenseDetailLicense?.id}</Tile>
+<Tile> Status: {licenseDetailLicense?.status}</Tile>
+<Tile> Organization: {licenseDetailLicense?.organization_id}</Tile>
+<Tile> Activation: {licenseDetailLicense?.activation_date}</Tile>
+<Tile> Expiration: {licenseDetailLicense?.expiration_date}</Tile>
+<Tile> Contact: {licenseDetailLicense?.activation_date}</Tile>
+
+<Button on:click={()=>window.open(LM_PRIVATE_API + `/licenses/download/${licenseDetailLicense?.id}`)}>Download</Button>
+
+</Modal>

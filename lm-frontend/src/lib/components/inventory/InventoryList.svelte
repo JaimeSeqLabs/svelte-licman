@@ -47,9 +47,9 @@
     </Toolbar>
 
     <!-- pass cell down to new slot -->
-    <svelte:fragment slot="cell" let:cell>
+    <svelte:fragment slot="cell" let:cell let:row>
 
-        <slot cell={cell}/>
+        <slot cell={cell} row={row}/>
 
     </svelte:fragment>
 
