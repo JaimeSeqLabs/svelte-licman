@@ -3,7 +3,7 @@
 
 import { quotas, type Quota } from "./quota_store"
 
-let currentQuotas:Quota[]
+let currentQuotas:Quota[] = []
 
 quotas.subscribe(q => currentQuotas = q)
 
