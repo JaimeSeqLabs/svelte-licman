@@ -1,5 +1,7 @@
 <script lang="ts">
+    import { goto } from "@roxi/routify";
     import { FluidForm, Tile, TextInput, ButtonSet, Button } from "carbon-components-svelte";
+    import { createNewProduct } from "../../clients/product";
 
     export let skuCode: string = ""
     export let productName: string = ""
@@ -7,10 +9,15 @@
     export let productInstructions: string = ""
 
     let onSubmit = () => {
-        console.log({
-            skuCode, productName, productDescription,
-            productInstructions
-        });
+        createNewProduct({
+            sku: skuCode,
+            name: productName,
+            install_instructions: productInstructions
+        })
+        .then(_ => {
+            $goto("/products")
+        })
+        .catch(console.error)
     }
 
 </script>

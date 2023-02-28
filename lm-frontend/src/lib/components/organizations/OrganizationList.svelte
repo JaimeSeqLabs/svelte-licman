@@ -1,6 +1,10 @@
 <script lang="ts">
+    import { onMount } from "svelte";
+    import { describeOrg, listAllOrgs, type DescribeOrgResponse } from "../../clients/organizations";
     import InventoryCellActionButtons from "../inventory/InventoryCellActionButtons.svelte";
     import InventoryList from "../inventory/InventoryList.svelte";
+
+    export let onCreateButton = () => {}
 
     let headers = [
         {key: "org",        value: "Name"},
@@ -11,12 +15,40 @@
         {key: "actions",    value: "Actions"}
     ]
 
-    let rows = [
-        { id: 1, org: "Org", country: "Spain", contact: "Jaime", mail: "jaime.munoz@seqera.io", licenses: 1 },
-        { id: 2, org: "SeqeraLabs", country: "Spain", contact: "Boss", mail: "licenses@seqera.io", licenses: 2000 }
-    ]
+    let orgs: DescribeOrgResponse[] = []
+    function fetchOrgs() {
+        listAllOrgs()
+        .then(async (list) => {
 
-    export let onCreateButton = () => {}
+            orgs = (
+                await Promise.all(
+                    list.data.organizations.map(org => describeOrg(org.id))
+                )
+            ).map(desc => desc.data)
+            
+        })
+        .catch(err => {
+            console.error(err)
+        })
+    }
+
+    let rows: { id:string, org:string, country:string, contact:string, mail: string, licenses:number }[] = []
+    $: rows = orgs.map(org => {
+        return {
+            id: org.id,
+            org: org.name,
+            country: org.country,
+            contact: org.contact,
+            mail: org.mail,
+            licenses: org.licenses.length
+        }
+    })
+
+    onMount(() => {
+        fetchOrgs()
+    })
+
+  
 
 </script>
 

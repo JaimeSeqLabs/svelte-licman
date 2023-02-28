@@ -23,7 +23,7 @@
             if (res.status != 200) {
                 showErr("Wrong credentials")
             } else {
-                $goto("/")
+                $goto("/licenses")
             }
 
         })

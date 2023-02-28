@@ -1,5 +1,7 @@
 <script lang="ts">
+    import { goto } from "@roxi/routify";
     import { FluidForm, Tile, TextInput, ButtonSet, Button } from "carbon-components-svelte";
+    import { createOrg } from "../../clients/organizations";
 
     export let orgName: string = ""
     export let contactName: string = ""
@@ -9,10 +11,22 @@
     export let country: string = ""
 
     let onSubmit = () => {
-        console.log({
-            orgName, contactName, contactMail,
-            address, postalCode, country
-        });
+
+        createOrg({
+            id: "",
+            name: orgName,
+            contact: contactName,
+            mail: contactMail,
+            country: country,
+            licenses: [],
+            date_created: null,
+            last_updated: null
+        })
+        .then(_ => {
+            $goto("/organizations")
+        })
+        .catch(console.error)
+
     }
 
 </script>

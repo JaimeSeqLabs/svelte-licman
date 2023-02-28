@@ -1,9 +1,14 @@
 <script lang="ts">
-    import InventoryList from "../inventory/InventoryList.svelte";
+
+import InventoryList from "../inventory/InventoryList.svelte";
     import InventoryCellActiveTag from "../inventory/InventoryCellActiveTag.svelte";
     import InventoryCellActionButtons from "../inventory/InventoryCellActionButtons.svelte";
+    import { listAllLicenses, type DomainLicense, type ListAllLicensesItem } from "../../clients/license";
+    import { onMount } from "svelte";
+    import { describeOrg, listAllOrgs, type DescribeOrgResponse } from "../../clients/organizations";
 
-    let now = new Date().toUTCString()
+
+    export let onCreateButton = () => {}
 
     let headers = [
         {key: "id",         value: "ID"},
@@ -14,12 +19,50 @@
         {key: "actions",    value: "Actions"}
     ]
 
-    let rows = [
-        { id: "001", org: "Evil Corp", activation: now, expiration: now, active: true },
-        { id: "002", org: "Seqera Labs", activation: now, expiration: now, active: false }
-    ]
+    let licenses: DomainLicense[] = []
+    function fetchLicenses() {
+        listAllLicenses()
+        .then(res => {
+            licenses = res.licenses
+        })
+        .catch(console.error)
+    }
 
-    export let onCreateButton = () => {}
+    let orgs: DescribeOrgResponse[] = []
+    function fetchOrgs() {
+        listAllOrgs()
+        .then(async (list) => {
+            orgs = (
+                await Promise.all(
+                    list.data.organizations.map(org => describeOrg(org.id))
+                )
+            )
+            .map(desc => desc.data)
+        })
+        .catch(err => {
+            console.error(err)
+        })
+    }
+
+    let rows: { id:string, org:string, activation:string, expiration:string, active:boolean}[] = []
+    $: rows = licenses.map(lic => {
+        console.table(orgs)
+        console.log(lic.organization_id);
+        
+        return {
+            id: lic.id,
+            org: orgs.find(org => org.id == lic.organization_id)?.name, // TODO: licenses are ready before orgs, orgs may be empty
+            activation: lic.activation_date,
+            expiration: lic.expiration_date,
+            active: lic.status == "active"
+        }
+    })
+    
+    onMount(() => {
+        fetchLicenses()
+        fetchOrgs()
+    })
+
 
 </script>
 
