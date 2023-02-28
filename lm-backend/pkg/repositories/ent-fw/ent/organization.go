@@ -4,9 +4,9 @@ package ent
 
 import (
 	"fmt"
-	"license-manager/pkg/repositories/ent-fw/ent/contact"
 	"license-manager/pkg/repositories/ent-fw/ent/organization"
 	"strings"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 )
@@ -18,10 +18,20 @@ type Organization struct {
 	ID string `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Location holds the value of the "location" field.
-	Location string `json:"location,omitempty"`
-	// ContactID holds the value of the "contact_id" field.
-	ContactID string `json:"contact_id,omitempty"`
+	// Contact holds the value of the "contact" field.
+	Contact string `json:"contact,omitempty"`
+	// Mail holds the value of the "mail" field.
+	Mail string `json:"mail,omitempty"`
+	// Address holds the value of the "address" field.
+	Address string `json:"address,omitempty"`
+	// Zipcode holds the value of the "zipcode" field.
+	Zipcode string `json:"zipcode,omitempty"`
+	// Country holds the value of the "country" field.
+	Country string `json:"country,omitempty"`
+	// DateCreated holds the value of the "date_created" field.
+	DateCreated time.Time `json:"date_created,omitempty"`
+	// LastUpdated holds the value of the "last_updated" field.
+	LastUpdated time.Time `json:"last_updated,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrganizationQuery when eager-loading is set.
 	Edges OrganizationEdges `json:"edges"`
@@ -29,32 +39,17 @@ type Organization struct {
 
 // OrganizationEdges holds the relations/edges for other nodes in the graph.
 type OrganizationEdges struct {
-	// Contact holds the value of the contact edge.
-	Contact *Contact `json:"contact,omitempty"`
 	// Licenses holds the value of the licenses edge.
 	Licenses []*License `json:"licenses,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
-}
-
-// ContactOrErr returns the Contact value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e OrganizationEdges) ContactOrErr() (*Contact, error) {
-	if e.loadedTypes[0] {
-		if e.Contact == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: contact.Label}
-		}
-		return e.Contact, nil
-	}
-	return nil, &NotLoadedError{edge: "contact"}
+	loadedTypes [1]bool
 }
 
 // LicensesOrErr returns the Licenses value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) LicensesOrErr() ([]*License, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[0] {
 		return e.Licenses, nil
 	}
 	return nil, &NotLoadedError{edge: "licenses"}
@@ -65,8 +60,10 @@ func (*Organization) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case organization.FieldID, organization.FieldName, organization.FieldLocation, organization.FieldContactID:
+		case organization.FieldID, organization.FieldName, organization.FieldContact, organization.FieldMail, organization.FieldAddress, organization.FieldZipcode, organization.FieldCountry:
 			values[i] = new(sql.NullString)
+		case organization.FieldDateCreated, organization.FieldLastUpdated:
+			values[i] = new(sql.NullTime)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Organization", columns[i])
 		}
@@ -94,26 +91,51 @@ func (o *Organization) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				o.Name = value.String
 			}
-		case organization.FieldLocation:
+		case organization.FieldContact:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field location", values[i])
+				return fmt.Errorf("unexpected type %T for field contact", values[i])
 			} else if value.Valid {
-				o.Location = value.String
+				o.Contact = value.String
 			}
-		case organization.FieldContactID:
+		case organization.FieldMail:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field contact_id", values[i])
+				return fmt.Errorf("unexpected type %T for field mail", values[i])
 			} else if value.Valid {
-				o.ContactID = value.String
+				o.Mail = value.String
+			}
+		case organization.FieldAddress:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field address", values[i])
+			} else if value.Valid {
+				o.Address = value.String
+			}
+		case organization.FieldZipcode:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field zipcode", values[i])
+			} else if value.Valid {
+				o.Zipcode = value.String
+			}
+		case organization.FieldCountry:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field country", values[i])
+			} else if value.Valid {
+				o.Country = value.String
+			}
+		case organization.FieldDateCreated:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field date_created", values[i])
+			} else if value.Valid {
+				o.DateCreated = value.Time
+			}
+		case organization.FieldLastUpdated:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_updated", values[i])
+			} else if value.Valid {
+				o.LastUpdated = value.Time
 			}
 		}
 	}
 	return nil
-}
-
-// QueryContact queries the "contact" edge of the Organization entity.
-func (o *Organization) QueryContact() *ContactQuery {
-	return NewOrganizationClient(o.config).QueryContact(o)
 }
 
 // QueryLicenses queries the "licenses" edge of the Organization entity.
@@ -147,11 +169,26 @@ func (o *Organization) String() string {
 	builder.WriteString("name=")
 	builder.WriteString(o.Name)
 	builder.WriteString(", ")
-	builder.WriteString("location=")
-	builder.WriteString(o.Location)
+	builder.WriteString("contact=")
+	builder.WriteString(o.Contact)
 	builder.WriteString(", ")
-	builder.WriteString("contact_id=")
-	builder.WriteString(o.ContactID)
+	builder.WriteString("mail=")
+	builder.WriteString(o.Mail)
+	builder.WriteString(", ")
+	builder.WriteString("address=")
+	builder.WriteString(o.Address)
+	builder.WriteString(", ")
+	builder.WriteString("zipcode=")
+	builder.WriteString(o.Zipcode)
+	builder.WriteString(", ")
+	builder.WriteString("country=")
+	builder.WriteString(o.Country)
+	builder.WriteString(", ")
+	builder.WriteString("date_created=")
+	builder.WriteString(o.DateCreated.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("last_updated=")
+	builder.WriteString(o.LastUpdated.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

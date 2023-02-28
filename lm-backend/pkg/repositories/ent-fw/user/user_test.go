@@ -82,6 +82,9 @@ func TestReadData(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// patch ID
+	target.ID = usr1.ID
+
 	if !reflect.DeepEqual(target, usr1) {
 		t.Fatalf("find by name and mail failed: want %v but got %v", target, usr1)
 	}
@@ -155,6 +158,9 @@ func TestUpdateData(t *testing.T) {
 	}
 
 	got, _ := repo.FindByNameAndMail(original.Name, original.Mail)
+
+	// patch user ID
+	updated.ID = got.ID
 
 	if !reflect.DeepEqual(updated, got) {
 		t.Fatalf("updated failed: want %v but got %v", updated, got)

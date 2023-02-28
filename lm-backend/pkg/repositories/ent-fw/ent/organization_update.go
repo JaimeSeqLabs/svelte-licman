@@ -6,10 +6,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"license-manager/pkg/repositories/ent-fw/ent/contact"
 	"license-manager/pkg/repositories/ent-fw/ent/license"
 	"license-manager/pkg/repositories/ent-fw/ent/organization"
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -35,35 +35,54 @@ func (ou *OrganizationUpdate) SetName(s string) *OrganizationUpdate {
 	return ou
 }
 
-// SetLocation sets the "location" field.
-func (ou *OrganizationUpdate) SetLocation(s string) *OrganizationUpdate {
-	ou.mutation.SetLocation(s)
+// SetContact sets the "contact" field.
+func (ou *OrganizationUpdate) SetContact(s string) *OrganizationUpdate {
+	ou.mutation.SetContact(s)
 	return ou
 }
 
-// SetContactID sets the "contact_id" field.
-func (ou *OrganizationUpdate) SetContactID(s string) *OrganizationUpdate {
-	ou.mutation.SetContactID(s)
+// SetMail sets the "mail" field.
+func (ou *OrganizationUpdate) SetMail(s string) *OrganizationUpdate {
+	ou.mutation.SetMail(s)
 	return ou
 }
 
-// SetNillableContactID sets the "contact_id" field if the given value is not nil.
-func (ou *OrganizationUpdate) SetNillableContactID(s *string) *OrganizationUpdate {
-	if s != nil {
-		ou.SetContactID(*s)
+// SetAddress sets the "address" field.
+func (ou *OrganizationUpdate) SetAddress(s string) *OrganizationUpdate {
+	ou.mutation.SetAddress(s)
+	return ou
+}
+
+// SetZipcode sets the "zipcode" field.
+func (ou *OrganizationUpdate) SetZipcode(s string) *OrganizationUpdate {
+	ou.mutation.SetZipcode(s)
+	return ou
+}
+
+// SetCountry sets the "country" field.
+func (ou *OrganizationUpdate) SetCountry(s string) *OrganizationUpdate {
+	ou.mutation.SetCountry(s)
+	return ou
+}
+
+// SetDateCreated sets the "date_created" field.
+func (ou *OrganizationUpdate) SetDateCreated(t time.Time) *OrganizationUpdate {
+	ou.mutation.SetDateCreated(t)
+	return ou
+}
+
+// SetNillableDateCreated sets the "date_created" field if the given value is not nil.
+func (ou *OrganizationUpdate) SetNillableDateCreated(t *time.Time) *OrganizationUpdate {
+	if t != nil {
+		ou.SetDateCreated(*t)
 	}
 	return ou
 }
 
-// ClearContactID clears the value of the "contact_id" field.
-func (ou *OrganizationUpdate) ClearContactID() *OrganizationUpdate {
-	ou.mutation.ClearContactID()
+// SetLastUpdated sets the "last_updated" field.
+func (ou *OrganizationUpdate) SetLastUpdated(t time.Time) *OrganizationUpdate {
+	ou.mutation.SetLastUpdated(t)
 	return ou
-}
-
-// SetContact sets the "contact" edge to the Contact entity.
-func (ou *OrganizationUpdate) SetContact(c *Contact) *OrganizationUpdate {
-	return ou.SetContactID(c.ID)
 }
 
 // AddLicenseIDs adds the "licenses" edge to the License entity by IDs.
@@ -84,12 +103,6 @@ func (ou *OrganizationUpdate) AddLicenses(l ...*License) *OrganizationUpdate {
 // Mutation returns the OrganizationMutation object of the builder.
 func (ou *OrganizationUpdate) Mutation() *OrganizationMutation {
 	return ou.mutation
-}
-
-// ClearContact clears the "contact" edge to the Contact entity.
-func (ou *OrganizationUpdate) ClearContact() *OrganizationUpdate {
-	ou.mutation.ClearContact()
-	return ou
 }
 
 // ClearLicenses clears all "licenses" edges to the License entity.
@@ -115,6 +128,7 @@ func (ou *OrganizationUpdate) RemoveLicenses(l ...*License) *OrganizationUpdate 
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ou *OrganizationUpdate) Save(ctx context.Context) (int, error) {
+	ou.defaults()
 	return withHooks[int, OrganizationMutation](ctx, ou.sqlSave, ou.mutation, ou.hooks)
 }
 
@@ -140,6 +154,14 @@ func (ou *OrganizationUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (ou *OrganizationUpdate) defaults() {
+	if _, ok := ou.mutation.LastUpdated(); !ok {
+		v := organization.UpdateDefaultLastUpdated()
+		ou.mutation.SetLastUpdated(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (ou *OrganizationUpdate) check() error {
 	if v, ok := ou.mutation.Name(); ok {
@@ -147,9 +169,9 @@ func (ou *OrganizationUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Organization.name": %w`, err)}
 		}
 	}
-	if v, ok := ou.mutation.Location(); ok {
-		if err := organization.LocationValidator(v); err != nil {
-			return &ValidationError{Name: "location", err: fmt.Errorf(`ent: validator failed for field "Organization.location": %w`, err)}
+	if v, ok := ou.mutation.Country(); ok {
+		if err := organization.CountryValidator(v); err != nil {
+			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Organization.country": %w`, err)}
 		}
 	}
 	return nil
@@ -179,43 +201,26 @@ func (ou *OrganizationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := ou.mutation.Name(); ok {
 		_spec.SetField(organization.FieldName, field.TypeString, value)
 	}
-	if value, ok := ou.mutation.Location(); ok {
-		_spec.SetField(organization.FieldLocation, field.TypeString, value)
+	if value, ok := ou.mutation.Contact(); ok {
+		_spec.SetField(organization.FieldContact, field.TypeString, value)
 	}
-	if ou.mutation.ContactCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   organization.ContactTable,
-			Columns: []string{organization.ContactColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: contact.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	if value, ok := ou.mutation.Mail(); ok {
+		_spec.SetField(organization.FieldMail, field.TypeString, value)
 	}
-	if nodes := ou.mutation.ContactIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   organization.ContactTable,
-			Columns: []string{organization.ContactColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: contact.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	if value, ok := ou.mutation.Address(); ok {
+		_spec.SetField(organization.FieldAddress, field.TypeString, value)
+	}
+	if value, ok := ou.mutation.Zipcode(); ok {
+		_spec.SetField(organization.FieldZipcode, field.TypeString, value)
+	}
+	if value, ok := ou.mutation.Country(); ok {
+		_spec.SetField(organization.FieldCountry, field.TypeString, value)
+	}
+	if value, ok := ou.mutation.DateCreated(); ok {
+		_spec.SetField(organization.FieldDateCreated, field.TypeTime, value)
+	}
+	if value, ok := ou.mutation.LastUpdated(); ok {
+		_spec.SetField(organization.FieldLastUpdated, field.TypeTime, value)
 	}
 	if ou.mutation.LicensesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -297,35 +302,54 @@ func (ouo *OrganizationUpdateOne) SetName(s string) *OrganizationUpdateOne {
 	return ouo
 }
 
-// SetLocation sets the "location" field.
-func (ouo *OrganizationUpdateOne) SetLocation(s string) *OrganizationUpdateOne {
-	ouo.mutation.SetLocation(s)
+// SetContact sets the "contact" field.
+func (ouo *OrganizationUpdateOne) SetContact(s string) *OrganizationUpdateOne {
+	ouo.mutation.SetContact(s)
 	return ouo
 }
 
-// SetContactID sets the "contact_id" field.
-func (ouo *OrganizationUpdateOne) SetContactID(s string) *OrganizationUpdateOne {
-	ouo.mutation.SetContactID(s)
+// SetMail sets the "mail" field.
+func (ouo *OrganizationUpdateOne) SetMail(s string) *OrganizationUpdateOne {
+	ouo.mutation.SetMail(s)
 	return ouo
 }
 
-// SetNillableContactID sets the "contact_id" field if the given value is not nil.
-func (ouo *OrganizationUpdateOne) SetNillableContactID(s *string) *OrganizationUpdateOne {
-	if s != nil {
-		ouo.SetContactID(*s)
+// SetAddress sets the "address" field.
+func (ouo *OrganizationUpdateOne) SetAddress(s string) *OrganizationUpdateOne {
+	ouo.mutation.SetAddress(s)
+	return ouo
+}
+
+// SetZipcode sets the "zipcode" field.
+func (ouo *OrganizationUpdateOne) SetZipcode(s string) *OrganizationUpdateOne {
+	ouo.mutation.SetZipcode(s)
+	return ouo
+}
+
+// SetCountry sets the "country" field.
+func (ouo *OrganizationUpdateOne) SetCountry(s string) *OrganizationUpdateOne {
+	ouo.mutation.SetCountry(s)
+	return ouo
+}
+
+// SetDateCreated sets the "date_created" field.
+func (ouo *OrganizationUpdateOne) SetDateCreated(t time.Time) *OrganizationUpdateOne {
+	ouo.mutation.SetDateCreated(t)
+	return ouo
+}
+
+// SetNillableDateCreated sets the "date_created" field if the given value is not nil.
+func (ouo *OrganizationUpdateOne) SetNillableDateCreated(t *time.Time) *OrganizationUpdateOne {
+	if t != nil {
+		ouo.SetDateCreated(*t)
 	}
 	return ouo
 }
 
-// ClearContactID clears the value of the "contact_id" field.
-func (ouo *OrganizationUpdateOne) ClearContactID() *OrganizationUpdateOne {
-	ouo.mutation.ClearContactID()
+// SetLastUpdated sets the "last_updated" field.
+func (ouo *OrganizationUpdateOne) SetLastUpdated(t time.Time) *OrganizationUpdateOne {
+	ouo.mutation.SetLastUpdated(t)
 	return ouo
-}
-
-// SetContact sets the "contact" edge to the Contact entity.
-func (ouo *OrganizationUpdateOne) SetContact(c *Contact) *OrganizationUpdateOne {
-	return ouo.SetContactID(c.ID)
 }
 
 // AddLicenseIDs adds the "licenses" edge to the License entity by IDs.
@@ -346,12 +370,6 @@ func (ouo *OrganizationUpdateOne) AddLicenses(l ...*License) *OrganizationUpdate
 // Mutation returns the OrganizationMutation object of the builder.
 func (ouo *OrganizationUpdateOne) Mutation() *OrganizationMutation {
 	return ouo.mutation
-}
-
-// ClearContact clears the "contact" edge to the Contact entity.
-func (ouo *OrganizationUpdateOne) ClearContact() *OrganizationUpdateOne {
-	ouo.mutation.ClearContact()
-	return ouo
 }
 
 // ClearLicenses clears all "licenses" edges to the License entity.
@@ -384,6 +402,7 @@ func (ouo *OrganizationUpdateOne) Select(field string, fields ...string) *Organi
 
 // Save executes the query and returns the updated Organization entity.
 func (ouo *OrganizationUpdateOne) Save(ctx context.Context) (*Organization, error) {
+	ouo.defaults()
 	return withHooks[*Organization, OrganizationMutation](ctx, ouo.sqlSave, ouo.mutation, ouo.hooks)
 }
 
@@ -409,6 +428,14 @@ func (ouo *OrganizationUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (ouo *OrganizationUpdateOne) defaults() {
+	if _, ok := ouo.mutation.LastUpdated(); !ok {
+		v := organization.UpdateDefaultLastUpdated()
+		ouo.mutation.SetLastUpdated(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (ouo *OrganizationUpdateOne) check() error {
 	if v, ok := ouo.mutation.Name(); ok {
@@ -416,9 +443,9 @@ func (ouo *OrganizationUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Organization.name": %w`, err)}
 		}
 	}
-	if v, ok := ouo.mutation.Location(); ok {
-		if err := organization.LocationValidator(v); err != nil {
-			return &ValidationError{Name: "location", err: fmt.Errorf(`ent: validator failed for field "Organization.location": %w`, err)}
+	if v, ok := ouo.mutation.Country(); ok {
+		if err := organization.CountryValidator(v); err != nil {
+			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Organization.country": %w`, err)}
 		}
 	}
 	return nil
@@ -465,43 +492,26 @@ func (ouo *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizat
 	if value, ok := ouo.mutation.Name(); ok {
 		_spec.SetField(organization.FieldName, field.TypeString, value)
 	}
-	if value, ok := ouo.mutation.Location(); ok {
-		_spec.SetField(organization.FieldLocation, field.TypeString, value)
+	if value, ok := ouo.mutation.Contact(); ok {
+		_spec.SetField(organization.FieldContact, field.TypeString, value)
 	}
-	if ouo.mutation.ContactCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   organization.ContactTable,
-			Columns: []string{organization.ContactColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: contact.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	if value, ok := ouo.mutation.Mail(); ok {
+		_spec.SetField(organization.FieldMail, field.TypeString, value)
 	}
-	if nodes := ouo.mutation.ContactIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   organization.ContactTable,
-			Columns: []string{organization.ContactColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: contact.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	if value, ok := ouo.mutation.Address(); ok {
+		_spec.SetField(organization.FieldAddress, field.TypeString, value)
+	}
+	if value, ok := ouo.mutation.Zipcode(); ok {
+		_spec.SetField(organization.FieldZipcode, field.TypeString, value)
+	}
+	if value, ok := ouo.mutation.Country(); ok {
+		_spec.SetField(organization.FieldCountry, field.TypeString, value)
+	}
+	if value, ok := ouo.mutation.DateCreated(); ok {
+		_spec.SetField(organization.FieldDateCreated, field.TypeTime, value)
+	}
+	if value, ok := ouo.mutation.LastUpdated(); ok {
+		_spec.SetField(organization.FieldLastUpdated, field.TypeTime, value)
 	}
 	if ouo.mutation.LicensesCleared() {
 		edge := &sqlgraph.EdgeSpec{

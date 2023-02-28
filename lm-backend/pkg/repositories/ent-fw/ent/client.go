@@ -812,22 +812,6 @@ func (c *OrganizationClient) GetX(ctx context.Context, id string) *Organization 
 	return obj
 }
 
-// QueryContact queries the contact edge of a Organization.
-func (c *OrganizationClient) QueryContact(o *Organization) *ContactQuery {
-	query := (&ContactClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := o.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(organization.Table, organization.FieldID, id),
-			sqlgraph.To(contact.Table, contact.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, organization.ContactTable, organization.ContactColumn),
-		)
-		fromV = sqlgraph.Neighbors(o.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryLicenses queries the licenses edge of a Organization.
 func (c *OrganizationClient) QueryLicenses(o *Organization) *LicenseQuery {
 	query := (&LicenseClient{config: c.config}).Query()

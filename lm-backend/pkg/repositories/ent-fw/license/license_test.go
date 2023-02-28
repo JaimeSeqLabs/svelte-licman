@@ -67,7 +67,11 @@ func TestCreateData(t *testing.T) {
 
 	org := client.Organization.Create().
 		SetName("org").
-		SetLocation("Barcelona").
+		SetCountry("Spain").
+		SetContact("jaime").
+		SetMail("jaime@mail.com").
+		SetAddress("Wallaby St.").
+		SetZipcode("000000").
 		SaveX(context.TODO())
 	prod1 := client.Product.Create().
 		SetSku("sku1").
@@ -103,7 +107,11 @@ func TestReadData(t *testing.T) {
 
 	org := client.Organization.Create().
 		SetName("org").
-		SetLocation("Barcelona").
+		SetCountry("Spain").
+		SetContact("jaime").
+		SetMail("jaime@mail.com").
+		SetAddress("Wallaby St.").
+		SetZipcode("000000").
 		SaveX(context.TODO())
 	prod1 := client.Product.Create().
 		SetSku("sku1").
@@ -238,7 +246,11 @@ func TestUpdateData(t *testing.T) {
 
 	org := client.Organization.Create().
 		SetName("org").
-		SetLocation("Barcelona").
+		SetCountry("Spain").
+		SetContact("jaime").
+		SetMail("jaime@mail.com").
+		SetAddress("Wallaby St.").
+		SetZipcode("000000").
 		SaveX(context.TODO())
 	prod1 := client.Product.Create().
 		SetSku("sku1").
@@ -318,7 +330,11 @@ func TestDeleteData(t *testing.T) {
 
 	org := client.Organization.Create().
 		SetName("org").
-		SetLocation("Barcelona").
+		SetCountry("Spain").
+		SetContact("jaime").
+		SetMail("jaime@mail.com").
+		SetAddress("Wallaby St.").
+		SetZipcode("000000").
 		SaveX(context.TODO())
 	prod1 := client.Product.Create().
 		SetSku("sku1").
@@ -386,7 +402,11 @@ func TestLicenseQuotas(t *testing.T) {
 
 	org := client.Organization.Create().
 		SetName("org").
-		SetLocation("Barcelona").
+		SetCountry("Spain").
+		SetContact("jaime").
+		SetMail("jaime@mail.com").
+		SetAddress("Wallaby St.").
+		SetZipcode("000000").
 		SaveX(context.TODO())
 	prod1 := client.Product.Create().
 		SetSku("sku1").

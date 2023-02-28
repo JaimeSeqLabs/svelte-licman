@@ -18,8 +18,9 @@ func TestOrgSQLCreateOrg(t *testing.T) {
 
 	err := repo.Save(domain.Organization{
 		Name:      "BigCorpo",
-		Location:  "Barcelona, Spain",
-		ContactID: "Jaime, jaime.munoz@mail.com",
+		Country:  "Barcelona, Spain",
+		Contact: "Jaime",
+		Mail: "jaime.munoz@mail.com",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -39,13 +40,15 @@ func TestOrgSQLFindOrg(t *testing.T) {
 	tests := []domain.Organization{
 		{
 			Name:      "Org1",
-			Location:  "Madrid, Spain",
-			ContactID: "Alice, alice@mail.com",
+			Country:  "Madrid, Spain",
+			Contact: "Alice",
+			Mail: "alice@mail.com",
 		},
 		{
 			Name:      "Org2",
-			Location:  "Barcelona, Spain",
-			ContactID: "Bob, bob@mail.com",
+			Country:  "Barcelona, Spain",
+			Contact: "Bob",
+			Mail: "bob@mail.com",
 		},
 	}
 
@@ -76,13 +79,14 @@ func TestOrgSQLUpdateOrg(t *testing.T) {
 
 	org := domain.Organization{
 		Name:      "BigCorpo",
-		Location:  "Barcelona, Spain",
-		ContactID: "Jaime, jaime.munoz@mail.com",
+		Country:  "Barcelona, Spain",
+		Contact: "Jaime",
+		Mail: "jaime.munoz@mail.com",
 	}
 
 	repo.Save(org)
 
-	org.Location = "Madrid, Spain"
+	org.Country = "Madrid, Spain"
 
 	updated, err := repo.Update(org)
 	if err != nil {
@@ -115,8 +119,9 @@ func TestOrgSQLUpdateOrg_failure(t *testing.T) {
 
 	org := domain.Organization{
 		Name:      "BigCorpo",
-		Location:  "Barcelona, Spain",
-		ContactID: "Jaime, jaime.munoz@mail.com",
+		Country:  "Barcelona, Spain",
+		Contact: "Jaime",
+		Mail: "jaime.munoz@mail.com",
 	}
 
 	updated, err := repo.Update(org)
@@ -140,8 +145,9 @@ func TestOrgSQLDeleteOrg(t *testing.T) {
 
 	org := domain.Organization{
 		Name:      "BigCorpo",
-		Location:  "Barcelona, Spain",
-		ContactID: "Jaime, jaime.munoz@mail.com",
+		Country:  "Barcelona, Spain",
+		Contact: "Jaime",
+		Mail: "jaime.munoz@mail.com",
 	}
 
 	repo.Save(org)
@@ -169,8 +175,9 @@ func TestOrgSQLDeleteOrg_failure(t *testing.T) {
 
 	org := domain.Organization{
 		Name:      "BigCorpo",
-		Location:  "Barcelona, Spain",
-		ContactID: "Jaime, jaime.munoz@mail.com",
+		Country:  "Barcelona, Spain",
+		Contact: "Jaime",
+		Mail: "jaime.munoz@mail.com",
 	}
 
 	err := repo.DeleteByName(org.Name)

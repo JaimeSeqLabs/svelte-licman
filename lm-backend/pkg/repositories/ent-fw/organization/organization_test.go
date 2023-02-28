@@ -22,7 +22,12 @@ func TestOrganizationBasic(t *testing.T) {
 
 	target := domain.Organization{
 		Name: "Org1",
-		Location: "Barcelona, Spain",
+		Contact: "jaime",
+		Mail: "jaime@mail.com",
+		Address: "Wallaby St.",
+		ZipCode: "000000",
+		Country: "Spain",
+		Licenses: []string{},
 	}
 
 	err := repo.Save(target)
@@ -35,8 +40,10 @@ func TestOrganizationBasic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// patch obj with ID coming from ent
+	// patch obj with fields coming from ent
 	target.ID = org.ID
+	target.DateCreated = org.DateCreated
+	target.LastUpdated = org.LastUpdated
 
 	if !reflect.DeepEqual(org, target) {
 		t.Fatalf("want %+v but got %+v", target, org)

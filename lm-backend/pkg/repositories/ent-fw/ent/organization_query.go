@@ -6,7 +6,6 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
-	"license-manager/pkg/repositories/ent-fw/ent/contact"
 	"license-manager/pkg/repositories/ent-fw/ent/license"
 	"license-manager/pkg/repositories/ent-fw/ent/organization"
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
@@ -24,7 +23,6 @@ type OrganizationQuery struct {
 	order        []OrderFunc
 	inters       []Interceptor
 	predicates   []predicate.Organization
-	withContact  *ContactQuery
 	withLicenses *LicenseQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -60,28 +58,6 @@ func (oq *OrganizationQuery) Unique(unique bool) *OrganizationQuery {
 func (oq *OrganizationQuery) Order(o ...OrderFunc) *OrganizationQuery {
 	oq.order = append(oq.order, o...)
 	return oq
-}
-
-// QueryContact chains the current query on the "contact" edge.
-func (oq *OrganizationQuery) QueryContact() *ContactQuery {
-	query := (&ContactClient{config: oq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := oq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := oq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(organization.Table, organization.FieldID, selector),
-			sqlgraph.To(contact.Table, contact.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, organization.ContactTable, organization.ContactColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(oq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // QueryLicenses chains the current query on the "licenses" edge.
@@ -296,23 +272,11 @@ func (oq *OrganizationQuery) Clone() *OrganizationQuery {
 		order:        append([]OrderFunc{}, oq.order...),
 		inters:       append([]Interceptor{}, oq.inters...),
 		predicates:   append([]predicate.Organization{}, oq.predicates...),
-		withContact:  oq.withContact.Clone(),
 		withLicenses: oq.withLicenses.Clone(),
 		// clone intermediate query.
 		sql:  oq.sql.Clone(),
 		path: oq.path,
 	}
-}
-
-// WithContact tells the query-builder to eager-load the nodes that are connected to
-// the "contact" edge. The optional arguments are used to configure the query builder of the edge.
-func (oq *OrganizationQuery) WithContact(opts ...func(*ContactQuery)) *OrganizationQuery {
-	query := (&ContactClient{config: oq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	oq.withContact = query
-	return oq
 }
 
 // WithLicenses tells the query-builder to eager-load the nodes that are connected to
@@ -404,8 +368,7 @@ func (oq *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = oq.querySpec()
-		loadedTypes = [2]bool{
-			oq.withContact != nil,
+		loadedTypes = [1]bool{
 			oq.withLicenses != nil,
 		}
 	)
@@ -427,12 +390,6 @@ func (oq *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := oq.withContact; query != nil {
-		if err := oq.loadContact(ctx, query, nodes, nil,
-			func(n *Organization, e *Contact) { n.Edges.Contact = e }); err != nil {
-			return nil, err
-		}
-	}
 	if query := oq.withLicenses; query != nil {
 		if err := oq.loadLicenses(ctx, query, nodes,
 			func(n *Organization) { n.Edges.Licenses = []*License{} },
@@ -443,35 +400,6 @@ func (oq *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	return nodes, nil
 }
 
-func (oq *OrganizationQuery) loadContact(ctx context.Context, query *ContactQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *Contact)) error {
-	ids := make([]string, 0, len(nodes))
-	nodeids := make(map[string][]*Organization)
-	for i := range nodes {
-		fk := nodes[i].ContactID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(contact.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "contact_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
 func (oq *OrganizationQuery) loadLicenses(ctx context.Context, query *LicenseQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *License)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[string]*Organization)

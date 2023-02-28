@@ -36,7 +36,11 @@ func TestLicenseCRUD(t *testing.T) {
 
 	org := db.Organization.Create().
 		SetName("org").
-		SetLocation("Barcelona").
+		SetCountry("Spain").
+		SetContact("jaime").
+		SetMail("jaime@mail.com").
+		SetAddress("Wallaby St.").
+		SetZipcode("000000").
 		SaveX(context.TODO())
 	prod1 := db.Product.Create().
 		SetSku("sku1").

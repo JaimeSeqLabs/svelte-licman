@@ -93,22 +93,19 @@ var (
 	OrganizationsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString, Unique: true},
-		{Name: "location", Type: field.TypeString},
-		{Name: "contact_id", Type: field.TypeString, Nullable: true},
+		{Name: "contact", Type: field.TypeString},
+		{Name: "mail", Type: field.TypeString},
+		{Name: "address", Type: field.TypeString},
+		{Name: "zipcode", Type: field.TypeString},
+		{Name: "country", Type: field.TypeString},
+		{Name: "date_created", Type: field.TypeTime},
+		{Name: "last_updated", Type: field.TypeTime},
 	}
 	// OrganizationsTable holds the schema information for the "organizations" table.
 	OrganizationsTable = &schema.Table{
 		Name:       "organizations",
 		Columns:    OrganizationsColumns,
 		PrimaryKey: []*schema.Column{OrganizationsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "organizations_contacts_contact",
-				Columns:    []*schema.Column{OrganizationsColumns[3]},
-				RefColumns: []*schema.Column{ContactsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
 	}
 	// ProductsColumns holds the columns for the "products" table.
 	ProductsColumns = []*schema.Column{
@@ -181,7 +178,6 @@ var (
 func init() {
 	JwtTokensTable.ForeignKeys[0].RefTable = UsersTable
 	LicensesTable.ForeignKeys[0].RefTable = OrganizationsTable
-	OrganizationsTable.ForeignKeys[0].RefTable = ContactsTable
 	LicenseLicenseProductsTable.ForeignKeys[0].RefTable = LicensesTable
 	LicenseLicenseProductsTable.ForeignKeys[1].RefTable = ProductsTable
 }

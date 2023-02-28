@@ -46,8 +46,12 @@ func (repo *orgEntRepo) Save(org domain.Organization) error {
 	_, err := repo.client.Organization.
 		Create().
 		SetName(org.Name).
-		SetLocation(org.Location).
-		SetNillableContactID(getNillableContactID(org)).
+		SetContact(org.Contact).
+		SetMail(org.Mail).
+		SetAddress(org.Address).
+		SetZipcode(org.ZipCode).
+		SetCountry(org.Country).
+		AddLicenseIDs(org.Licenses...).
 		Save(context.TODO())
 
 	return err
@@ -55,7 +59,11 @@ func (repo *orgEntRepo) Save(org domain.Organization) error {
 
 func (repo *orgEntRepo) FindByID(id string) (domain.Organization, error) {
 
-	res, err := repo.client.Organization.Get(context.TODO(), id)
+	res, err := repo.client.Organization.
+		Query().
+		WithLicenses().
+		Where(organization.IDEQ(id)).
+		Only(context.TODO())
 	if err != nil {
 		return domain.Organization{}, err
 	}
@@ -67,6 +75,7 @@ func (repo *orgEntRepo) FindByName(name string) (domain.Organization, error) {
 
 	res, err := repo.client.Organization.
 		Query().
+		WithLicenses().
 		Where(organization.NameEQ(name)).
 		Only(context.TODO())
 
@@ -99,8 +108,12 @@ func (repo *orgEntRepo) UpdateByName(org domain.Organization) (updated bool, err
 	updates, err := repo.client.Organization.
 		Update().
 		SetName(org.Name).
-		SetLocation(org.Location).
-		SetNillableContactID(getNillableContactID(org)).
+		SetContact(org.Contact).
+		SetMail(org.Mail).
+		SetAddress(org.Address).
+		SetZipcode(org.ZipCode).
+		SetCountry(org.Country).
+		AddLicenseIDs(org.Licenses...).
 		Where(
 			organization.NameEQ(org.Name),
 		).
@@ -118,8 +131,12 @@ func (repo *orgEntRepo) UpdateByID(org domain.Organization) (bool, error) {
 	updated, err := repo.client.Organization.
 		UpdateOneID(org.ID).
 		SetName(org.Name).
-		SetLocation(org.Location).
-		SetNillableContactID(getNillableContactID(org)).
+		SetContact(org.Contact).
+		SetMail(org.Mail).
+		SetAddress(org.Address).
+		SetZipcode(org.ZipCode).
+		SetCountry(org.Country).
+		AddLicenseIDs(org.Licenses...).
 		Save(context.TODO())
 	
 	if err != nil {
@@ -149,16 +166,30 @@ func toEntity(dto *ent.Organization) domain.Organization {
 	return domain.Organization{
 		ID: dto.ID,
 		Name:      dto.Name,
-		Location:  dto.Location,
-		ContactID: dto.ContactID,
+		Contact: dto.Contact,
+		Mail: dto.Mail,
+		Address: dto.Address,
+		ZipCode: dto.Zipcode,
+		Country: dto.Country,
+		Licenses: getLicenseIDs(dto),
+		DateCreated: dto.DateCreated,
+		LastUpdated: dto.LastUpdated,
 	}
 }
 
-func getNillableContactID(org domain.Organization) (cid *string) {
-	if org.ContactID == "" {
-		cid = nil
-	} else {
-		cid = &org.ContactID
+func getLicenseIDs(dto *ent.Organization) []string {
+
+	lics := dto.Edges.Licenses
+
+	if len(lics) == 0 { // also if lics is nil
+		return []string{}
 	}
-	return
+
+	ids := make([]string, len(lics))
+
+	for i, e := range lics {
+		ids[i] = e.ID
+	}
+
+	return ids
 }

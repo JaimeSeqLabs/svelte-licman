@@ -2,6 +2,10 @@
 
 package organization
 
+import (
+	"time"
+)
+
 const (
 	// Label holds the string label denoting the organization type in the database.
 	Label = "organization"
@@ -9,23 +13,24 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
-	// FieldLocation holds the string denoting the location field in the database.
-	FieldLocation = "location"
-	// FieldContactID holds the string denoting the contact_id field in the database.
-	FieldContactID = "contact_id"
-	// EdgeContact holds the string denoting the contact edge name in mutations.
-	EdgeContact = "contact"
+	// FieldContact holds the string denoting the contact field in the database.
+	FieldContact = "contact"
+	// FieldMail holds the string denoting the mail field in the database.
+	FieldMail = "mail"
+	// FieldAddress holds the string denoting the address field in the database.
+	FieldAddress = "address"
+	// FieldZipcode holds the string denoting the zipcode field in the database.
+	FieldZipcode = "zipcode"
+	// FieldCountry holds the string denoting the country field in the database.
+	FieldCountry = "country"
+	// FieldDateCreated holds the string denoting the date_created field in the database.
+	FieldDateCreated = "date_created"
+	// FieldLastUpdated holds the string denoting the last_updated field in the database.
+	FieldLastUpdated = "last_updated"
 	// EdgeLicenses holds the string denoting the licenses edge name in mutations.
 	EdgeLicenses = "licenses"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
-	// ContactTable is the table that holds the contact relation/edge.
-	ContactTable = "organizations"
-	// ContactInverseTable is the table name for the Contact entity.
-	// It exists in this package in order to avoid circular dependency with the "contact" package.
-	ContactInverseTable = "contacts"
-	// ContactColumn is the table column denoting the contact relation/edge.
-	ContactColumn = "contact_id"
 	// LicensesTable is the table that holds the licenses relation/edge.
 	LicensesTable = "licenses"
 	// LicensesInverseTable is the table name for the License entity.
@@ -39,8 +44,13 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldName,
-	FieldLocation,
-	FieldContactID,
+	FieldContact,
+	FieldMail,
+	FieldAddress,
+	FieldZipcode,
+	FieldCountry,
+	FieldDateCreated,
+	FieldLastUpdated,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -56,8 +66,14 @@ func ValidColumn(column string) bool {
 var (
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
-	// LocationValidator is a validator for the "location" field. It is called by the builders before save.
-	LocationValidator func(string) error
+	// CountryValidator is a validator for the "country" field. It is called by the builders before save.
+	CountryValidator func(string) error
+	// DefaultDateCreated holds the default value on creation for the "date_created" field.
+	DefaultDateCreated func() time.Time
+	// DefaultLastUpdated holds the default value on creation for the "last_updated" field.
+	DefaultLastUpdated func() time.Time
+	// UpdateDefaultLastUpdated holds the default value on update for the "last_updated" field.
+	UpdateDefaultLastUpdated func() time.Time
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() string
 )

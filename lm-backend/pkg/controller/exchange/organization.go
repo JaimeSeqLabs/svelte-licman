@@ -1,28 +1,21 @@
 package exchange
 
+import "license-manager/pkg/domain"
+
 type ListAllOrgsResponse struct {
 	Organizations []ListAllOrgsItem `json:"organizations"`
 }
 
 type ListAllOrgsItem struct {
-	ID string `json:"id"`
-	Name string `json:"name"`
-	Location string `json:"location"`
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Contact string `json:"contact"`
+	Mail    string `json:"mail"`
+	Country string `json:"country"`
 }
 
-type DescribeOrgResponse struct {
-	ID string `json:"id"`
-	Name string `json:"name"`
-	Location string `json:"location"`
-	ContactID string `json:"contact_id,omitempty"`
-}
+type DescribeOrgResponse domain.Organization
 
-type UpdateOrgRequest struct {
-	Name string `json:"name"`
-	Location string `json:"location"`
-}
+type UpdateOrgRequest domain.Organization
 
-type CreateOrgRequest struct {
-	Name string `json:"name"`
-	Location string `json:"location"`
-}
+type CreateOrgRequest domain.Organization

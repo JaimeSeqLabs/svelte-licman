@@ -45,7 +45,9 @@ func (oc *organizationController) ListAllOrgs(w http.ResponseWriter, r *http.Req
 		response.Organizations[i] = exchange.ListAllOrgsItem{
 			ID:       org.ID,
 			Name:     org.Name,
-			Location: org.Location,
+			Contact: org.Contact,
+			Mail: org.Mail,
+			Country: org.Country,
 		}
 	}
 
@@ -62,12 +64,7 @@ func (oc *organizationController) DescribeOrg(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	sendJSON(w, exchange.DescribeOrgResponse{
-		ID:        org.ID,
-		Name:      org.Name,
-		Location:  org.Location,
-		ContactID: org.ContactID,
-	})
+	sendJSON(w, exchange.DescribeOrgResponse(org))
 }
 
 func (oc *organizationController) UpdateOrg(w http.ResponseWriter, r *http.Request) {
@@ -80,13 +77,7 @@ func (oc *organizationController) UpdateOrg(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	updated, err := oc.orgRepo.UpdateByID(domain.Organization{
-		ID: orgID,
-		Name: updateReq.Name,
-		Location: updateReq.Location,
-		ContactID: "", // does not update contact ID
-	})
-
+	updated, err := oc.orgRepo.UpdateByID(domain.Organization(updateReq))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -108,11 +99,7 @@ func (oc *organizationController) CreateOrg(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err := oc.orgRepo.Save(domain.Organization{
-		Name: createReq.Name,
-		Location: createReq.Location,
-	})
-
+	err := oc.orgRepo.Save(domain.Organization(createReq))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

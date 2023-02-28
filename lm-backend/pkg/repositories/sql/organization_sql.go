@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories"
-	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -166,32 +165,18 @@ type OrganizationSQLDTO struct {
 
 func (dto *OrganizationSQLDTO) ToEntity() domain.Organization {
 	return domain.Organization{
+		ID: fmt.Sprintf("%d", dto.ID),
 		Name:      dto.Name,
-		Location:  dto.Location,
-		ContactID: fmt.Sprintf("%s, %s", dto.ContactName, dto.ContactMail),
+		Country:  dto.Location,
+		Contact: dto.ContactName,
+		Mail: dto.ContactMail,
 	}
 }
 
 func (dto *OrganizationSQLDTO) FromEntity(entity domain.Organization) {
 	dto.ID = -1
 	dto.Name = entity.Name
-	dto.Location = entity.Location
-	dto.ContactName, dto.ContactMail = parseContact(entity.ContactID)
-}
-
-func parseContact(s string) (name, mail string) {
-	parts := strings.Split(s, ",")
-	name = ""
-	mail = ""
-
-	for _, p := range parts {
-
-		if strings.Contains(p, "@") {
-			mail = strings.TrimSpace(p)
-		} else {
-			name = strings.TrimSpace(p)
-		}
-
-	}
-	return
+	dto.Location = entity.Country
+	dto.ContactName = entity.Contact
+	dto.ContactMail = entity.Mail
 }

@@ -6,9 +6,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"license-manager/pkg/repositories/ent-fw/ent/contact"
 	"license-manager/pkg/repositories/ent-fw/ent/license"
 	"license-manager/pkg/repositories/ent-fw/ent/organization"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -27,22 +27,60 @@ func (oc *OrganizationCreate) SetName(s string) *OrganizationCreate {
 	return oc
 }
 
-// SetLocation sets the "location" field.
-func (oc *OrganizationCreate) SetLocation(s string) *OrganizationCreate {
-	oc.mutation.SetLocation(s)
+// SetContact sets the "contact" field.
+func (oc *OrganizationCreate) SetContact(s string) *OrganizationCreate {
+	oc.mutation.SetContact(s)
 	return oc
 }
 
-// SetContactID sets the "contact_id" field.
-func (oc *OrganizationCreate) SetContactID(s string) *OrganizationCreate {
-	oc.mutation.SetContactID(s)
+// SetMail sets the "mail" field.
+func (oc *OrganizationCreate) SetMail(s string) *OrganizationCreate {
+	oc.mutation.SetMail(s)
 	return oc
 }
 
-// SetNillableContactID sets the "contact_id" field if the given value is not nil.
-func (oc *OrganizationCreate) SetNillableContactID(s *string) *OrganizationCreate {
-	if s != nil {
-		oc.SetContactID(*s)
+// SetAddress sets the "address" field.
+func (oc *OrganizationCreate) SetAddress(s string) *OrganizationCreate {
+	oc.mutation.SetAddress(s)
+	return oc
+}
+
+// SetZipcode sets the "zipcode" field.
+func (oc *OrganizationCreate) SetZipcode(s string) *OrganizationCreate {
+	oc.mutation.SetZipcode(s)
+	return oc
+}
+
+// SetCountry sets the "country" field.
+func (oc *OrganizationCreate) SetCountry(s string) *OrganizationCreate {
+	oc.mutation.SetCountry(s)
+	return oc
+}
+
+// SetDateCreated sets the "date_created" field.
+func (oc *OrganizationCreate) SetDateCreated(t time.Time) *OrganizationCreate {
+	oc.mutation.SetDateCreated(t)
+	return oc
+}
+
+// SetNillableDateCreated sets the "date_created" field if the given value is not nil.
+func (oc *OrganizationCreate) SetNillableDateCreated(t *time.Time) *OrganizationCreate {
+	if t != nil {
+		oc.SetDateCreated(*t)
+	}
+	return oc
+}
+
+// SetLastUpdated sets the "last_updated" field.
+func (oc *OrganizationCreate) SetLastUpdated(t time.Time) *OrganizationCreate {
+	oc.mutation.SetLastUpdated(t)
+	return oc
+}
+
+// SetNillableLastUpdated sets the "last_updated" field if the given value is not nil.
+func (oc *OrganizationCreate) SetNillableLastUpdated(t *time.Time) *OrganizationCreate {
+	if t != nil {
+		oc.SetLastUpdated(*t)
 	}
 	return oc
 }
@@ -59,11 +97,6 @@ func (oc *OrganizationCreate) SetNillableID(s *string) *OrganizationCreate {
 		oc.SetID(*s)
 	}
 	return oc
-}
-
-// SetContact sets the "contact" edge to the Contact entity.
-func (oc *OrganizationCreate) SetContact(c *Contact) *OrganizationCreate {
-	return oc.SetContactID(c.ID)
 }
 
 // AddLicenseIDs adds the "licenses" edge to the License entity by IDs.
@@ -116,6 +149,14 @@ func (oc *OrganizationCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (oc *OrganizationCreate) defaults() {
+	if _, ok := oc.mutation.DateCreated(); !ok {
+		v := organization.DefaultDateCreated()
+		oc.mutation.SetDateCreated(v)
+	}
+	if _, ok := oc.mutation.LastUpdated(); !ok {
+		v := organization.DefaultLastUpdated()
+		oc.mutation.SetLastUpdated(v)
+	}
 	if _, ok := oc.mutation.ID(); !ok {
 		v := organization.DefaultID()
 		oc.mutation.SetID(v)
@@ -132,13 +173,31 @@ func (oc *OrganizationCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Organization.name": %w`, err)}
 		}
 	}
-	if _, ok := oc.mutation.Location(); !ok {
-		return &ValidationError{Name: "location", err: errors.New(`ent: missing required field "Organization.location"`)}
+	if _, ok := oc.mutation.Contact(); !ok {
+		return &ValidationError{Name: "contact", err: errors.New(`ent: missing required field "Organization.contact"`)}
 	}
-	if v, ok := oc.mutation.Location(); ok {
-		if err := organization.LocationValidator(v); err != nil {
-			return &ValidationError{Name: "location", err: fmt.Errorf(`ent: validator failed for field "Organization.location": %w`, err)}
+	if _, ok := oc.mutation.Mail(); !ok {
+		return &ValidationError{Name: "mail", err: errors.New(`ent: missing required field "Organization.mail"`)}
+	}
+	if _, ok := oc.mutation.Address(); !ok {
+		return &ValidationError{Name: "address", err: errors.New(`ent: missing required field "Organization.address"`)}
+	}
+	if _, ok := oc.mutation.Zipcode(); !ok {
+		return &ValidationError{Name: "zipcode", err: errors.New(`ent: missing required field "Organization.zipcode"`)}
+	}
+	if _, ok := oc.mutation.Country(); !ok {
+		return &ValidationError{Name: "country", err: errors.New(`ent: missing required field "Organization.country"`)}
+	}
+	if v, ok := oc.mutation.Country(); ok {
+		if err := organization.CountryValidator(v); err != nil {
+			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Organization.country": %w`, err)}
 		}
+	}
+	if _, ok := oc.mutation.DateCreated(); !ok {
+		return &ValidationError{Name: "date_created", err: errors.New(`ent: missing required field "Organization.date_created"`)}
+	}
+	if _, ok := oc.mutation.LastUpdated(); !ok {
+		return &ValidationError{Name: "last_updated", err: errors.New(`ent: missing required field "Organization.last_updated"`)}
 	}
 	return nil
 }
@@ -185,29 +244,33 @@ func (oc *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 		_spec.SetField(organization.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if value, ok := oc.mutation.Location(); ok {
-		_spec.SetField(organization.FieldLocation, field.TypeString, value)
-		_node.Location = value
+	if value, ok := oc.mutation.Contact(); ok {
+		_spec.SetField(organization.FieldContact, field.TypeString, value)
+		_node.Contact = value
 	}
-	if nodes := oc.mutation.ContactIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   organization.ContactTable,
-			Columns: []string{organization.ContactColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: contact.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.ContactID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
+	if value, ok := oc.mutation.Mail(); ok {
+		_spec.SetField(organization.FieldMail, field.TypeString, value)
+		_node.Mail = value
+	}
+	if value, ok := oc.mutation.Address(); ok {
+		_spec.SetField(organization.FieldAddress, field.TypeString, value)
+		_node.Address = value
+	}
+	if value, ok := oc.mutation.Zipcode(); ok {
+		_spec.SetField(organization.FieldZipcode, field.TypeString, value)
+		_node.Zipcode = value
+	}
+	if value, ok := oc.mutation.Country(); ok {
+		_spec.SetField(organization.FieldCountry, field.TypeString, value)
+		_node.Country = value
+	}
+	if value, ok := oc.mutation.DateCreated(); ok {
+		_spec.SetField(organization.FieldDateCreated, field.TypeTime, value)
+		_node.DateCreated = value
+	}
+	if value, ok := oc.mutation.LastUpdated(); ok {
+		_spec.SetField(organization.FieldLastUpdated, field.TypeTime, value)
+		_node.LastUpdated = value
 	}
 	if nodes := oc.mutation.LicensesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

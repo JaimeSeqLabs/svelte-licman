@@ -90,10 +90,20 @@ func init() {
 	organizationDescName := organizationFields[1].Descriptor()
 	// organization.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	organization.NameValidator = organizationDescName.Validators[0].(func(string) error)
-	// organizationDescLocation is the schema descriptor for location field.
-	organizationDescLocation := organizationFields[2].Descriptor()
-	// organization.LocationValidator is a validator for the "location" field. It is called by the builders before save.
-	organization.LocationValidator = organizationDescLocation.Validators[0].(func(string) error)
+	// organizationDescCountry is the schema descriptor for country field.
+	organizationDescCountry := organizationFields[6].Descriptor()
+	// organization.CountryValidator is a validator for the "country" field. It is called by the builders before save.
+	organization.CountryValidator = organizationDescCountry.Validators[0].(func(string) error)
+	// organizationDescDateCreated is the schema descriptor for date_created field.
+	organizationDescDateCreated := organizationFields[7].Descriptor()
+	// organization.DefaultDateCreated holds the default value on creation for the date_created field.
+	organization.DefaultDateCreated = organizationDescDateCreated.Default.(func() time.Time)
+	// organizationDescLastUpdated is the schema descriptor for last_updated field.
+	organizationDescLastUpdated := organizationFields[8].Descriptor()
+	// organization.DefaultLastUpdated holds the default value on creation for the last_updated field.
+	organization.DefaultLastUpdated = organizationDescLastUpdated.Default.(func() time.Time)
+	// organization.UpdateDefaultLastUpdated holds the default value on update for the last_updated field.
+	organization.UpdateDefaultLastUpdated = organizationDescLastUpdated.UpdateDefault.(func() time.Time)
 	// organizationDescID is the schema descriptor for id field.
 	organizationDescID := organizationFields[0].Descriptor()
 	// organization.DefaultID holds the default value on creation for the id field.
