@@ -1,6 +1,5 @@
 import axios, { type AxiosResponse } from "axios";
 import { errWrap, LM_PRIVATE_API, LM_PUBLIC_API } from "./common";
-import { goto } from "@roxi/routify";
 
 
 export type LoginCredentials = {
@@ -48,7 +47,6 @@ export const isLoggedIn: () => Promise<boolean> =
         .then(res => res.status == 200)
         .catch(err => false)
 
-export const logOut = () => {
-    document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    $goto("/login")
+export const dropJwt = () => {
+    document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/lm;";
 }

@@ -11,7 +11,7 @@
         HeaderPanelLink, 
         HeaderPanelLinks 
     } from "carbon-components-svelte";
-    import { isLoggedIn } from "../lib/clients/login";
+    import { isLoggedIn, dropJwt } from "../lib/clients/login";
     import { onMount } from "svelte";
 
     let navRoutes = [
@@ -21,6 +21,11 @@
         { text: "decoder", href: "/decoder"},
         { text: "quotas", href: "/quotas"}
     ]
+
+    function handleLogout() {
+        dropJwt()
+        $goto("/login")
+    }
 
     // login guard
     onMount(async () => {
@@ -50,7 +55,9 @@
             closeIcon={UserAvatarFilledAlt}
         >
             <HeaderPanelLinks>
-                <HeaderPanelLink>Logout</HeaderPanelLink>
+                <HeaderPanelLink on:click={handleLogout}>
+                    Logout
+                </HeaderPanelLink>
             </HeaderPanelLinks>
         </HeaderAction>
     </HeaderUtilities>
