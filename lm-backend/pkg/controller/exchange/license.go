@@ -22,10 +22,14 @@ type CreateLicenseRequest struct {
 
 	Quotas map[string]string `json:"quotas"`
 
-	Secret string `json:"secret"`
+	Secret string `json:"-"`
 
-	ExpirationDate time.Time `json:"expiration_date"`
-	ActivationDate time.Time `json:"activation_date"`
+	//ExpirationDate time.Time `json:"expiration_date"`
+	//ActivationDate time.Time `json:"activation_date"`
+
+	ExpirationDate string `json:"expiration_date"`
+	ActivationDate string `json:"activation_date"`
+
 }
 
 type UpdateLicenseRequest struct {

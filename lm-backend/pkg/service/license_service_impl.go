@@ -1,10 +1,15 @@
 package service
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"license-manager/pkg/controller/exchange"
 	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type licenseService struct {
@@ -48,6 +53,21 @@ func (ls *licenseService) CreateLicense(req exchange.CreateLicenseRequest) (doma
 		prodIDs = append(prodIDs, prod.ID)
 	}
 
+	// TODO: rng
+	hash := sha256.New()
+	hash.Sum([]byte(uuid.NewString()))
+	secret := hex.EncodeToString(hash.Sum(nil))
+
+	expiration, err := parseDate(req.ExpirationDate)
+	if err != nil {
+		return domain.License{}, err
+	}
+
+	activation, err := parseDate(req.ActivationDate)
+	if err != nil {
+		return domain.License{}, err
+	}
+
 	license, err := ls.licenseRepo.Save(domain.License{
 		Features: req.Features,
 		Status: req.Status,
@@ -58,9 +78,9 @@ func (ls *licenseService) CreateLicense(req exchange.CreateLicenseRequest) (doma
 		ProductIDs: prodIDs,
 		OrganizationID: org.ID,
 		Quotas: req.Quotas,
-		Secret: req.Secret,
-		ExpirationDate: req.ExpirationDate,
-		ActivationDate: req.ActivationDate,
+		Secret: secret,
+		ExpirationDate: expiration,
+		ActivationDate: activation,
 	})
 	if err != nil {
 		return domain.License{}, err
@@ -126,4 +146,8 @@ func (ls *licenseService) SetQuotasByID(id string, q map[string]string) error {
 	}
 
 	return nil
+}
+
+func parseDate(date string) (time.Time, error) {
+	return time.Parse("02/01/2006", date) // dd/mm/YYYY
 }

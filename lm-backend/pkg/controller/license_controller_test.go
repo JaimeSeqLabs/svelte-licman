@@ -52,6 +52,7 @@ func TestLicenseCRUD(t *testing.T) {
 		SaveX(context.TODO())
 
 	now := time.Now()
+	exp := now.Add(5 * 30 * 24 * time.Hour) // 5 months
 
 	// create license
 
@@ -65,8 +66,8 @@ func TestLicenseCRUD(t *testing.T) {
 		OrganizationName: org.Name,
 		Quotas: map[string]string{ "maxUsers": "5" },
 		Secret: "<this_is_very_secret>",
-		ExpirationDate:	now.Add(5 * 30 * 24 * time.Hour), // 5 months
-		ActivationDate: now,
+		ExpirationDate:	exp.Format("02/01/2006"), 
+		ActivationDate: now.Format("02/01/2006"), 
 	}
 
 	var createRes domain.License
