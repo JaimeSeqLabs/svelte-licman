@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"license-manager/pkg/controller/exchange"
 	"license-manager/pkg/service"
 	"net/http"
@@ -145,9 +146,11 @@ func (lc *licenseController) DownloadLicenseFile(w http.ResponseWriter, r *http.
 		return	
 	}
 
+	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Disposition", "attachment; filename=\"cert.txt\"")
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", len([]byte(cert))))
+	
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Disposition", "attachment; filename=cert.txt")
-	w.Header().Set("Content-Type", "application/octet-stream")
 
 	w.Write([]byte(cert))
 }
