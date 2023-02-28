@@ -1,22 +1,33 @@
 <script lang="ts">
+    import { onMount } from "svelte";
+    import { quotas, type Quota } from "../../clients/quota_store";
     import InventoryCellActionButtons from "../inventory/InventoryCellActionButtons.svelte";
     import InventoryList from "../inventory/InventoryList.svelte";
-
-    let now = new Date().toUTCString()
+    
+    export let onCreateButton = () => {}
 
     let headers = [
         {key: "id", value: "Name"},
         {key: "default", value: "Default Value"},
-        {key: "lastUpdate", value: "Last Update"},
         {key: "actions", value: "Actions"}
     ]
+    
+    let rows: { id:string, default:string }[] = []
+    
+    quotas.subscribe(qs => {
+        rows = qs.map(q => {
+            return {
+                id: q.name,
+                default: q.value
+            }
+        })
+    })
 
-    let rows = [
-        { id: "maxUsersPerWsp", default: 10, lastUpdate: now },
-        { id: "maxWspPerOrg", default: 15, lastUpdate: now }
-    ]
+    onMount(() => {
+        //fetchQuotas()
+    })
 
-    export let onCreateButton = () => {}
+
 
 </script>
 

@@ -45,10 +45,7 @@ import InventoryList from "../inventory/InventoryList.svelte";
     }
 
     let rows: { id:string, org:string, activation:string, expiration:string, active:boolean}[] = []
-    $: rows = licenses.map(lic => {
-        console.table(orgs)
-        console.log(lic.organization_id);
-        
+    $: rows = licenses.map(lic => {        
         return {
             id: lic.id,
             org: orgs.find(org => org.id == lic.organization_id)?.name, // TODO: licenses are ready before orgs, orgs may be empty
