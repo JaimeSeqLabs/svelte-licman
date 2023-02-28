@@ -15,13 +15,11 @@ export type CreateLicenseRequest = {
 	mail: string,
 	
 	// NOTE: skus not IDs
-	product_skus: string,
+	product_skus: string[],
 	// NOTE: name not ID
 	organization_name: string,
 
-	quotas: Map<string, string>,
-
-	secret: string,
+	quotas: any,
 
 	expiration_date: string,
 	activation_date: string
@@ -31,7 +29,7 @@ export type UpdateLicenseRequest = {
 
 	license: DomainLicense,
 	product_ids: string[],// product IDs
-	quotas: Map<string, string>,
+	quotas: any,
 	
 }
 
@@ -54,7 +52,7 @@ export type DomainLicense = {
 	
     product_ids: string[],
 	organization_id: string,
-	quotas: Map<string, string>,
+	quotas: any,
 
 	expiration_date: string,
 	activation_date: string,
@@ -67,7 +65,7 @@ export type DomainLicense = {
 
 export type DescribeLicenseResponse = {
 	license: DomainLicense,
-	quotas: Map<string, string>,
+	quotas: any,
 }
 
 export type DecodeLicenseRequest = {
@@ -84,7 +82,7 @@ export type DescribeLicenseStatusResponse = {
 	status: LicenseStatus, // archived, suspended, expired, active
 	contact: string,
 	product_ids: string[],
-	quotas: Map<string, string>,
+	quotas: any,
 
 }
 
