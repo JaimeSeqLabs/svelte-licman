@@ -14,6 +14,7 @@ type jwtService struct {
 	tokenRepo repositories.JwtTokenRepository
 }
 
+
 func NewJWTService(secret string, tokenRepo repositories.JwtTokenRepository) JWTService {
 	return &jwtService{
 		secret:    []byte(secret),
