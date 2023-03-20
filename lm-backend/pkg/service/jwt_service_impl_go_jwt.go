@@ -1,5 +1,3 @@
-//go:build ignore
-
 package service
 
 import (
@@ -7,11 +5,7 @@ import (
 	"fmt"
 	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories"
-	"net/http"
-	"strings"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/jwtauth/v5"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -20,21 +14,21 @@ const (
 	JWTCookieName   = "jwt"
 )
 
-type jwtService struct {
+type jwtService2 struct {
 	secret    []byte
 	tokenRepo repositories.JwtTokenRepository
 }
 
-func NewJWTService(secret string, tokenRepo repositories.JwtTokenRepository) JWTService {
-	return &jwtService{
+func NewJWTService2(secret string, tokenRepo repositories.JwtTokenRepository) JWTService2 {
+	return &jwtService2{
 		secret:    []byte(secret),
 		tokenRepo: tokenRepo,
 	}
 }
 
-func (jwts *jwtService) GenTokenFor(issuer domain.User, claims domain.ClaimsJWT) (domain.Token, error) {
+func (jwts *jwtService2) GenTokenFor(issuer domain.User, claims domain.Claims) (domain.Token, error) {
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, fromDomainClaims(claims))
 	if token == nil {
 		return domain.Token{}, fmt.Errorf("unable to generate token for claims %+v", claims)
 	}
@@ -49,15 +43,15 @@ func (jwts *jwtService) GenTokenFor(issuer domain.User, claims domain.ClaimsJWT)
 	return domainToken, jwts.tokenRepo.Save(domainToken)
 }
 
-func (jwts *jwtService) GetClaimsFromCtx(ctx context.Context) (domain.ClaimsJWT, error) {
+func (jwts *jwtService2) GetClaimsFromCtx(ctx context.Context) (domain.Claims, error) {
 	claims, ok := ctx.Value(JWTClaimsCtxKey).(domain.ClaimsJWT)
 	if !ok {
-		return domain.ClaimsJWT{}, fmt.Errorf("unable to retrieve claims from context")
+		return domain.Claims{}, fmt.Errorf("unable to retrieve claims from context")
 	}
-	return claims, nil
+	return toDomainClaims(claims), nil
 }
 
-func (jwts *jwtService) GetIssuedBy(userID string) ([]domain.Token, error) {
+func (jwts *jwtService2) GetIssuedBy(userID string) ([]domain.Token, error) {
 	res, err := jwts.tokenRepo.FindByIssuer(userID)
 	if err != nil {
 		return nil, err
@@ -65,92 +59,45 @@ func (jwts *jwtService) GetIssuedBy(userID string) ([]domain.Token, error) {
 	return res, nil
 }
 
-func (jwts *jwtService) GetJWTAuth() *jwtauth.JWTAuth {
-	return nil
-}
-
-func (jwts *jwtService) RevokeTokensFor(issuer domain.User) (int, error) {
+func (jwts *jwtService2) RevokeTokensFor(issuer domain.User) (int, error) {
 	return jwts.tokenRepo.DeleteAllByIssuer(issuer.ID)
 }
 
-func (jwts *jwtService) NewJWTMiddleware() func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		f := func(w http.ResponseWriter, r *http.Request) {
-
-			tokenString := getTokenFromRequest(r)
-			if tokenString == "" {
-				http.Error(w, "jwt token not found", http.StatusUnauthorized)
-				return
-			}
-
-			// claims embeds jwt.RegisteredClaims
-			claims := domain.ClaimsJWT{}
-
-			token, err := jwt.ParseWithClaims(
-				tokenString,
-				&claims,
-				func(t *jwt.Token) (interface{}, error) { return jwts.secret, nil },
-				jwt.WithValidMethods([]string{jwt.SigningMethodHS512.Name}),
-			)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-
-			if !token.Valid {
-				http.Error(w, "invalid jwt token", http.StatusUnauthorized)
-				return
-			}
-
-			// add claims to ctx
-			ctx := context.WithValue(r.Context(), JWTClaimsCtxKey, claims)
-
-			next.ServeHTTP(w, r.WithContext(ctx))
-		}
-		return http.HandlerFunc(f)
-	}
+func (jwts *jwtService2) RevokeToken(tokenID string) (bool, error) {
+	return true, jwts.tokenRepo.Delete(tokenID)
 }
 
-func getTokenFromURL(r *http.Request) string {
-	return chi.URLParam(r, JWTCookieName)
+func (jwts *jwtService2) Validate(tokenStr string) error {
+	_, err := jwts.ValidateWithClaims(tokenStr)
+	return err
 }
 
-func getTokenFromCookies(r *http.Request) string {
-	jwtCookie, err := r.Cookie(JWTCookieName)
+func (jwts *jwtService2) ValidateWithClaims(tokenStr string) (domain.Claims, error)  {
+
+	// claims embeds jwt.RegisteredClaims
+	claims := domain.ClaimsJWT{}
+	
+	token, err := jwt.ParseWithClaims(
+		tokenStr,
+		&claims,
+		func(t *jwt.Token) (interface{}, error) { return jwts.secret, nil },
+		jwt.WithValidMethods([]string{jwt.SigningMethodHS512.Name}),
+	)
 	if err != nil {
-		return ""
+		return domain.Claims{}, err
 	}
-	return jwtCookie.Value
+	if !token.Valid {
+		return domain.Claims{}, fmt.Errorf("token %s is not valid", tokenStr)
+	}
+	
+	return toDomainClaims(claims), nil
 }
 
-func getTokenFromHeader(r *http.Request) string {
-
-	bearer := r.Header.Get("Authorization")
-	if bearer == "" {
-		return ""
-	}
-
-	split := strings.Split(bearer, "Bearer ") // note space
-	if len(split) != 2 {
-		return ""
-	}
-
-	return split[1]
+func toDomainClaims(claims domain.ClaimsJWT) domain.Claims {
+	// TODO:
+	return make(domain.Claims)
 }
 
-func getTokenFromRequest(r *http.Request) string {
-
-	if token := getTokenFromHeader(r); token != "" {
-		return token
-	}
-
-	if token := getTokenFromCookies(r); token != "" {
-		return token
-	}
-
-	if token := getTokenFromURL(r); token != "" {
-		return token
-	}
-
-	return ""
+func fromDomainClaims(claims domain.Claims) domain.ClaimsJWT {
+	return domain.ClaimsJWT{} // TODO:
 }
