@@ -40,7 +40,7 @@ func TestCreateData(t *testing.T) {
 		Mail: "jaime@mail.com",
 		PasswordHash: "<passwd_hash>",
 		Claims: domain.Claims{
-			domain.UserKindClaim: "admin",
+			UserKind: "admin",
 		},
 	}
 
@@ -68,7 +68,7 @@ func TestReadData(t *testing.T) {
 		Mail: "jaime@mail.com",
 		PasswordHash: "<passwd_hash>",
 		Claims: domain.Claims{
-			domain.UserKindClaim: "admin",
+			UserKind: "admin",
 		},
 	}
 
@@ -135,7 +135,7 @@ func TestUpdateData(t *testing.T) {
 		Mail: "jaime@mail.com",
 		PasswordHash: "<passwd_hash>",
 		Claims: domain.Claims{
-			domain.UserKindClaim: "admin",
+			UserKind: "admin",
 		},
 	}
 
@@ -146,7 +146,7 @@ func TestUpdateData(t *testing.T) {
 
 	updated := original
 	updated.PasswordHash = "<new_password_hash>"
-	updated.Claims[domain.UserKindClaim] = "normal_user"
+	updated.Claims.UserKind = "normal_user"
 
 	ok, err := repo.Update(updated)
 	if err != nil {
@@ -184,7 +184,7 @@ func TestUpdateDataNotFound(t *testing.T) {
 		Mail: "jaime@mail.com",
 		PasswordHash: "<passwd_hash>",
 		Claims: domain.Claims{
-			domain.UserKindClaim: "admin",
+			UserKind: "admin",
 		},
 	}
 
@@ -216,7 +216,7 @@ func TestDeleteData(t *testing.T) {
 		Mail: "jaime@mail.com",
 		PasswordHash: "<passwd_hash>",
 		Claims: domain.Claims{
-			domain.UserKindClaim: "admin",
+			UserKind: "admin",
 		},
 	}
 

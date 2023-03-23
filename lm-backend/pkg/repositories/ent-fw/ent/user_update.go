@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
 	"license-manager/pkg/repositories/ent-fw/ent/user"
@@ -47,8 +48,8 @@ func (uu *UserUpdate) SetPasswordHash(s string) *UserUpdate {
 }
 
 // SetClaims sets the "claims" field.
-func (uu *UserUpdate) SetClaims(m map[string]interface{}) *UserUpdate {
-	uu.mutation.SetClaims(m)
+func (uu *UserUpdate) SetClaims(d domain.Claims) *UserUpdate {
+	uu.mutation.SetClaims(d)
 	return uu
 }
 
@@ -266,8 +267,8 @@ func (uuo *UserUpdateOne) SetPasswordHash(s string) *UserUpdateOne {
 }
 
 // SetClaims sets the "claims" field.
-func (uuo *UserUpdateOne) SetClaims(m map[string]interface{}) *UserUpdateOne {
-	uuo.mutation.SetClaims(m)
+func (uuo *UserUpdateOne) SetClaims(d domain.Claims) *UserUpdateOne {
+	uuo.mutation.SetClaims(d)
 	return uuo
 }
 

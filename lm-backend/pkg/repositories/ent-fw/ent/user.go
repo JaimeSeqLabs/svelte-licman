@@ -5,6 +5,7 @@ package ent
 import (
 	"encoding/json"
 	"fmt"
+	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories/ent-fw/ent/user"
 	"strings"
 
@@ -23,7 +24,7 @@ type User struct {
 	// PasswordHash holds the value of the "password_hash" field.
 	PasswordHash string `json:"password_hash,omitempty"`
 	// Claims holds the value of the "claims" field.
-	Claims map[string]interface{} `json:"claims,omitempty"`
+	Claims domain.Claims `json:"claims,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges UserEdges `json:"edges"`

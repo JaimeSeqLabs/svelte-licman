@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"license-manager/pkg/domain"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -19,7 +21,7 @@ func (User) Fields() []ent.Field {
 		field.String("username").NotEmpty(),
 		field.String("mail").NotEmpty().Unique(),
 		field.String("password_hash").NotEmpty(),
-		field.JSON("claims", map[string]any{}),
+		field.JSON("claims", domain.Claims{}),
 	}
 }
 

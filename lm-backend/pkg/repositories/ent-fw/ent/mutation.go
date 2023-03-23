@@ -4273,7 +4273,7 @@ type UserMutation struct {
 	username      *string
 	mail          *string
 	password_hash *string
-	claims        *map[string]interface{}
+	claims        *domain.Claims
 	clearedFields map[string]struct{}
 	issued        map[string]struct{}
 	removedissued map[string]struct{}
@@ -4496,12 +4496,12 @@ func (m *UserMutation) ResetPasswordHash() {
 }
 
 // SetClaims sets the "claims" field.
-func (m *UserMutation) SetClaims(value map[string]interface{}) {
-	m.claims = &value
+func (m *UserMutation) SetClaims(d domain.Claims) {
+	m.claims = &d
 }
 
 // Claims returns the value of the "claims" field in the mutation.
-func (m *UserMutation) Claims() (r map[string]interface{}, exists bool) {
+func (m *UserMutation) Claims() (r domain.Claims, exists bool) {
 	v := m.claims
 	if v == nil {
 		return
@@ -4512,7 +4512,7 @@ func (m *UserMutation) Claims() (r map[string]interface{}, exists bool) {
 // OldClaims returns the old "claims" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldClaims(ctx context.Context) (v map[string]interface{}, err error) {
+func (m *UserMutation) OldClaims(ctx context.Context) (v domain.Claims, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldClaims is only allowed on UpdateOne operations")
 	}
@@ -4696,7 +4696,7 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		m.SetPasswordHash(v)
 		return nil
 	case user.FieldClaims:
-		v, ok := value.(map[string]interface{})
+		v, ok := value.(domain.Claims)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

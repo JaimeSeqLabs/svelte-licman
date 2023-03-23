@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
 	"license-manager/pkg/repositories/ent-fw/ent/user"
 
@@ -39,8 +40,8 @@ func (uc *UserCreate) SetPasswordHash(s string) *UserCreate {
 }
 
 // SetClaims sets the "claims" field.
-func (uc *UserCreate) SetClaims(m map[string]interface{}) *UserCreate {
-	uc.mutation.SetClaims(m)
+func (uc *UserCreate) SetClaims(d domain.Claims) *UserCreate {
+	uc.mutation.SetClaims(d)
 	return uc
 }
 
