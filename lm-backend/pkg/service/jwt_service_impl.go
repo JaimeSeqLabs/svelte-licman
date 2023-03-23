@@ -38,8 +38,14 @@ func (jwts *jwtService) GenTokenFor(issuer domain.User, claims domain.Claims) (d
 		return domain.Token{}, fmt.Errorf("unable to generate token for claims %+v", claims)
 	}
 
+	tokenStr, err := token.SignedString(jwts.secret)
+	if err != nil {
+		return domain.Token{}, err
+	}
+	
+
 	domainToken, err := jwts.tokenRepo.Save(domain.Token{
-		Value:    token.Raw,
+		Value:    tokenStr,
 		Revoked:  false,
 		Claims:   claims,
 		IssuerID: issuer.ID,
