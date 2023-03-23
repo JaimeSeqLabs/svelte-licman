@@ -5,7 +5,6 @@ import (
 	"license-manager/pkg/domain"
 	"license-manager/pkg/pkgerrors"
 	"license-manager/pkg/repositories"
-	ent_fw_common "license-manager/pkg/repositories/ent-fw/common"
 	"license-manager/pkg/repositories/ent-fw/ent"
 	"log"
 )
@@ -52,7 +51,7 @@ func (auth *authService) FindUserByMailAndPsswd(mail, passwdHash string) (domain
 
 func (auth *authService) MergeClaimsFor(user domain.User, claims domain.Claims) error {
 	
-	user.Claims = ent_fw_common.MergeClaims(user.Claims, claims)
+	user.Claims = user.Claims.Merge(claims)
 	
 	updated, err := auth.userRepo.Update(user)
 	if err != nil {

@@ -40,7 +40,7 @@ func TestSave(t *testing.T) {
 		UserName: "jaime",
 		PasswordHash: "<hash>",	
 		Claims: domain.Claims{
-			"user_kind": "admin",
+			UserKind: "admin",
 		},
 	})
 
@@ -65,7 +65,7 @@ func TestFindByNameAndHash(t *testing.T) {
 		UserName: "jaime",
 		PasswordHash: "<hash>",	
 		Claims: domain.Claims{
-			"user_kind": "admin",
+			UserKind: "admin",
 		},
 	}
 
@@ -99,7 +99,7 @@ func TestUpdate(t *testing.T) {
 		UserName: "jaime",
 		PasswordHash: "<hash>",	
 		Claims: domain.Claims{
-			"user_kind": "admin",
+			UserKind: "admin",
 		},
 	}
 
@@ -108,7 +108,7 @@ func TestUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	creds.Claims["readonly"] = "true"
+	creds.Claims.RWPermission = "r"
 
 	err = repo.Update(creds)
 	if err != nil {
@@ -120,7 +120,7 @@ func TestUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if res.Claims["readonly"] != "true" {
+	if res.Claims.RWPermission != "r" {
 		t.Fatal("entity field was not updated")
 	}
 
@@ -138,19 +138,16 @@ func TestMergeClaims(t *testing.T) {
 	repo := credentials_repo.NewCredentialsEntRepo(client)
 
 	originalClaims := domain.Claims {
-		"const_claim": "const",
-		"user_kind": "admin",
+		UserKind: "admin",
 	}
 
 	updateClaims := domain.Claims {
-		"user_kind": "user",
-		"new_claim": "new",
+		RWPermission: "rw",
 	}
 
 	targetClaims := domain.Claims {
-		"const_claim": "const",
-		"user_kind": "user",
-		"new_claim": "new",
+		UserKind: "admin",
+		RWPermission: "rw",
 	}
 
 	creds := domain.Credentials{
@@ -199,7 +196,7 @@ func TestDelete(t *testing.T) {
 		UserName: "jaime",
 		PasswordHash: "<hash>",	
 		Claims: domain.Claims{
-			"user_kind": "admin",
+			UserKind: "admin",
 		},
 	}
 
