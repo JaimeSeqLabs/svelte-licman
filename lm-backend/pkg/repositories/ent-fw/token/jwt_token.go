@@ -19,14 +19,18 @@ func NewJwtTokenEntRepo(client *ent.Client) repositories.JwtTokenRepository {
 	}
 }
 
-func (repo *jwtTokenEntRepo) Save(token domain.Token) error {
-	_, err := repo.client.JwtToken.Create().
+func (repo *jwtTokenEntRepo) Save(token domain.Token) (domain.Token, error) {
+	t, err := repo.client.JwtToken.Create().
 		SetToken(token.Value).
 		SetRevoked(token.Revoked).
 		SetClaims(token.Claims).
 		SetIssuerID(token.IssuerID).
 		Save(context.TODO())
-	return err
+	if err != nil {
+		return domain.Token{}, err
+	}
+	
+	return toEntity(t), nil
 }
 
 func (repo *jwtTokenEntRepo) FindByToken(tokenValue string) (domain.Token, error) {
@@ -105,7 +109,7 @@ func toEntity(dto *ent.JwtToken) domain.Token {
 	return domain.Token {
 		Value: dto.Token,
 		Revoked: dto.Revoked,
-		Claims: domain.Claims(dto.Claims),
+		Claims: dto.Claims,
 		IssuerID: dto.IssuerID,
 	}
 }

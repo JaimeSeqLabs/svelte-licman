@@ -3,7 +3,7 @@ package repositories
 import "license-manager/pkg/domain"
 
 type JwtTokenRepository interface {
-	Save(token domain.Token) error
+	Save(token domain.Token) (domain.Token, error)
 	FindByToken(token string) (domain.Token, error)
 	FindByIssuer(userID string) ([]domain.Token, error)
 	FindClaimsByToken(token string) (domain.Claims, error)

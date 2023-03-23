@@ -41,12 +41,12 @@ func TestCreateData(t *testing.T) {
 		Value: "<token_value>",
 		Revoked: false,
 		Claims: domain.Claims {
-			domain.UserKindClaim: "admin",
+			UserKind: "admin",
 		},
 		IssuerID: usr.ID,
 	}
 
-	err := repo.Save(token)
+	_, err := repo.Save(token)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,12 +69,12 @@ func TestReadData(t *testing.T) {
 		Value: "<token_value>",
 		Revoked: true,
 		Claims: domain.Claims {
-			domain.UserKindClaim: "admin",
+			UserKind: "admin",
 		},
 		IssuerID: usr.ID,
 	}
 
-	_ = repo.Save(token)
+	_, _ = repo.Save(token)
 
 	got, err := repo.FindByToken(token.Value)
 	if err != nil {
@@ -122,12 +122,12 @@ func TestDeleteData(t *testing.T) {
 		Value: "<token_value>",
 		Revoked: false,
 		Claims: domain.Claims {
-			domain.UserKindClaim: "admin",
+			UserKind: "admin",
 		},
 		IssuerID: usr.ID,
 	}
 
-	_ = repo.Save(token)
+	_, _ = repo.Save(token)
 
 	err := repo.Delete(token.Value)
 	if err != nil {
