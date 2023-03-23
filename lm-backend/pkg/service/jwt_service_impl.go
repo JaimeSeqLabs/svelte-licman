@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -28,19 +29,26 @@ func NewJWTService(secret string, tokenRepo repositories.JwtTokenRepository) JWT
 
 func (jwts *jwtService) GenTokenFor(issuer domain.User, claims domain.Claims) (domain.Token, error) {
 	
+	if claims.IssuedAt == nil {
+		claims.IssuedAt = jwt.NewNumericDate(time.Now())
+	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
 	if token == nil {
 		return domain.Token{}, fmt.Errorf("unable to generate token for claims %+v", claims)
 	}
 
-	domainToken := domain.Token{
+	domainToken, err := jwts.tokenRepo.Save(domain.Token{
 		Value:    token.Raw,
 		Revoked:  false,
 		Claims:   claims,
 		IssuerID: issuer.ID,
+	})
+	if err != nil {
+		return domain.Token{}, err
 	}
 
-	return domainToken, jwts.tokenRepo.Save(domainToken)
+	return domainToken, nil
 }
 
 func (jwts *jwtService) GetIssuedBy(userID string) ([]domain.Token, error) {

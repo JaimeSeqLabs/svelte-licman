@@ -5,6 +5,7 @@ import (
 	"license-manager/pkg/domain"
 	"license-manager/pkg/pkgerrors"
 	"license-manager/pkg/repositories"
+	ent_fw_common "license-manager/pkg/repositories/ent-fw/common"
 	"license-manager/pkg/repositories/ent-fw/ent"
 	"log"
 )
@@ -51,7 +52,7 @@ func (auth *authService) FindUserByMailAndPsswd(mail, passwdHash string) (domain
 
 func (auth *authService) MergeClaimsFor(user domain.User, claims domain.Claims) error {
 	
-	user.Claims = merge(user.Claims, claims)
+	user.Claims = ent_fw_common.MergeClaims(user.Claims, claims)
 	
 	updated, err := auth.userRepo.Update(user)
 	if err != nil {
@@ -131,54 +132,3 @@ func (auth *authService) RevokeTokensFor(user domain.User) (revoked int, err err
 
 	return auth.jwtService.RevokeTokensFor(user)
 }
-
-
-func merge(original, updated map[string]any) map[string]any {
-	for k, v := range updated {
-		original[k] = v
-	}
-	return original
-}
-
-/* func (auth *authService) Register(creds domain.Credentials) error {
-	return auth.credsRepo.Save(creds)
-}
-
-func (auth *authService) IsRegistered(user string, passwdHash string) bool {
-	creds, err := auth.credsRepo.FindByUserNameAndPasswordHash(user, passwdHash)
-	if err != nil {
-		return false
-	}
-	// ensure struct is not empty
-	return creds.UserName == user && creds.PasswordHash == passwdHash
-}
-
-func (auth *authService) FindByUserNameAndPasswordHash(user string, passwdHash string) (domain.Credentials, error) {
-	return auth.credsRepo.FindByUserNameAndPasswordHash(user, passwdHash)
-}
-
-func (auth *authService) MergeClaimsFor(user string, passwdHash string, claims domain.Claims) error {
-	_, err := auth.credsRepo.MergeClaimsFor(user, passwdHash, claims)
-	return err
-}
-
-func (auth *authService) SetClaimsFor(user string, passwdHash string, claims domain.Claims) error {
-	return auth.credsRepo.Update(domain.Credentials{
-		UserName: user,
-		PasswordHash: passwdHash,
-		Claims: claims,
-	})
-}
-
-func (auth *authService) CreateTokenFor(creds domain.Credentials) (domain.Token, error) {
-	token, err := auth.jwtService.GenTokenFor(creds.Claims)
-	if err != nil {
-		return domain.Token{}, err
-	}
-	return token, nil
-}
-
-func (auth *authService) RevokeCreds(user string, passwdHash string) error {
-	// TODO: maybe cascade to jwt tokens also
-	return auth.credsRepo.DeleteByUserNameAndPasswordHash(user, passwdHash)
-} */

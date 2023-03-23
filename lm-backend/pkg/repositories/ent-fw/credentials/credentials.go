@@ -9,6 +9,7 @@ import (
 	"license-manager/pkg/repositories"
 	"license-manager/pkg/repositories/ent-fw/ent"
 	"license-manager/pkg/repositories/ent-fw/ent/credentials"
+	ent_fw_common "license-manager/pkg/repositories/ent-fw/common"
 )
 
 type credentialsEntRepo struct {
@@ -83,7 +84,7 @@ func (repo *credentialsEntRepo) MergeClaimsFor(name string, hash string, updates
 
 	// merge
 	currentClaims := toEntity(targetCreds).Claims
-	resultClaims := merge(currentClaims, updates)
+	resultClaims := ent_fw_common.MergeClaims(currentClaims, updates)
 	
 	// update creds
 	_, err = txClient.Credentials.Update().
@@ -148,11 +149,4 @@ func toEntity(dto *ent.Credentials) domain.Credentials {
 		PasswordHash: dto.PasswordHash,
 		Claims: dto.Claims,
 	}
-}
-
-func merge(original, updated map[string]any) map[string]any {
-	for k, v := range updated {
-		original[k] = v
-	}
-	return original
 }
