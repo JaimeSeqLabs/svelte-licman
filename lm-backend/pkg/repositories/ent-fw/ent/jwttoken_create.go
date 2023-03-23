@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
 	"license-manager/pkg/repositories/ent-fw/ent/user"
 
@@ -41,8 +42,8 @@ func (jtc *JwtTokenCreate) SetNillableRevoked(b *bool) *JwtTokenCreate {
 }
 
 // SetClaims sets the "claims" field.
-func (jtc *JwtTokenCreate) SetClaims(m map[string]interface{}) *JwtTokenCreate {
-	jtc.mutation.SetClaims(m)
+func (jtc *JwtTokenCreate) SetClaims(d domain.Claims) *JwtTokenCreate {
+	jtc.mutation.SetClaims(d)
 	return jtc
 }
 

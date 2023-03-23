@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"license-manager/pkg/domain"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -24,7 +26,7 @@ func (JwtToken) Fields() []ent.Field {
 			Bool("revoked").
 			Default(false),
 		field.
-			JSON("claims", map[string]any{}),
+			JSON("claims", domain.Claims{}),
 		field.
 			String("issuer_id"),
 	}

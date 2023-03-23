@@ -5,6 +5,7 @@ package ent
 import (
 	"encoding/json"
 	"fmt"
+	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
 	"license-manager/pkg/repositories/ent-fw/ent/user"
 	"strings"
@@ -22,7 +23,7 @@ type JwtToken struct {
 	// Revoked holds the value of the "revoked" field.
 	Revoked bool `json:"revoked,omitempty"`
 	// Claims holds the value of the "claims" field.
-	Claims map[string]interface{} `json:"claims,omitempty"`
+	Claims domain.Claims `json:"claims,omitempty"`
 	// IssuerID holds the value of the "issuer_id" field.
 	IssuerID string `json:"issuer_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.

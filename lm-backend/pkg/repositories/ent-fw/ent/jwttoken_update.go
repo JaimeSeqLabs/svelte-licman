@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
 	"license-manager/pkg/repositories/ent-fw/ent/user"
@@ -49,8 +50,8 @@ func (jtu *JwtTokenUpdate) SetNillableRevoked(b *bool) *JwtTokenUpdate {
 }
 
 // SetClaims sets the "claims" field.
-func (jtu *JwtTokenUpdate) SetClaims(m map[string]interface{}) *JwtTokenUpdate {
-	jtu.mutation.SetClaims(m)
+func (jtu *JwtTokenUpdate) SetClaims(d domain.Claims) *JwtTokenUpdate {
+	jtu.mutation.SetClaims(d)
 	return jtu
 }
 
@@ -222,8 +223,8 @@ func (jtuo *JwtTokenUpdateOne) SetNillableRevoked(b *bool) *JwtTokenUpdateOne {
 }
 
 // SetClaims sets the "claims" field.
-func (jtuo *JwtTokenUpdateOne) SetClaims(m map[string]interface{}) *JwtTokenUpdateOne {
-	jtuo.mutation.SetClaims(m)
+func (jtuo *JwtTokenUpdateOne) SetClaims(d domain.Claims) *JwtTokenUpdateOne {
+	jtuo.mutation.SetClaims(d)
 	return jtuo
 }
 

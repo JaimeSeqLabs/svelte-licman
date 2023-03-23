@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories/ent-fw/ent/contact"
 	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 	"license-manager/pkg/repositories/ent-fw/ent/jwttoken"
@@ -873,7 +874,7 @@ type JwtTokenMutation struct {
 	id            *string
 	token         *string
 	revoked       *bool
-	claims        *map[string]interface{}
+	claims        *domain.Claims
 	clearedFields map[string]struct{}
 	issuer        *string
 	clearedissuer bool
@@ -1059,12 +1060,12 @@ func (m *JwtTokenMutation) ResetRevoked() {
 }
 
 // SetClaims sets the "claims" field.
-func (m *JwtTokenMutation) SetClaims(value map[string]interface{}) {
-	m.claims = &value
+func (m *JwtTokenMutation) SetClaims(d domain.Claims) {
+	m.claims = &d
 }
 
 // Claims returns the value of the "claims" field in the mutation.
-func (m *JwtTokenMutation) Claims() (r map[string]interface{}, exists bool) {
+func (m *JwtTokenMutation) Claims() (r domain.Claims, exists bool) {
 	v := m.claims
 	if v == nil {
 		return
@@ -1075,7 +1076,7 @@ func (m *JwtTokenMutation) Claims() (r map[string]interface{}, exists bool) {
 // OldClaims returns the old "claims" field's value of the JwtToken entity.
 // If the JwtToken object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *JwtTokenMutation) OldClaims(ctx context.Context) (v map[string]interface{}, err error) {
+func (m *JwtTokenMutation) OldClaims(ctx context.Context) (v domain.Claims, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldClaims is only allowed on UpdateOne operations")
 	}
@@ -1260,7 +1261,7 @@ func (m *JwtTokenMutation) SetField(name string, value ent.Value) error {
 		m.SetRevoked(v)
 		return nil
 	case jwttoken.FieldClaims:
-		v, ok := value.(map[string]interface{})
+		v, ok := value.(domain.Claims)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
