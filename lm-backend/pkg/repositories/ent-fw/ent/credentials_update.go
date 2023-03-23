@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 	"license-manager/pkg/repositories/ent-fw/ent/predicate"
 
@@ -40,8 +41,8 @@ func (cu *CredentialsUpdate) SetPasswordHash(s string) *CredentialsUpdate {
 }
 
 // SetClaims sets the "claims" field.
-func (cu *CredentialsUpdate) SetClaims(m map[string]interface{}) *CredentialsUpdate {
-	cu.mutation.SetClaims(m)
+func (cu *CredentialsUpdate) SetClaims(d domain.Claims) *CredentialsUpdate {
+	cu.mutation.SetClaims(d)
 	return cu
 }
 
@@ -155,8 +156,8 @@ func (cuo *CredentialsUpdateOne) SetPasswordHash(s string) *CredentialsUpdateOne
 }
 
 // SetClaims sets the "claims" field.
-func (cuo *CredentialsUpdateOne) SetClaims(m map[string]interface{}) *CredentialsUpdateOne {
-	cuo.mutation.SetClaims(m)
+func (cuo *CredentialsUpdateOne) SetClaims(d domain.Claims) *CredentialsUpdateOne {
+	cuo.mutation.SetClaims(d)
 	return cuo
 }
 

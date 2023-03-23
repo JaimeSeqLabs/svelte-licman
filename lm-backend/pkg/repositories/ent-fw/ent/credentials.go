@@ -5,6 +5,7 @@ package ent
 import (
 	"encoding/json"
 	"fmt"
+	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 	"strings"
 
@@ -21,7 +22,7 @@ type Credentials struct {
 	// PasswordHash holds the value of the "password_hash" field.
 	PasswordHash string `json:"password_hash,omitempty"`
 	// Claims holds the value of the "claims" field.
-	Claims map[string]interface{} `json:"claims,omitempty"`
+	Claims domain.Claims `json:"claims,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.

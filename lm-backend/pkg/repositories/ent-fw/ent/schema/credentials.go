@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"license-manager/pkg/domain"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -17,7 +19,7 @@ func (Credentials) Fields() []ent.Field {
 		field.String("id").DefaultFunc(uuid.NewString),
 		field.String("username").NotEmpty(),
 		field.String("password_hash").NotEmpty(),
-		field.JSON("claims", map[string]any{}),
+		field.JSON("claims", domain.Claims{}),
 	}
 }
 

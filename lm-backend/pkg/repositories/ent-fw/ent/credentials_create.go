@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"license-manager/pkg/domain"
 	"license-manager/pkg/repositories/ent-fw/ent/credentials"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -32,8 +33,8 @@ func (cc *CredentialsCreate) SetPasswordHash(s string) *CredentialsCreate {
 }
 
 // SetClaims sets the "claims" field.
-func (cc *CredentialsCreate) SetClaims(m map[string]interface{}) *CredentialsCreate {
-	cc.mutation.SetClaims(m)
+func (cc *CredentialsCreate) SetClaims(d domain.Claims) *CredentialsCreate {
+	cc.mutation.SetClaims(d)
 	return cc
 }
 
